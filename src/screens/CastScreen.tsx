@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as Clipboard from "expo-clipboard";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { CastMode } from "../navTypes";
 import { castChart, castByTime, buildPrompt, ApiError } from "../api";
 import { castOneYao, yaoValsFromChart, YAO_NAMES } from "../divination";
@@ -21,6 +22,14 @@ import { colors, spacing } from "../theme";
 import ChartResult from "../components/ChartResult";
 
 const EMPTY: (CastYao | null)[] = [null, null, null, null, null, null];
+
+/** 轉輪起始位置(僅供捲動起點,未選前不算數)。 */
+const DEFAULT_BIRTH = new Date(2000, 0, 1, 12, 0);
+
+const pad = (n: number) => String(n).padStart(2, "0");
+function formatBirth(d: Date): string {
+  return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}時`;
+}
 
 /** 排盤後固定下來、供產生 Prompt 用的輸入(六爻 + 當時日期)。 */
 interface ChartInput {
@@ -42,14 +51,11 @@ export default function CastScreen({ mode }: { mode: CastMode }) {
   const [preview, setPreview] = useState("");
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // 時辰起卦輸入(預設現在)
-  const now = new Date();
+  // 命盤排卦輸入(出生時間預設未選)
   const [nameStr, setNameStr] = useState("");
   const [gender, setGender] = useState<"M" | "F" | "">("");
-  const [yStr, setYStr] = useState(String(now.getFullYear()));
-  const [mStr, setMStr] = useState(String(now.getMonth() + 1));
-  const [dStr, setDStr] = useState(String(now.getDate()));
-  const [hStr, setHStr] = useState(String(now.getHours()));
+  const [birth, setBirth] = useState<Date | null>(null);
+  const [showPicker, setShowPicker] = useState(false);
 
   // 共用
   const [chart, setChart] = useState<ChartResponse | null>(null);
@@ -97,6 +103,8 @@ export default function CastScreen({ mode }: { mode: CastMode }) {
     setPromptText(null);
     setCopied(false);
     setCollapsed(false);
+    setBirth(null);
+    setShowPicker(false);
   }
 
   /** 手動擲卦排盤。 */
@@ -132,14 +140,14 @@ export default function CastScreen({ mode }: { mode: CastMode }) {
       Alert.alert("請填姓名", "排命盤需要填寫姓名(會存入紀錄)。");
       return;
     }
-    const y = parseInt(yStr, 10);
-    const m = parseInt(mStr, 10);
-    const d = parseInt(dStr, 10);
-    const h = parseInt(hStr, 10);
-    if ([y, m, d, h].some((v) => Number.isNaN(v))) {
-      Alert.alert("日期時間有誤", "請確認年、月、日、時都填數字。");
+    if (!birth) {
+      Alert.alert("請選擇出生時間", "點上方欄位選擇出生年月日與時辰。");
       return;
     }
+    const y = birth.getFullYear();
+    const m = birth.getMonth() + 1;
+    const d = birth.getDate();
+    const h = birth.getHours();
     setLoading(true);
     setError(null);
     try {
@@ -266,13 +274,38 @@ export default function CastScreen({ mode }: { mode: CastMode }) {
                   </View>
                   <View style={styles.card}>
                     <Text style={styles.label}>出生時間</Text>
-                    <View style={styles.dtRow}>
-                      <DtField label="年" value={yStr} onChange={setYStr} w={70} />
-                      <DtField label="月" value={mStr} onChange={setMStr} w={48} />
-                      <DtField label="日" value={dStr} onChange={setDStr} w={48} />
-                      <DtField label="時" value={hStr} onChange={setHStr} w={48} />
-                    </View>
-                    <Text style={styles.hint}>24 小時制,例如下午 4 點填 16。</Text>
+                    <Pressable
+                      style={styles.pickerField}
+                      onPress={() => setShowPicker((s) => !s)}
+                    >
+                      <Text style={birth ? styles.pickerValue : styles.pickerPlaceholder}>
+                        {birth ? formatBirth(birth) : "點此選擇出生年月日與時辰"}
+                      </Text>
+                    </Pressable>
+                    {showPicker && (
+                      <View style={styles.pickerWrap}>
+                        <DateTimePicker
+                          value={birth ?? DEFAULT_BIRTH}
+                          mode="datetime"
+                          display="spinner"
+                          maximumDate={new Date()}
+                          minimumDate={new Date(1900, 0, 1)}
+                          onChange={(_e, d) => {
+                            if (d) setBirth(d);
+                            if (Platform.OS !== "ios") setShowPicker(false);
+                          }}
+                        />
+                        {Platform.OS === "ios" && (
+                          <Pressable
+                            style={styles.pickerDone}
+                            onPress={() => setShowPicker(false)}
+                          >
+                            <Text style={styles.pickerDoneText}>完成</Text>
+                          </Pressable>
+                        )}
+                      </View>
+                    )}
+                    <Text style={styles.hint}>命盤以出生時辰排盤;時辰以 00:00 換日。</Text>
                   </View>
                 </>
               ) : (
@@ -375,31 +408,6 @@ export default function CastScreen({ mode }: { mode: CastMode }) {
   );
 }
 
-function DtField({
-  label,
-  value,
-  onChange,
-  w,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  w: number;
-}) {
-  return (
-    <View style={styles.dtField}>
-      <TextInput
-        style={[styles.dtInput, { width: w }]}
-        value={value}
-        onChangeText={(t) => onChange(t.replace(/[^0-9]/g, ""))}
-        keyboardType="number-pad"
-        maxLength={4}
-      />
-      <Text style={styles.dtLabel}>{label}</Text>
-    </View>
-  );
-}
-
 function PrimaryButton({
   label,
   onPress,
@@ -495,19 +503,23 @@ const styles = StyleSheet.create({
   },
   genderText: { fontSize: 15, color: colors.subtle },
   genderTextActive: { color: colors.primary, fontWeight: "700" },
-  dtRow: { flexDirection: "row", alignItems: "center", gap: spacing.md },
-  dtField: { flexDirection: "row", alignItems: "center" },
-  dtInput: {
+  pickerField: {
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 8,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
-    fontSize: 16,
-    color: colors.text,
-    textAlign: "center",
+    backgroundColor: "#fafafa",
   },
-  dtLabel: { marginLeft: 4, color: colors.subtle, fontSize: 14 },
+  pickerValue: { fontSize: 16, color: colors.text },
+  pickerPlaceholder: { fontSize: 15, color: colors.subtle },
+  pickerWrap: { marginTop: spacing.sm },
+  pickerDone: {
+    alignSelf: "flex-end",
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
+  },
+  pickerDoneText: { color: colors.primary, fontSize: 16, fontWeight: "700" },
   yaoRow: { flexDirection: "row", alignItems: "center", paddingVertical: 6 },
   yaoLabel: { width: 48, color: colors.subtle, fontSize: 14 },
   yaoSymbol: {

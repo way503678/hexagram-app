@@ -8,7 +8,7 @@
  *     開發階段連 LAN 的 http 可暫時放行(見 app.json 的 ATS 設定);
  *     正式上架務必走 https。
  */
-export const API_BASE_URL = "http://192.168.1.115:8080";
+export const API_BASE_URL = "https://hexagram.johnsonwebsites.cc";
 
 /** 單次 API 逾時(毫秒)。排盤很快;解讀(串流)另計。 */
 export const API_TIMEOUT_MS = 15000;

@@ -47,7 +47,7 @@ export default function App() {
           </Tab.Screen>
           <Tab.Screen
             name="Time"
-            options={{ title: "時辰起卦", tabBarIcon: tabIcon("🕐") }}
+            options={{ title: "命盤排卦", tabBarIcon: tabIcon("🕐") }}
           >
             {() => <CastScreen mode="time" />}
           </Tab.Screen>

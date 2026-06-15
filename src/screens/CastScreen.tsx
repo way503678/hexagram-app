@@ -129,7 +129,7 @@ export default function CastScreen({ mode }: { mode: CastMode }) {
     if (loading) return;
     const name = nameStr.trim();
     if (!name) {
-      Alert.alert("請填姓名", "時辰起卦需要填寫姓名(會存入紀錄)。");
+      Alert.alert("請填姓名", "排命盤需要填寫姓名(會存入紀錄)。");
       return;
     }
     const y = parseInt(yStr, 10);
@@ -208,7 +208,7 @@ export default function CastScreen({ mode }: { mode: CastMode }) {
             <>
               <Text style={styles.subtitle}>
                 {isTime
-                  ? "指定日期時辰,系統依時辰自動起卦。"
+                  ? "填入姓名與出生時間,排出命盤。"
                   : "先想清楚要問什麼,再由初爻起依序擲六次。"}
               </Text>
 
@@ -265,7 +265,7 @@ export default function CastScreen({ mode }: { mode: CastMode }) {
                     </View>
                   </View>
                   <View style={styles.card}>
-                    <Text style={styles.label}>起卦時間</Text>
+                    <Text style={styles.label}>出生時間</Text>
                     <View style={styles.dtRow}>
                       <DtField label="年" value={yStr} onChange={setYStr} w={70} />
                       <DtField label="月" value={mStr} onChange={setMStr} w={48} />
@@ -304,7 +304,7 @@ export default function CastScreen({ mode }: { mode: CastMode }) {
               {/* 動作 */}
               {isTime ? (
                 <PrimaryButton
-                  label={loading ? "起卦中…" : "起卦"}
+                  label={loading ? "排命盤中…" : "排命盤"}
                   onPress={doChartTime}
                   disabled={loading}
                 />

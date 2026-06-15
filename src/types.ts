@@ -51,8 +51,10 @@ export interface SiZhu {
 }
 
 export interface DongYao {
-  indices: number[];
   描述: string;
+  indices?: number[]; // 手動排卦:動爻 index 陣列
+  index?: number; // 時辰起卦:單一動爻 index
+  爻序名?: string;
 }
 
 export interface ChartInner {

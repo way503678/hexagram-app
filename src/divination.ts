@@ -1,4 +1,4 @@
-import { CastYao } from "./types";
+import { CastYao, ChartResponse } from "./types";
 
 /**
  * 金錢卦擲一爻:三枚銅板,背=陽(1)、字=陰(0)。
@@ -30,3 +30,15 @@ function tossCoin(): 0 | 1 {
 
 /** 爻序名(由初爻到上爻,index 0..5)。 */
 export const YAO_NAMES = ["初爻", "二爻", "三爻", "四爻", "五爻", "上爻"];
+
+/**
+ * 從(時辰起卦得到的)卦象反推 yao_vals "陰陽,動否",由初爻到上爻。
+ * 讓時辰模式也能用同一支 /api/v1/prompt 產生 AI 解讀 Prompt。
+ */
+export function yaoValsFromChart(chart: ChartResponse): string[] {
+  // 用每個爻自己的「動爻」布林(手動卦與時辰卦的頂層動爻結構不同,逐爻最穩)
+  const yaos = [...chart.卦象.本卦.爻].sort(
+    (a, b) => a.爻序index - b.爻序index
+  );
+  return yaos.map((y) => `${y.陰陽 === "陽" ? 1 : 0},${y.動爻 ? 1 : 0}`);
+}

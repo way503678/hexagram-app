@@ -47,9 +47,25 @@ export interface ChartRequest {
   aspect?: string;
 }
 
-/** 排盤:送出日期 + 六爻,取得完整卦象。 */
+/** 排盤(手動擲卦):送出日期 + 六爻,取得完整卦象。 */
 export function castChart(req: ChartRequest): Promise<ChartResponse> {
   return postJson<ChartResponse>("/api/v1/chart", {
+    aspect: "all",
+    ...req,
+  });
+}
+
+export interface TimeCastRequest {
+  y: number;
+  m: number;
+  d: number;
+  h: number;
+  aspect?: string;
+}
+
+/** 時辰起卦:只送日期時間,依時辰自動起卦。 */
+export function castByTime(req: TimeCastRequest): Promise<ChartResponse> {
+  return postJson<ChartResponse>("/api/v1/cast", {
     aspect: "all",
     ...req,
   });

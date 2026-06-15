@@ -1,13 +1,9 @@
 import React from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
-import { RootTabParamList } from "../navTypes";
 import { colors, spacing } from "../theme";
 
-type Props = BottomTabScreenProps<RootTabParamList, "Home">;
-
-export default function HomeScreen({ navigation }: Props) {
+export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
@@ -36,33 +32,6 @@ export default function HomeScreen({ navigation }: Props) {
           </Text>
         </View>
 
-        {/* 入口 */}
-        <View style={styles.actions}>
-          <Pressable
-            style={({ pressed }) => [styles.entry, pressed && styles.entryPressed]}
-            onPress={() => navigation.navigate("Coin")}
-          >
-            <Text style={styles.entryIcon}>🪙</Text>
-            <View style={styles.entryTextWrap}>
-              <Text style={styles.entryTitle}>手動擲卦</Text>
-              <Text style={styles.entryDesc}>金錢卦,親手擲六爻起卦</Text>
-            </View>
-            <Text style={styles.entryArrow}>›</Text>
-          </Pressable>
-
-          <Pressable
-            style={({ pressed }) => [styles.entry, pressed && styles.entryPressed]}
-            onPress={() => navigation.navigate("Time")}
-          >
-            <Text style={styles.entryIcon}>🕐</Text>
-            <View style={styles.entryTextWrap}>
-              <Text style={styles.entryTitle}>時辰起卦</Text>
-              <Text style={styles.entryDesc}>指定日期時辰,自動起卦</Text>
-            </View>
-            <Text style={styles.entryArrow}>›</Text>
-          </Pressable>
-        </View>
-
         <View style={styles.footer}>
           <Text style={styles.footerText}>本系統依京房納甲法、野鶴派飛伏理論製作</Text>
           <Text style={styles.footerText}>僅供研究參考,不能取代專業諮詢</Text>
@@ -74,9 +43,14 @@ export default function HomeScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: spacing.xl, paddingTop: spacing.xl * 2 },
+  scroll: {
+    flexGrow: 1,
+    justifyContent: "center",
+    padding: spacing.xl,
+    paddingVertical: spacing.xl * 2,
+  },
   top: { alignItems: "center" },
-  symbol: { fontSize: 56, color: colors.primary },
+  symbol: { fontSize: 60, color: colors.primary },
   title: {
     fontSize: 34,
     fontWeight: "800",
@@ -106,22 +80,6 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   poemLast: { color: colors.subtle },
-  actions: { marginTop: spacing.xl * 1.5, gap: spacing.md },
-  entry: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.card,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.lg,
-  },
-  entryPressed: { opacity: 0.7 },
-  entryIcon: { fontSize: 26, marginRight: spacing.md },
-  entryTextWrap: { flex: 1 },
-  entryTitle: { fontSize: 17, fontWeight: "700", color: colors.text },
-  entryDesc: { fontSize: 13, color: colors.subtle, marginTop: 2 },
-  entryArrow: { fontSize: 24, color: colors.subtle },
   footer: { alignItems: "center", marginTop: spacing.xl * 2 },
   footerText: { fontSize: 12, color: colors.subtle, lineHeight: 20 },
 });

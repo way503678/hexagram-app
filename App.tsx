@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -12,7 +13,8 @@ import {
   View,
 } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { castChart, ApiError } from "./src/api";
+import * as Clipboard from "expo-clipboard";
+import { castChart, buildPrompt, ApiError } from "./src/api";
 import { castOneYao, YAO_NAMES } from "./src/divination";
 import { CastYao, ChartResponse } from "./src/types";
 import { colors, spacing } from "./src/theme";
@@ -36,6 +38,9 @@ function Screen() {
   const [chart, setChart] = useState<ChartResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [promptText, setPromptText] = useState<string | null>(null);
+  const [promptLoading, setPromptLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const castCount = yaos.filter(Boolean).length;
@@ -70,6 +75,43 @@ function Screen() {
     setError(null);
     setRolling(false);
     setPreview("");
+    setPromptText(null);
+    setCopied(false);
+  }
+
+  async function doPrompt() {
+    if (!done || promptLoading) return;
+    const q = question.trim();
+    if (!q) {
+      Alert.alert("請先填寫所問之事", "上方「所問之事」要先填,Prompt 才能帶入問題。");
+      return;
+    }
+    setPromptLoading(true);
+    setError(null);
+    setCopied(false);
+    const now = new Date();
+    try {
+      const res = await buildPrompt({
+        question: q,
+        y: now.getFullYear(),
+        m: now.getMonth() + 1,
+        d: now.getDate(),
+        h: now.getHours(),
+        yao_vals: yaos.map((y) => (y as CastYao).val),
+      });
+      setPromptText(res.prompt);
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "產生 Prompt 失敗,請稍後再試");
+    } finally {
+      setPromptLoading(false);
+    }
+  }
+
+  async function copyPrompt() {
+    if (!promptText) return;
+    await Clipboard.setStringAsync(promptText);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }
 
   async function doChart() {
@@ -183,6 +225,37 @@ function Screen() {
             </View>
           )}
 
+          {/* 產生 AI 解讀 Prompt(免費,複製到自己的 AI 使用) */}
+          {done && (
+            <View style={{ marginTop: spacing.lg }}>
+              <SecondaryButton
+                label={promptLoading ? "產生中…" : "🤖 產生 AI 解讀 Prompt"}
+                onPress={doPrompt}
+                disabled={promptLoading}
+              />
+              {promptText && (
+                <View style={[styles.card, { marginTop: spacing.md }]}>
+                  <View style={styles.promptHeader}>
+                    <Text style={styles.label}>AI 解讀 Prompt</Text>
+                    <Pressable onPress={copyPrompt} hitSlop={8}>
+                      <Text style={styles.copyBtn}>
+                        {copied ? "✓ 已複製" : "複製"}
+                      </Text>
+                    </Pressable>
+                  </View>
+                  <Text style={styles.hint}>
+                    複製後貼到 ChatGPT / Claude 等 AI,即可取得解讀。
+                  </Text>
+                  <ScrollView style={styles.promptBox} nestedScrollEnabled>
+                    <Text selectable style={styles.promptText}>
+                      {promptText}
+                    </Text>
+                  </ScrollView>
+                </View>
+              )}
+            </View>
+          )}
+
           <View style={{ height: spacing.xl }} />
         </ScrollView>
       </KeyboardAvoidingView>
@@ -210,6 +283,30 @@ function PrimaryButton({
       ]}
     >
       <Text style={styles.btnText}>{label}</Text>
+    </Pressable>
+  );
+}
+
+function SecondaryButton({
+  label,
+  onPress,
+  disabled,
+}: {
+  label: string;
+  onPress: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      style={({ pressed }) => [
+        styles.btnSecondary,
+        disabled && styles.btnSecondaryDisabled,
+        pressed && !disabled && styles.btnPressed,
+      ]}
+    >
+      <Text style={styles.btnSecondaryText}>{label}</Text>
     </Pressable>
   );
 }
@@ -271,6 +368,37 @@ const styles = StyleSheet.create({
   btnPressed: { opacity: 0.85 },
   btnDisabled: { backgroundColor: "#b9a7c4" },
   btnText: { color: colors.primaryText, fontSize: 17, fontWeight: "700" },
+  btnSecondary: {
+    backgroundColor: colors.card,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    paddingVertical: 13,
+    alignItems: "center",
+  },
+  btnSecondaryDisabled: { opacity: 0.5 },
+  btnSecondaryText: { color: colors.primary, fontSize: 16, fontWeight: "700" },
+  promptHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  copyBtn: { color: colors.primary, fontSize: 15, fontWeight: "700" },
+  hint: { color: colors.subtle, fontSize: 12, marginTop: 2, marginBottom: spacing.sm },
+  promptBox: {
+    maxHeight: 260,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    padding: spacing.md,
+    backgroundColor: "#fafafa",
+  },
+  promptText: {
+    fontSize: 12,
+    color: colors.text,
+    lineHeight: 18,
+    fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
+  },
   resetBtn: { alignSelf: "center", paddingVertical: spacing.md },
   resetText: {
     color: colors.subtle,

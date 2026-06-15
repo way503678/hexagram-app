@@ -55,6 +55,18 @@ export function castChart(req: ChartRequest): Promise<ChartResponse> {
   });
 }
 
+export interface PromptRequest extends ChartRequest {
+  question: string; // 所問之事(必填)
+}
+
+/** 組裝可複製的 AI 解讀 Prompt(免費、不呼叫 Claude)。 */
+export function buildPrompt(req: PromptRequest): Promise<{ prompt: string }> {
+  return postJson<{ prompt: string }>("/api/v1/prompt", {
+    aspect: "all",
+    ...req,
+  });
+}
+
 /** 健康檢查(設定頁可用來測連線)。 */
 export async function checkHealth(): Promise<boolean> {
   try {

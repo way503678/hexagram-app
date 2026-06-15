@@ -41,6 +41,7 @@ function Screen() {
   const [promptText, setPromptText] = useState<string | null>(null);
   const [promptLoading, setPromptLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const castCount = yaos.filter(Boolean).length;
@@ -77,6 +78,7 @@ function Screen() {
     setPreview("");
     setPromptText(null);
     setCopied(false);
+    setCollapsed(false);
   }
 
   async function doPrompt() {
@@ -129,6 +131,7 @@ function Screen() {
         yao_vals: yaos.map((y) => (y as CastYao).val),
       });
       setChart(res);
+      setCollapsed(true); // 排盤成功後收起上方輸入區,只留結果
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "排盤失敗,請稍後再試");
     } finally {
@@ -152,63 +155,80 @@ function Screen() {
             先想清楚要問什麼,再由初爻起依序擲六次。
           </Text>
 
-          {/* 所問之事(先填,供日後 AI 解讀) */}
-          <View style={styles.card}>
-            <Text style={styles.label}>所問之事</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="例如:我下週的面試會順利嗎?"
-              placeholderTextColor={colors.subtle}
-              value={question}
-              onChangeText={setQuestion}
-              maxLength={500}
-              multiline
-            />
-          </View>
-
-          {/* 六爻(上→初) */}
-          <View style={styles.card}>
-            {[5, 4, 3, 2, 1, 0].map((idx) => {
-              const y = yaos[idx];
-              const isNext = idx === castCount && rolling;
-              return (
-                <View key={idx} style={styles.yaoRow}>
-                  <Text style={styles.yaoLabel}>{YAO_NAMES[idx]}</Text>
-                  <Text
-                    style={[
-                      styles.yaoSymbol,
-                      y?.動 && { color: colors.moving },
-                      !y && styles.yaoEmpty,
-                    ]}
-                  >
-                    {isNext ? preview || "⋯" : y ? y.symbol : "──────"}
-                  </Text>
-                  <Text style={styles.yaoName}>
-                    {isNext ? "擲卦中…" : y ? y.name : "未擲"}
-                  </Text>
-                </View>
-              );
-            })}
-          </View>
-
-          {/* 操作按鈕 */}
-          {!done ? (
-            <PrimaryButton
-              label={`擲第 ${castCount + 1} 爻(${YAO_NAMES[castCount]})`}
-              onPress={castNext}
-              disabled={rolling}
-            />
+          {collapsed ? (
+            /* 收合列:排盤後只留一條,可展開或重新擲卦 */
+            <View style={styles.collapsedBar}>
+              <Text style={styles.collapsedText} numberOfLines={1}>
+                🪙 已排盤{question ? `・${question}` : ""}
+              </Text>
+              <Pressable onPress={() => setCollapsed(false)} hitSlop={8}>
+                <Text style={styles.collapsedToggle}>展開</Text>
+              </Pressable>
+              <Pressable onPress={reset} hitSlop={8}>
+                <Text style={styles.collapsedToggle}>重新擲卦</Text>
+              </Pressable>
+            </View>
           ) : (
-            <PrimaryButton
-              label={loading ? "排盤中…" : "排盤"}
-              onPress={doChart}
-              disabled={loading}
-            />
-          )}
-          {castCount > 0 && (
-            <Pressable onPress={reset} style={styles.resetBtn} hitSlop={8}>
-              <Text style={styles.resetText}>重新擲卦</Text>
-            </Pressable>
+            <>
+              {/* 所問之事(先填,供 AI 解讀) */}
+              <View style={styles.card}>
+                <Text style={styles.label}>所問之事</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="例如:我下週的面試會順利嗎?"
+                  placeholderTextColor={colors.subtle}
+                  value={question}
+                  onChangeText={setQuestion}
+                  maxLength={500}
+                  multiline
+                />
+              </View>
+
+              {/* 六爻(上→初) */}
+              <View style={styles.card}>
+                {[5, 4, 3, 2, 1, 0].map((idx) => {
+                  const y = yaos[idx];
+                  const isNext = idx === castCount && rolling;
+                  return (
+                    <View key={idx} style={styles.yaoRow}>
+                      <Text style={styles.yaoLabel}>{YAO_NAMES[idx]}</Text>
+                      <Text
+                        style={[
+                          styles.yaoSymbol,
+                          y?.動 && { color: colors.moving },
+                          !y && styles.yaoEmpty,
+                        ]}
+                      >
+                        {isNext ? preview || "⋯" : y ? y.symbol : "──────"}
+                      </Text>
+                      <Text style={styles.yaoName}>
+                        {isNext ? "擲卦中…" : y ? y.name : "未擲"}
+                      </Text>
+                    </View>
+                  );
+                })}
+              </View>
+
+              {/* 操作按鈕 */}
+              {!done ? (
+                <PrimaryButton
+                  label={`擲第 ${castCount + 1} 爻(${YAO_NAMES[castCount]})`}
+                  onPress={castNext}
+                  disabled={rolling}
+                />
+              ) : (
+                <PrimaryButton
+                  label={loading ? "排盤中…" : "排盤"}
+                  onPress={doChart}
+                  disabled={loading}
+                />
+              )}
+              {castCount > 0 && (
+                <Pressable onPress={reset} style={styles.resetBtn} hitSlop={8}>
+                  <Text style={styles.resetText}>重新擲卦</Text>
+                </Pressable>
+              )}
+            </>
           )}
 
           {loading && (
@@ -399,6 +419,20 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
   },
+  collapsedBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    backgroundColor: colors.card,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+  },
+  collapsedText: { flex: 1, color: colors.text, fontSize: 14 },
+  collapsedToggle: { color: colors.primary, fontSize: 14, fontWeight: "700" },
   resetBtn: { alignSelf: "center", paddingVertical: spacing.md },
   resetText: {
     color: colors.subtle,

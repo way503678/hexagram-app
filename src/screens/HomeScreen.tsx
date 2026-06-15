@@ -1,11 +1,11 @@
 import React from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../navTypes";
+import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
+import { RootTabParamList } from "../navTypes";
 import { colors, spacing } from "../theme";
 
-type Props = NativeStackScreenProps<RootStackParamList, "Home">;
+type Props = BottomTabScreenProps<RootTabParamList, "Home">;
 
 export default function HomeScreen({ navigation }: Props) {
   return (
@@ -40,7 +40,7 @@ export default function HomeScreen({ navigation }: Props) {
         <View style={styles.actions}>
           <Pressable
             style={({ pressed }) => [styles.entry, pressed && styles.entryPressed]}
-            onPress={() => navigation.navigate("Cast", { mode: "coin" })}
+            onPress={() => navigation.navigate("Coin")}
           >
             <Text style={styles.entryIcon}>🪙</Text>
             <View style={styles.entryTextWrap}>
@@ -52,7 +52,7 @@ export default function HomeScreen({ navigation }: Props) {
 
           <Pressable
             style={({ pressed }) => [styles.entry, pressed && styles.entryPressed]}
-            onPress={() => navigation.navigate("Cast", { mode: "time" })}
+            onPress={() => navigation.navigate("Time")}
           >
             <Text style={styles.entryIcon}>🕐</Text>
             <View style={styles.entryTextWrap}>

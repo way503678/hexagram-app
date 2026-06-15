@@ -13,15 +13,12 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as Clipboard from "expo-clipboard";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../navTypes";
+import { CastMode } from "../navTypes";
 import { castChart, castByTime, buildPrompt, ApiError } from "../api";
 import { castOneYao, yaoValsFromChart, YAO_NAMES } from "../divination";
 import { CastYao, ChartResponse } from "../types";
 import { colors, spacing } from "../theme";
 import ChartResult from "../components/ChartResult";
-
-type Props = NativeStackScreenProps<RootStackParamList, "Cast">;
 
 const EMPTY: (CastYao | null)[] = [null, null, null, null, null, null];
 
@@ -34,8 +31,8 @@ interface ChartInput {
   h: number;
 }
 
-export default function CastScreen({ route }: Props) {
-  const isTime = route.params.mode === "time";
+export default function CastScreen({ mode }: { mode: CastMode }) {
+  const isTime = mode === "time";
 
   const [question, setQuestion] = useState("");
 

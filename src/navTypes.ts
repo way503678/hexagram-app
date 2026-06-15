@@ -1,7 +1,8 @@
-/** 導覽參數型別(React Navigation native-stack)。 */
+/** 導覽參數型別(React Navigation 底部分頁)。 */
 export type CastMode = "coin" | "time";
 
-export type RootStackParamList = {
+export type RootTabParamList = {
   Home: undefined;
-  Cast: { mode: CastMode };
+  Coin: undefined;
+  Time: undefined;
 };

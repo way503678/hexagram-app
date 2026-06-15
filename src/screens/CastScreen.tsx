@@ -44,6 +44,8 @@ export default function CastScreen({ mode }: { mode: CastMode }) {
 
   // 時辰起卦輸入(預設現在)
   const now = new Date();
+  const [nameStr, setNameStr] = useState("");
+  const [gender, setGender] = useState<"M" | "F" | "">("");
   const [yStr, setYStr] = useState(String(now.getFullYear()));
   const [mStr, setMStr] = useState(String(now.getMonth() + 1));
   const [dStr, setDStr] = useState(String(now.getDate()));
@@ -125,6 +127,11 @@ export default function CastScreen({ mode }: { mode: CastMode }) {
   /** 時辰起卦。 */
   async function doChartTime() {
     if (loading) return;
+    const name = nameStr.trim();
+    if (!name) {
+      Alert.alert("請填姓名", "時辰起卦需要填寫姓名(會存入紀錄)。");
+      return;
+    }
     const y = parseInt(yStr, 10);
     const m = parseInt(mStr, 10);
     const d = parseInt(dStr, 10);
@@ -136,7 +143,7 @@ export default function CastScreen({ mode }: { mode: CastMode }) {
     setLoading(true);
     setError(null);
     try {
-      const res = await castByTime({ y, m, d, h });
+      const res = await castByTime({ y, m, d, h, name, gender });
       setChart(res);
       // 反推 yao_vals,讓時辰模式也能產生 Prompt
       setChartInput({ yao_vals: yaoValsFromChart(res), y, m, d, h });
@@ -222,16 +229,52 @@ export default function CastScreen({ mode }: { mode: CastMode }) {
               )}
 
               {isTime ? (
-                <View style={styles.card}>
-                  <Text style={styles.label}>起卦時間</Text>
-                  <View style={styles.dtRow}>
-                    <DtField label="年" value={yStr} onChange={setYStr} w={70} />
-                    <DtField label="月" value={mStr} onChange={setMStr} w={48} />
-                    <DtField label="日" value={dStr} onChange={setDStr} w={48} />
-                    <DtField label="時" value={hStr} onChange={setHStr} w={48} />
+                <>
+                  <View style={styles.card}>
+                    <Text style={styles.label}>占卜者</Text>
+                    <TextInput
+                      style={styles.nameInput}
+                      placeholder="姓名(必填)"
+                      placeholderTextColor={colors.subtle}
+                      value={nameStr}
+                      onChangeText={setNameStr}
+                      maxLength={30}
+                    />
+                    <View style={styles.genderRow}>
+                      {(
+                        [
+                          ["F", "女"],
+                          ["M", "男"],
+                        ] as const
+                      ).map(([g, lbl]) => (
+                        <Pressable
+                          key={g}
+                          onPress={() => setGender((cur) => (cur === g ? "" : g))}
+                          style={[styles.genderBtn, gender === g && styles.genderBtnActive]}
+                        >
+                          <Text
+                            style={[
+                              styles.genderText,
+                              gender === g && styles.genderTextActive,
+                            ]}
+                          >
+                            {lbl}
+                          </Text>
+                        </Pressable>
+                      ))}
+                    </View>
                   </View>
-                  <Text style={styles.hint}>24 小時制,例如下午 4 點填 16。</Text>
-                </View>
+                  <View style={styles.card}>
+                    <Text style={styles.label}>起卦時間</Text>
+                    <View style={styles.dtRow}>
+                      <DtField label="年" value={yStr} onChange={setYStr} w={70} />
+                      <DtField label="月" value={mStr} onChange={setMStr} w={48} />
+                      <DtField label="日" value={dStr} onChange={setDStr} w={48} />
+                      <DtField label="時" value={hStr} onChange={setHStr} w={48} />
+                    </View>
+                    <Text style={styles.hint}>24 小時制,例如下午 4 點填 16。</Text>
+                  </View>
+                </>
               ) : (
                 <View style={styles.card}>
                   {[5, 4, 3, 2, 1, 0].map((idx) => {
@@ -429,6 +472,29 @@ const styles = StyleSheet.create({
     color: colors.text,
     textAlignVertical: "top",
   },
+  nameInput: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    padding: spacing.md,
+    fontSize: 15,
+    color: colors.text,
+  },
+  genderRow: { flexDirection: "row", gap: spacing.md, marginTop: spacing.md },
+  genderBtn: {
+    flex: 1,
+    paddingVertical: spacing.md,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: "center",
+  },
+  genderBtnActive: {
+    borderColor: colors.primary,
+    backgroundColor: "#f3eaf8",
+  },
+  genderText: { fontSize: 15, color: colors.subtle },
+  genderTextActive: { color: colors.primary, fontWeight: "700" },
   dtRow: { flexDirection: "row", alignItems: "center", gap: spacing.md },
   dtField: { flexDirection: "row", alignItems: "center" },
   dtInput: {

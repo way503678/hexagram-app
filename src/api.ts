@@ -60,6 +60,8 @@ export interface TimeCastRequest {
   m: number;
   d: number;
   h: number;
+  name?: string; // 姓名(存歷史紀錄用)
+  gender?: "M" | "F" | ""; // 性別
   aspect?: string;
 }
 

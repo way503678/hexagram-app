@@ -1,13 +1,20 @@
 {
   "expo": {
-    "name": "hexagram-app",
+    "name": "易卦占卜",
     "slug": "hexagram-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.hexagram.app",
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "comment": "開發階段允許連 LAN http 後端;正式上架請改走 https 並移除此例外",
+          "NSAllowsLocalNetworking": true
+        }
+      }
     },
     "android": {
       "adaptiveIcon": {

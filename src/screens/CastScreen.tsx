@@ -205,19 +205,21 @@ export default function CastScreen({ mode }: { mode: CastMode }) {
                   : "先想清楚要問什麼,再由初爻起依序擲六次。"}
               </Text>
 
-              {/* 所問之事 */}
-              <View style={styles.card}>
-                <Text style={styles.label}>所問之事</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="例如:我下週的面試會順利嗎?"
-                  placeholderTextColor={colors.subtle}
-                  value={question}
-                  onChangeText={setQuestion}
-                  maxLength={500}
-                  multiline
-                />
-              </View>
+              {/* 所問之事(僅手動擲卦;時辰起卦不需要) */}
+              {!isTime && (
+                <View style={styles.card}>
+                  <Text style={styles.label}>所問之事</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="例如:我下週的面試會順利嗎?"
+                    placeholderTextColor={colors.subtle}
+                    value={question}
+                    onChangeText={setQuestion}
+                    maxLength={500}
+                    multiline
+                  />
+                </View>
+              )}
 
               {isTime ? (
                 <View style={styles.card}>
@@ -295,7 +297,7 @@ export default function CastScreen({ mode }: { mode: CastMode }) {
             </View>
           )}
 
-          {chartInput && (
+          {!isTime && chartInput && (
             <View style={{ marginTop: spacing.lg }}>
               <SecondaryButton
                 label={promptLoading ? "產生中…" : "🤖 產生 AI 解讀 Prompt"}

@@ -1,5 +1,5 @@
 import { API_BASE_URL, API_TIMEOUT_MS } from "./config";
-import { ChartResponse } from "./types";
+import { ChartResponse, AlmanacMonth } from "./types";
 
 export class ApiError extends Error {
   status: number;
@@ -83,6 +83,30 @@ export function buildPrompt(req: PromptRequest): Promise<{ prompt: string }> {
     aspect: "all",
     ...req,
   });
+}
+
+async function getJson<T>(path: string): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+  try {
+    const res = await fetch(`${API_BASE_URL}${path}`, { signal: controller.signal });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const msg = (data && (data as { error?: string }).error) || `HTTP ${res.status}`;
+      throw new ApiError(msg, res.status);
+    }
+    return data as T;
+  } catch (e) {
+    if (e instanceof ApiError) throw e;
+    throw new ApiError("無法連線到伺服器,請確認網路", 0);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/** 取得整月萬年曆。 */
+export function fetchAlmanacMonth(y: number, m: number): Promise<AlmanacMonth> {
+  return getJson<AlmanacMonth>(`/api/v1/almanac/month?y=${y}&m=${m}`);
 }
 
 /** 健康檢查(設定頁可用來測連線)。 */

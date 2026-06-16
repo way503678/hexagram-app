@@ -21,6 +21,28 @@ export const spacing = {
   xl: 24,
 };
 
+/** 紫白飛星徽章配色:{背景, 文字, 是否描邊}。 */
+export const zibaiStyle: Record<number, { bg: string; fg: string; border?: boolean }> = {
+  1: { bg: "#ffffff", fg: "#2c5d8a", border: true },
+  2: { bg: "#1b1b1b", fg: "#ffffff" },
+  3: { bg: "#2e74c9", fg: "#ffffff" },
+  4: { bg: "#3a9d3a", fg: "#ffffff" },
+  5: { bg: "#e0a800", fg: "#ffffff" },
+  6: { bg: "#ffffff", fg: "#333333", border: true },
+  7: { bg: "#d13b35", fg: "#ffffff" },
+  8: { bg: "#ffffff", fg: "#333333", border: true },
+  9: { bg: "#7a3b9e", fg: "#ffffff" },
+};
+
+/** 天干五行配色(干支用)。 */
+export function ganColor(gan: string): string {
+  if ("甲乙".includes(gan)) return "#2e7d32";
+  if ("丙丁".includes(gan)) return "#c0392b";
+  if ("戊己".includes(gan)) return "#a9791c";
+  if ("庚辛".includes(gan)) return "#b8860b";
+  return "#2c5d8a";
+}
+
 /** 五行配色(本卦/變卦標示用)。 */
 export const wuxingColor: Record<string, string> = {
   木: "#2e7d32",

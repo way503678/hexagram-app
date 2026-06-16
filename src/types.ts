@@ -109,6 +109,35 @@ export interface ChartResponse {
   對六爻: LiuYaoEntry[];
 }
 
+/** 萬年曆單日資料(對應後端 almanac.day_info)。 */
+export interface AlmanacDay {
+  solar: string;
+  weekday: number;
+  lunar_day: number;
+  lunar_day_cn: string;
+  lunar_month_cn: string;
+  lunar_label: string;
+  lunar_leap: boolean;
+  year_gz: string;
+  month_gz: string;
+  day_gz: string;
+  shengxiao: string;
+  jieqi: string | null;
+  jieqi_time: string | null;
+  day_zibai: number;
+  day_zibai_name: string;
+  year_zibai: { n: number; name: string };
+}
+
+export interface AlmanacMonth {
+  year: number;
+  month: number;
+  days_in_month: number;
+  first_weekday: number; // 0=週一
+  jieqi: { day: number; name: string; time: string | null }[];
+  days: AlmanacDay[];
+}
+
 /** 一個爻的擲卦結果(client 端金錢卦)。 */
 export interface CastYao {
   /** 後端格式 "陰陽,動否":1,0=少陽 0,0=少陰 1,1=老陽動 0,1=老陰動 */

@@ -3,6 +3,7 @@ export type CastMode = "coin" | "time";
 
 export type RootTabParamList = {
   Home: undefined;
+  Almanac: undefined;
   Coin: undefined;
   Time: undefined;
 };

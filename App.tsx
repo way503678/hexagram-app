@@ -6,6 +6,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { RootTabParamList } from "./src/navTypes";
 import HomeScreen from "./src/screens/HomeScreen";
+import AlmanacScreen from "./src/screens/AlmanacScreen";
 import CastScreen from "./src/screens/CastScreen";
 import { colors } from "./src/theme";
 
@@ -38,6 +39,11 @@ export default function App() {
             name="Home"
             component={HomeScreen}
             options={{ title: "首頁", headerShown: false, tabBarIcon: tabIcon("☯") }}
+          />
+          <Tab.Screen
+            name="Almanac"
+            component={AlmanacScreen}
+            options={{ title: "萬年曆", tabBarIcon: tabIcon("📅") }}
           />
           <Tab.Screen
             name="Coin"

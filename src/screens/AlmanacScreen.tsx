@@ -160,6 +160,33 @@ export default function AlmanacScreen() {
           </View>
         )}
 
+        {/* 本月重要日子 */}
+        {data && !loading && (
+          <View style={styles.keyWrap}>
+            <Text style={styles.keyTitle}>本月重要日子</Text>
+            {(["大吉", "大凶"] as const).map((lv) => {
+              const list = data.days.filter((d) => d.擇日 && d.擇日.吉凶 === lv);
+              return (
+                <View key={lv} style={styles.keyGrp}>
+                  <Text style={[styles.keyTag, { backgroundColor: zeriColor[lv] }]}>{lv}</Text>
+                  {list.length === 0 ? (
+                    <Text style={styles.keyNone}>本月無{lv}日</Text>
+                  ) : (
+                    list.map((d) => (
+                      <Pressable key={d.solar} onPress={() => setSel(d)} style={styles.keyRow}>
+                        <Text style={styles.keyDate}>{m}/{parseInt(d.solar.slice(8, 10), 10)}</Text>
+                        <Text style={styles.keyText} numberOfLines={2}>
+                          {d.day_gz}日·{d.擇日!.建除} — {d.擇日!.宜忌}
+                        </Text>
+                      </Pressable>
+                    ))
+                  )}
+                </View>
+              );
+            })}
+          </View>
+        )}
+
         {/* 選取日詳情 */}
         {sel && (
           <View style={styles.detail}>
@@ -226,8 +253,8 @@ const styles = StyleSheet.create({
   grid: { flexDirection: "row", flexWrap: "wrap" },
   cell: {
     width: `${100 / 7}%`,
-    minHeight: 78,
-    padding: 3,
+    minHeight: 62,
+    padding: 2,
     borderWidth: 0.5,
     borderColor: colors.border,
   },
@@ -235,10 +262,10 @@ const styles = StyleSheet.create({
   cellTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
   dnumWrap: { width: 24, height: 24, alignItems: "center", justifyContent: "center" },
   todayWrap: { backgroundColor: "#333", borderRadius: 12 },
-  dnum: { fontSize: 18, fontWeight: "800", color: "#333" },
+  dnum: { fontSize: 16, fontWeight: "800", color: "#333" },
   todayNum: { color: "#fff" },
-  gz: { fontSize: 14, lineHeight: 15, width: 16, textAlign: "center", fontWeight: "700" },
-  lunar: { fontSize: 12, color: colors.subtle, marginTop: 1, fontWeight: "600" },
+  gz: { fontSize: 13, lineHeight: 14, width: 15, textAlign: "center", fontWeight: "700" },
+  lunar: { fontSize: 11, color: colors.subtle, marginTop: 1, fontWeight: "600" },
   jqInCell: { color: "#7a3b9e", fontWeight: "700" },
   cellBottom: { marginTop: 2, flexDirection: "row", alignItems: "center", flexWrap: "wrap" },
   zb: { alignSelf: "flex-start", borderRadius: 3, paddingHorizontal: 5, paddingVertical: 1 },
@@ -263,4 +290,22 @@ const styles = StyleSheet.create({
   zeriBadge: { color: "#fff", fontSize: 12, fontWeight: "700", paddingHorizontal: 8, paddingVertical: 1, borderRadius: 4, overflow: "hidden" },
   zeriNote: { marginTop: spacing.sm, fontSize: 11, color: colors.subtle, lineHeight: 16 },
   error: { marginTop: spacing.lg, color: colors.moving, textAlign: "center" },
+  keyWrap: { marginTop: spacing.lg },
+  keyTitle: { fontSize: 16, fontWeight: "800", color: colors.text, marginBottom: spacing.sm },
+  keyGrp: { marginBottom: spacing.md },
+  keyTag: {
+    alignSelf: "flex-start",
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "700",
+    paddingHorizontal: 9,
+    paddingVertical: 1,
+    borderRadius: 4,
+    overflow: "hidden",
+    marginBottom: 4,
+  },
+  keyNone: { color: colors.subtle, fontSize: 13 },
+  keyRow: { flexDirection: "row", paddingVertical: 3 },
+  keyDate: { width: 48, fontWeight: "700", color: colors.text, fontSize: 13 },
+  keyText: { flex: 1, color: colors.subtle, fontSize: 13, lineHeight: 19 },
 });

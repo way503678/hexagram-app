@@ -20,6 +20,7 @@ import { castOneYao, yaoValsFromChart, YAO_NAMES } from "../divination";
 import { CastYao, ChartResponse } from "../types";
 import { colors, spacing } from "../theme";
 import ChartResult from "../components/ChartResult";
+import FortunePanel from "../components/FortunePanel";
 
 const EMPTY: (CastYao | null)[] = [null, null, null, null, null, null];
 
@@ -371,6 +372,14 @@ export default function CastScreen({ mode }: { mode: CastMode }) {
             <View style={{ marginTop: spacing.lg }}>
               <ChartResult chart={chart} />
             </View>
+          )}
+
+          {/* 命盤排卦:卦象後接流年面板 */}
+          {isTime && chart && chartInput && (
+            <FortunePanel
+              birth={{ y: chartInput.y, m: chartInput.m, d: chartInput.d, h: chartInput.h }}
+              gender={gender}
+            />
           )}
 
           {!isTime && chartInput && (

@@ -109,6 +109,66 @@ export interface ChartResponse {
   對六爻: LiuYaoEntry[];
 }
 
+/** 流年/流月的對六爻一列。 */
+export interface FortuneYaoRow {
+  爻序名: string;
+  六神: string;
+  六親: string;
+  五行: string;
+  干支: string;
+  地支: string;
+  生剋: string;
+  合沖: string;
+  當值: string;
+  世: boolean;
+  應: boolean;
+  動爻: boolean;
+  動爻出去?: { 六親: string; 地支: string; 生剋: string; 合沖: string };
+}
+
+export interface DominantYao {
+  六親: string;
+  地支: string;
+  當值: string;
+}
+
+export interface FortuneRemark {
+  level: string; // 吉/凶/中/警
+  text: string;
+  sub?: { label?: string; text: string }[];
+}
+
+export interface FortuneYearBlock {
+  西元: number;
+  干支: string;
+  五行: string;
+  對世爻: string;
+  對世爻合沖: string;
+  對六爻: FortuneYaoRow[];
+  主導爻: DominantYao[];
+}
+
+export interface FortuneMonthBlock {
+  月序: number;
+  月名: string;
+  節氣: string;
+  起始: string;
+  結束: string;
+  區間: string;
+  干支: string;
+  五行: string;
+  對世爻: string;
+  對世爻合沖: string;
+  對六爻: FortuneYaoRow[];
+  主導爻: DominantYao[];
+}
+
+export interface FortuneResult {
+  流年: FortuneYearBlock;
+  流月: FortuneMonthBlock[];
+  斷語: { 流年: FortuneRemark[]; 流月: Record<string, FortuneRemark[]> };
+}
+
 /** 萬年曆單日資料(對應後端 almanac.day_info)。 */
 export interface AlmanacDay {
   solar: string;

@@ -1,5 +1,5 @@
 import { API_BASE_URL, API_TIMEOUT_MS } from "./config";
-import { ChartResponse, AlmanacMonth } from "./types";
+import { ChartResponse, AlmanacMonth, FortuneResult } from "./types";
 
 export class ApiError extends Error {
   status: number;
@@ -107,6 +107,18 @@ async function getJson<T>(path: string): Promise<T> {
 /** 取得整月萬年曆。 */
 export function fetchAlmanacMonth(y: number, m: number): Promise<AlmanacMonth> {
   return getJson<AlmanacMonth>(`/api/v1/almanac/month?y=${y}&m=${m}`);
+}
+
+/** 流年分析:出生 y/m/d/h + 性別 + 目標年。 */
+export function fetchFortune(
+  birth: { y: number; m: number; d: number; h: number },
+  gender: "M" | "F" | "",
+  year: number
+): Promise<FortuneResult> {
+  const g = gender ? `&gender=${gender}` : "";
+  return getJson<FortuneResult>(
+    `/api/v1/fortune?y=${birth.y}&m=${birth.m}&d=${birth.d}&h=${birth.h}&year=${year}${g}`
+  );
 }
 
 /** 健康檢查(設定頁可用來測連線)。 */

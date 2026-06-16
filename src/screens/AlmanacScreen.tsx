@@ -211,8 +211,15 @@ export default function AlmanacScreen() {
                   </Text>
                 </View>
                 <Text style={styles.baihua}>{sel.擇日.白話}</Text>
+                <View style={styles.yjRow}>
+                  <Text style={[styles.yjTag, styles.yiTag]}>宜</Text>
+                  <Text style={styles.yjText}>{sel.擇日.宜.join("、")}</Text>
+                </View>
+                <View style={styles.yjRow}>
+                  <Text style={[styles.yjTag, styles.jiTag]}>忌</Text>
+                  <Text style={styles.yjText}>{sel.擇日.忌.join("、")}</Text>
+                </View>
                 <DetailRow label="建除" value={`${sel.擇日.建除}日`} />
-                <DetailRow label="宜忌" value={sel.擇日.宜忌} />
                 <DetailRow label="正沖" value={`生肖屬${sel.擇日.正沖生肖}`} />
                 <DetailRow label="三煞" value={sel.擇日.三煞註} />
                 <Text style={styles.zeriNote}>
@@ -299,6 +306,22 @@ const styles = StyleSheet.create({
     color: colors.text,
     lineHeight: 22,
   },
+  yjRow: { flexDirection: "row", alignItems: "flex-start", paddingVertical: 3 },
+  yjTag: {
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: "800",
+    width: 22,
+    height: 22,
+    lineHeight: 22,
+    textAlign: "center",
+    borderRadius: 4,
+    marginRight: spacing.sm,
+    overflow: "hidden",
+  },
+  yiTag: { backgroundColor: "#2e7d32" },
+  jiTag: { backgroundColor: "#c0392b" },
+  yjText: { flex: 1, fontSize: 14, color: colors.text, lineHeight: 22 },
   error: { marginTop: spacing.lg, color: colors.moving, textAlign: "center" },
   keyWrap: { marginTop: spacing.lg },
   keyTitle: { fontSize: 16, fontWeight: "800", color: colors.text, marginBottom: spacing.sm },

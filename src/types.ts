@@ -199,6 +199,8 @@ export interface AlmanacZeri {
   吉凶: string;
   吉凶分: number;
   宜忌: string;
+  宜: string[];
+  忌: string[];
   白話: string;
 }
 

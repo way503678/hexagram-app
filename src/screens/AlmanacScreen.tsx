@@ -210,6 +210,7 @@ export default function AlmanacScreen() {
                     {sel.擇日.吉凶}
                   </Text>
                 </View>
+                <Text style={styles.baihua}>{sel.擇日.白話}</Text>
                 <DetailRow label="建除" value={`${sel.擇日.建除}日`} />
                 <DetailRow label="宜忌" value={sel.擇日.宜忌} />
                 <DetailRow label="正沖" value={`生肖屬${sel.擇日.正沖生肖}`} />
@@ -289,6 +290,15 @@ const styles = StyleSheet.create({
   zeriTitle: { fontSize: 15, fontWeight: "800", color: colors.text },
   zeriBadge: { color: "#fff", fontSize: 12, fontWeight: "700", paddingHorizontal: 8, paddingVertical: 1, borderRadius: 4, overflow: "hidden" },
   zeriNote: { marginTop: spacing.sm, fontSize: 11, color: colors.subtle, lineHeight: 16 },
+  baihua: {
+    backgroundColor: "#f6f1e8",
+    borderRadius: 8,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
+    fontSize: 14,
+    color: colors.text,
+    lineHeight: 22,
+  },
   error: { marginTop: spacing.lg, color: colors.moving, textAlign: "center" },
   keyWrap: { marginTop: spacing.lg },
   keyTitle: { fontSize: 16, fontWeight: "800", color: colors.text, marginBottom: spacing.sm },

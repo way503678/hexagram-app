@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { fetchAlmanacMonth, ApiError } from "../api";
 import { AlmanacDay, AlmanacMonth } from "../types";
-import { colors, spacing, zibaiStyle, ganColor } from "../theme";
+import { colors, spacing, zibaiStyle, ganColor, zeriColor } from "../theme";
 
 const WEEKDAYS = ["日", "一", "二", "三", "四", "五", "六"];
 
@@ -132,14 +132,27 @@ export default function AlmanacScreen() {
                   <Text style={styles.lunar} numberOfLines={1}>
                     {day.jieqi ? <Text style={styles.jqInCell}>{day.jieqi}</Text> : day.lunar_label}
                   </Text>
-                  <View
-                    style={[
-                      styles.zb,
-                      { backgroundColor: zb.bg },
-                      zb.border && styles.zbBorder,
-                    ]}
-                  >
-                    <Text style={[styles.zbTxt, { color: zb.fg }]}>{day.day_zibai_name}</Text>
+                  <View style={styles.cellBottom}>
+                    <View
+                      style={[
+                        styles.zb,
+                        { backgroundColor: zb.bg },
+                        zb.border && styles.zbBorder,
+                      ]}
+                    >
+                      <Text style={[styles.zbTxt, { color: zb.fg }]}>{day.day_zibai_name}</Text>
+                    </View>
+                    {day.擇日 && (
+                      <Text
+                        style={[
+                          styles.jx,
+                          { color: zeriColor[day.擇日.吉凶] || colors.subtle },
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {day.擇日.建除}·{day.擇日.吉凶}
+                      </Text>
+                    )}
                   </View>
                 </Pressable>
               );
@@ -159,6 +172,26 @@ export default function AlmanacScreen() {
             {sel.jieqi && <DetailRow label="節氣" value={`${sel.jieqi} ${sel.jieqi_time ?? ""}`} />}
             <DetailRow label="日紫白" value={sel.day_zibai_name} />
             <DetailRow label="年紫白" value={sel.year_zibai.name} />
+            {sel.擇日 && (
+              <>
+                <View style={styles.detailDivider} />
+                <View style={styles.zeriHead}>
+                  <Text style={styles.zeriTitle}>董公擇日</Text>
+                  <Text
+                    style={[styles.zeriBadge, { backgroundColor: zeriColor[sel.擇日.吉凶] || colors.subtle }]}
+                  >
+                    {sel.擇日.吉凶}
+                  </Text>
+                </View>
+                <DetailRow label="建除" value={`${sel.擇日.建除}日`} />
+                <DetailRow label="宜忌" value={sel.擇日.宜忌} />
+                <DetailRow label="正沖" value={`生肖屬${sel.擇日.正沖生肖}`} />
+                <DetailRow label="三煞" value={sel.擇日.三煞註} />
+                <Text style={styles.zeriNote}>
+                  ※ 擇日吉凶為傳統神煞推算之參考,請斟酌使用。
+                </Text>
+              </>
+            )}
           </View>
         )}
 
@@ -207,9 +240,11 @@ const styles = StyleSheet.create({
   gz: { fontSize: 14, lineHeight: 15, width: 16, textAlign: "center", fontWeight: "700" },
   lunar: { fontSize: 12, color: colors.subtle, marginTop: 1, fontWeight: "600" },
   jqInCell: { color: "#7a3b9e", fontWeight: "700" },
-  zb: { marginTop: 2, alignSelf: "flex-start", borderRadius: 3, paddingHorizontal: 5, paddingVertical: 1 },
+  cellBottom: { marginTop: 2, flexDirection: "row", alignItems: "center", flexWrap: "wrap" },
+  zb: { alignSelf: "flex-start", borderRadius: 3, paddingHorizontal: 5, paddingVertical: 1 },
   zbBorder: { borderWidth: 0.5, borderColor: "#bbb" },
   zbTxt: { fontSize: 13, fontWeight: "800" },
+  jx: { fontSize: 9.5, fontWeight: "700", marginLeft: 2 },
   detail: {
     marginTop: spacing.lg,
     backgroundColor: colors.card,
@@ -221,6 +256,11 @@ const styles = StyleSheet.create({
   detailTitle: { fontSize: 16, fontWeight: "700", color: colors.text, marginBottom: spacing.sm },
   detailRow: { flexDirection: "row", paddingVertical: 3 },
   detailLabel: { width: 72, color: colors.subtle, fontSize: 13 },
-  detailValue: { flex: 1, color: colors.text, fontSize: 14 },
+  detailValue: { flex: 1, color: colors.text, fontSize: 14, lineHeight: 20 },
+  detailDivider: { height: 1, backgroundColor: colors.border, marginVertical: spacing.sm },
+  zeriHead: { flexDirection: "row", alignItems: "center", gap: spacing.sm, marginBottom: spacing.xs },
+  zeriTitle: { fontSize: 15, fontWeight: "800", color: colors.text },
+  zeriBadge: { color: "#fff", fontSize: 12, fontWeight: "700", paddingHorizontal: 8, paddingVertical: 1, borderRadius: 4, overflow: "hidden" },
+  zeriNote: { marginTop: spacing.sm, fontSize: 11, color: colors.subtle, lineHeight: 16 },
   error: { marginTop: spacing.lg, color: colors.moving, textAlign: "center" },
 });

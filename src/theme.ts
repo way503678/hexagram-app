@@ -34,6 +34,16 @@ export const zibaiStyle: Record<number, { bg: string; fg: string; border?: boole
   9: { bg: "#7a3b9e", fg: "#ffffff" },
 };
 
+/** 擇日吉凶配色。 */
+export const zeriColor: Record<string, string> = {
+  大吉: "#c62828",
+  吉: "#2e7d32",
+  小吉: "#7cb342",
+  平: "#9e9e9e",
+  凶: "#d97706",
+  大凶: "#5d4037",
+};
+
 /** 天干五行配色(干支用)。 */
 export function ganColor(gan: string): string {
   if ("甲乙".includes(gan)) return "#2e7d32";

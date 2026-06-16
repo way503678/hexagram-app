@@ -187,6 +187,18 @@ export interface AlmanacDay {
   day_zibai: number;
   day_zibai_name: string;
   year_zibai: { n: number; name: string };
+  擇日?: AlmanacZeri;
+}
+
+export interface AlmanacZeri {
+  建除: string;
+  正沖生肖: string;
+  三煞方位: string;
+  三煞註: string;
+  神煞: string[];
+  吉凶: string;
+  吉凶分: number;
+  宜忌: string;
 }
 
 export interface AlmanacMonth {

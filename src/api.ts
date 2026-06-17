@@ -203,8 +203,3 @@ export interface LedgerEntry {
 export function fetchLedger(): Promise<{ ledger: LedgerEntry[] }> {
   return getJson<{ ledger: LedgerEntry[] }>("/api/v1/member/ledger");
 }
-
-/** [測試用] 幫目前會員加 10 點。 */
-export function testTopup(): Promise<{ balance: number }> {
-  return postJson<{ balance: number }>("/api/v1/member/test_topup", {});
-}

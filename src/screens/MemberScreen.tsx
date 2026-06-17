@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors, spacing } from "../theme";
 import { useAuth } from "../AuthContext";
-import { fetchLedger, testTopup, LedgerEntry, ApiError } from "../api";
+import { fetchLedger, LedgerEntry } from "../api";
 
 /** 帳本 reason 轉中文。 */
 const REASON_LABEL: Record<string, string> = {
@@ -38,10 +38,9 @@ function formatDate(iso: string | null): string {
 }
 
 export default function MemberScreen() {
-  const { user, logout, refresh, setUser } = useAuth();
+  const { user, logout, refresh } = useAuth();
   const [ledger, setLedger] = useState<LedgerEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -59,21 +58,6 @@ export default function MemberScreen() {
   useEffect(() => {
     load();
   }, [load]);
-
-  async function onTopup() {
-    if (busy) return;
-    setBusy(true);
-    try {
-      const { balance } = await testTopup();
-      if (user) setUser({ ...user, points_balance: balance });
-      const { ledger: rows } = await fetchLedger();
-      setLedger(rows);
-    } catch (e) {
-      Alert.alert("加點失敗", e instanceof ApiError ? e.message : "請稍後再試");
-    } finally {
-      setBusy(false);
-    }
-  }
 
   function onLogout() {
     Alert.alert("登出", "確定要登出嗎?", [
@@ -101,20 +85,6 @@ export default function MemberScreen() {
             <Text style={styles.points}>{user.points_balance}</Text>
           </View>
         </View>
-
-        {/* 測試加點(綠界串好後移除) */}
-        <TouchableOpacity
-          style={[styles.topupBtn, busy && styles.disabled]}
-          onPress={onTopup}
-          disabled={busy}
-          activeOpacity={0.85}
-        >
-          {busy ? (
-            <ActivityIndicator color={colors.primary} />
-          ) : (
-            <Text style={styles.topupText}>＋ 測試加 10 點</Text>
-          )}
-        </TouchableOpacity>
 
         {/* 點數紀錄 */}
         <Text style={styles.sectionTitle}>點數紀錄</Text>

@@ -14,8 +14,46 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { colors, spacing } from "../theme";
 import { useAuth } from "../AuthContext";
 import { ApiError } from "../api";
+import { PRIVACY_CONSENT, DISCLAIMER } from "../legal";
 
 type Mode = "login" | "register";
+
+/** 可捲動的同意條文區塊 + 勾選框。 */
+function ConsentBlock({
+  doc,
+  checked,
+  onToggle,
+  disabled,
+}: {
+  doc: { title: string; body: string[]; agree: string };
+  checked: boolean;
+  onToggle: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <View style={styles.consentBlock}>
+      <Text style={styles.consentTitle}>{doc.title}</Text>
+      <ScrollView style={styles.consentBody} nestedScrollEnabled>
+        {doc.body.map((p, i) => (
+          <Text key={i} style={styles.consentText}>
+            {p}
+          </Text>
+        ))}
+      </ScrollView>
+      <TouchableOpacity
+        style={styles.consentCheckRow}
+        onPress={onToggle}
+        disabled={disabled}
+        activeOpacity={0.7}
+      >
+        <View style={[styles.checkbox, checked && styles.checkboxOn]}>
+          {checked && <Text style={styles.checkboxTick}>✓</Text>}
+        </View>
+        <Text style={styles.consentAgree}>{doc.agree}</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
 
 export default function LoginScreen() {
   const { login, register } = useAuth();
@@ -24,14 +62,19 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [agreePrivacy, setAgreePrivacy] = useState(false);
+  const [agreeDisclaimer, setAgreeDisclaimer] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const isRegister = mode === "register";
+  const consentOk = agreePrivacy && agreeDisclaimer;
 
   function switchMode() {
     setMode(isRegister ? "login" : "register");
     setError(null);
+    setAgreePrivacy(false);
+    setAgreeDisclaimer(false);
   }
 
   async function onSubmit() {
@@ -49,6 +92,10 @@ export default function LoginScreen() {
     }
     if (isRegister && password !== password2) {
       setError("兩次輸入的密碼不一致");
+      return;
+    }
+    if (isRegister && !consentOk) {
+      setError("請先閱讀並勾選個資使用同意書與免責聲明");
       return;
     }
 
@@ -139,15 +186,31 @@ export default function LoginScreen() {
                   placeholderTextColor={colors.subtle}
                   editable={!busy}
                 />
+
+                <ConsentBlock
+                  doc={PRIVACY_CONSENT}
+                  checked={agreePrivacy}
+                  onToggle={() => setAgreePrivacy((v) => !v)}
+                  disabled={busy}
+                />
+                <ConsentBlock
+                  doc={DISCLAIMER}
+                  checked={agreeDisclaimer}
+                  onToggle={() => setAgreeDisclaimer((v) => !v)}
+                  disabled={busy}
+                />
               </>
             )}
 
             {error && <Text style={styles.error}>{error}</Text>}
 
             <TouchableOpacity
-              style={[styles.button, busy && styles.buttonDisabled]}
+              style={[
+                styles.button,
+                (busy || (isRegister && !consentOk)) && styles.buttonDisabled,
+              ]}
               onPress={onSubmit}
-              disabled={busy}
+              disabled={busy || (isRegister && !consentOk)}
               activeOpacity={0.85}
             >
               {busy ? (
@@ -180,6 +243,47 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   flex: { flex: 1 },
+  consentBlock: {
+    marginTop: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    overflow: "hidden",
+    backgroundColor: colors.bg,
+  },
+  consentTitle: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    fontWeight: "700",
+    fontSize: 13,
+    color: "#5a3a2a",
+    backgroundColor: "#f0ece4",
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  consentBody: { maxHeight: 130, paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
+  consentText: { fontSize: 12, lineHeight: 19, color: "#444", marginBottom: 5 },
+  consentCheckRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    padding: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 5,
+    borderWidth: 1.5,
+    borderColor: colors.subtle,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.card,
+  },
+  checkboxOn: { backgroundColor: colors.primary, borderColor: colors.primary },
+  checkboxTick: { color: colors.primaryText, fontSize: 14, fontWeight: "800" },
+  consentAgree: { flex: 1, fontSize: 13, color: colors.text },
   scroll: {
     flexGrow: 1,
     justifyContent: "center",

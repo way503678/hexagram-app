@@ -48,7 +48,14 @@ export default function CastScreen({
   navigation,
 }: {
   mode: CastMode;
-  route?: { params?: { autoBirth?: { y: number; m: number; d: number; h: number; name?: string } } };
+  route?: {
+    params?: {
+      autoBirth?: {
+        y: number; m: number; d: number; h: number;
+        name?: string; gender?: "M" | "F" | "";
+      };
+    };
+  };
   navigation?: { setParams?: (p: object) => void };
 }) {
   const isTime = mode === "time";
@@ -188,7 +195,9 @@ export default function CastScreen({
     const bd = new Date(ab.y, ab.m - 1, ab.d, ab.h);
     setBirth(bd);
     setNameStr(ab.name || "本人");
-    castTime(ab.y, ab.m, ab.d, ab.h, ab.name || "本人", "");
+    const g = ab.gender || "";
+    setGender(g);
+    castTime(ab.y, ab.m, ab.d, ab.h, ab.name || "本人", g);
     // 清掉參數,避免切換分頁時重複觸發
     navigation?.setParams?.({ autoBirth: undefined });
     // eslint-disable-next-line react-hooks/exhaustive-deps

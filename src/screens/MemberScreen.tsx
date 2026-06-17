@@ -55,6 +55,7 @@ export default function MemberScreen() {
   // 修改會員資料
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState("");
+  const [editGender, setEditGender] = useState<"M" | "F" | "">("");
   const [editBirth, setEditBirth] = useState<Date | null>(null);
   const [showPicker, setShowPicker] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -86,6 +87,7 @@ export default function MemberScreen() {
 
   function openEdit() {
     setEditName(user!.display_name || "");
+    setEditGender((user!.gender as "M" | "F" | null) || "");
     setEditBirth(
       hasBirth
         ? new Date(user!.birth_y!, user!.birth_m! - 1, user!.birth_d!, user!.birth_h!)
@@ -102,6 +104,7 @@ export default function MemberScreen() {
         d: user!.birth_d!,
         h: user!.birth_h!,
         name: user!.display_name || "本人",
+        gender: (user!.gender as "M" | "F" | null) || "",
       },
     });
   }
@@ -112,6 +115,7 @@ export default function MemberScreen() {
     try {
       const { user: u } = await updateProfile({
         display_name: editName.trim() || undefined,
+        gender: editGender,
         birth_y: editBirth ? editBirth.getFullYear() : null,
         birth_m: editBirth ? editBirth.getMonth() + 1 : null,
         birth_d: editBirth ? editBirth.getDate() : null,
@@ -163,6 +167,27 @@ export default function MemberScreen() {
               placeholder="顯示名稱"
               placeholderTextColor={colors.subtle}
             />
+            <Text style={styles.editLabel}>性別</Text>
+            <View style={styles.genderRow}>
+              {([["M", "男"], ["F", "女"], ["", "不設定"]] as const).map(
+                ([val, label]) => (
+                  <TouchableOpacity
+                    key={label}
+                    style={[styles.genderBtn, editGender === val && styles.genderBtnOn]}
+                    onPress={() => setEditGender(val)}
+                  >
+                    <Text
+                      style={[
+                        styles.genderBtnText,
+                        editGender === val && styles.genderBtnTextOn,
+                      ]}
+                    >
+                      {label}
+                    </Text>
+                  </TouchableOpacity>
+                )
+              )}
+            </View>
             <Text style={styles.editLabel}>生日(命盤排卦用)</Text>
             <Pressable style={styles.input} onPress={() => setShowPicker((v) => !v)}>
               <Text style={editBirth ? styles.pickerValue : styles.pickerPlaceholder}>
@@ -325,6 +350,19 @@ const styles = StyleSheet.create({
     color: colors.text,
     backgroundColor: colors.bg,
   },
+  genderRow: { flexDirection: "row", gap: spacing.sm },
+  genderBtn: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 10,
+    paddingVertical: spacing.md,
+    alignItems: "center",
+    backgroundColor: colors.bg,
+  },
+  genderBtnOn: { backgroundColor: colors.primary, borderColor: colors.primary },
+  genderBtnText: { fontSize: 15, color: colors.subtle },
+  genderBtnTextOn: { color: colors.primaryText, fontWeight: "700" },
   pickerValue: { fontSize: 16, color: colors.text },
   pickerPlaceholder: { fontSize: 16, color: colors.subtle },
   pickerDone: { alignItems: "flex-end", padding: spacing.sm },

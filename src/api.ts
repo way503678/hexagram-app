@@ -161,6 +161,7 @@ export interface User {
   email: string | null;
   points_balance: number;
   is_admin?: boolean;
+  gender: "M" | "F" | null;
   birth_y: number | null;
   birth_m: number | null;
   birth_d: number | null;
@@ -213,6 +214,7 @@ export function fetchLedger(): Promise<{ ledger: LedgerEntry[] }> {
 
 export interface ProfileUpdate {
   display_name?: string;
+  gender?: "M" | "F" | "";
   birth_y: number | null;
   birth_m: number | null;
   birth_d: number | null;

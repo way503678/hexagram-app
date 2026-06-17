@@ -2,7 +2,10 @@
 export type CastMode = "coin" | "time";
 
 /** 從會員中心「查看我的命盤」帶過去的生日(自動排盤用)。 */
-export type AutoBirth = { y: number; m: number; d: number; h: number; name?: string };
+export type AutoBirth = {
+  y: number; m: number; d: number; h: number;
+  name?: string; gender?: "M" | "F" | "";
+};
 
 export type RootTabParamList = {
   Home: undefined;

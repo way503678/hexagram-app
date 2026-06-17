@@ -92,9 +92,11 @@ export interface PromptRequest extends ChartRequest {
   question: string; // 所問之事(必填)
 }
 
-/** 組裝可複製的 AI 解讀 Prompt(免費、不呼叫 Claude)。 */
-export function buildPrompt(req: PromptRequest): Promise<{ prompt: string }> {
-  return postJson<{ prompt: string }>("/api/v1/prompt", {
+/** 組裝可複製的 AI 解讀 Prompt(需登入,扣 1 點;不呼叫 Claude)。回傳含扣點後餘額。 */
+export function buildPrompt(
+  req: PromptRequest
+): Promise<{ prompt: string; balance: number }> {
+  return postJson<{ prompt: string; balance: number }>("/api/v1/prompt", {
     aspect: "all",
     ...req,
   });

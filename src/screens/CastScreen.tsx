@@ -16,6 +16,7 @@ import * as Clipboard from "expo-clipboard";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { CastMode } from "../navTypes";
 import { castChart, castByTime, buildPrompt, ApiError } from "../api";
+import { useAuth } from "../AuthContext";
 import { castOneYao, yaoValsFromChart, YAO_NAMES } from "../divination";
 import { CastYao, ChartResponse } from "../types";
 import { colors, spacing } from "../theme";
@@ -43,6 +44,7 @@ interface ChartInput {
 
 export default function CastScreen({ mode }: { mode: CastMode }) {
   const isTime = mode === "time";
+  const { user, setUser } = useAuth();
 
   const [question, setQuestion] = useState("");
 
@@ -177,6 +179,10 @@ export default function CastScreen({ mode }: { mode: CastMode }) {
     try {
       const res = await buildPrompt({ question: q, ...chartInput });
       setPromptText(res.prompt);
+      // 扣點後更新本地餘額(會員頁即時顯示)
+      if (user && typeof res.balance === "number") {
+        setUser({ ...user, points_balance: res.balance });
+      }
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "產生 Prompt 失敗,請稍後再試");
     } finally {
@@ -385,7 +391,7 @@ export default function CastScreen({ mode }: { mode: CastMode }) {
           {!isTime && chartInput && (
             <View style={{ marginTop: spacing.lg }}>
               <SecondaryButton
-                label={promptLoading ? "產生中…" : "🤖 產生 AI 解讀 Prompt"}
+                label={promptLoading ? "產生中…" : "🤖 產生 AI 解讀 Prompt（扣 1 點）"}
                 onPress={doPrompt}
                 disabled={promptLoading}
               />

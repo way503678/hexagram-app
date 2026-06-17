@@ -19,6 +19,7 @@ const REASON_LABEL: Record<string, string> = {
   welcome_bonus: "新會員贈點",
   test_topup: "測試儲值",
   divination: "AI 解盤扣點",
+  prompt: "AI Prompt 產生",
   refund: "解盤失敗退點",
 };
 

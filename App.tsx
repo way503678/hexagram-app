@@ -47,7 +47,7 @@ function MainTabs() {
       />
       <Tab.Screen
         name="Coin"
-        options={{ title: "手動擲卦", tabBarIcon: tabIcon("🪙") }}
+        options={{ title: "卜卦問事", tabBarIcon: tabIcon("🪙") }}
       >
         {() => <CastScreen mode="coin" />}
       </Tab.Screen>

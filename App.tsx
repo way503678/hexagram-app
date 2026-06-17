@@ -55,7 +55,7 @@ function MainTabs() {
         name="Time"
         options={{ title: "命盤排卦", tabBarIcon: tabIcon("🕐") }}
       >
-        {() => <CastScreen mode="time" />}
+        {(props) => <CastScreen {...props} mode="time" />}
       </Tab.Screen>
       <Tab.Screen
         name="Member"

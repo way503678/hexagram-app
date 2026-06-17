@@ -160,6 +160,11 @@ export interface User {
   display_name: string | null;
   email: string | null;
   points_balance: number;
+  is_admin?: boolean;
+  birth_y: number | null;
+  birth_m: number | null;
+  birth_d: number | null;
+  birth_h: number | null;
   created_at: string | null;
 }
 
@@ -204,4 +209,17 @@ export interface LedgerEntry {
 /** 目前會員的點數異動紀錄(新到舊)。 */
 export function fetchLedger(): Promise<{ ledger: LedgerEntry[] }> {
   return getJson<{ ledger: LedgerEntry[] }>("/api/v1/member/ledger");
+}
+
+export interface ProfileUpdate {
+  display_name?: string;
+  birth_y: number | null;
+  birth_m: number | null;
+  birth_d: number | null;
+  birth_h: number | null;
+}
+
+/** 更新會員資料(暱稱 + 生日)。回傳更新後的會員資料。 */
+export function updateProfile(payload: ProfileUpdate): Promise<{ user: User }> {
+  return postJson<{ user: User }>("/api/v1/member/profile", payload);
 }

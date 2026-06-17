@@ -2,17 +2,22 @@ import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Platform,
+  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { useNavigation } from "@react-navigation/native";
 import { colors, spacing } from "../theme";
 import { useAuth } from "../AuthContext";
-import { fetchLedger, LedgerEntry } from "../api";
+import { fetchLedger, updateProfile, LedgerEntry, ApiError } from "../api";
 
 /** 帳本 reason 轉中文。 */
 const REASON_LABEL: Record<string, string> = {
@@ -21,26 +26,38 @@ const REASON_LABEL: Record<string, string> = {
   divination: "AI 解盤扣點",
   prompt: "AI Prompt 產生",
   refund: "解盤失敗退點",
+  admin_adjust: "管理員調整",
 };
 
 function reasonText(reason: string): string {
   return REASON_LABEL[reason] || reason;
 }
 
+const pad = (n: number) => String(n).padStart(2, "0");
+
 function formatDate(iso: string | null): string {
   if (!iso) return "";
   const d = new Date(iso);
   if (isNaN(d.getTime())) return iso;
-  const p = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}/${p(d.getMonth() + 1)}/${p(d.getDate())} ${p(
+  return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(
     d.getHours()
-  )}:${p(d.getMinutes())}`;
+  )}:${pad(d.getMinutes())}`;
 }
 
+const DEFAULT_BIRTH = new Date(2000, 0, 1, 12, 0);
+
 export default function MemberScreen() {
-  const { user, logout, refresh } = useAuth();
+  const { user, logout, refresh, setUser } = useAuth();
+  const nav = useNavigation<any>();
   const [ledger, setLedger] = useState<LedgerEntry[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // 修改會員資料
+  const [editing, setEditing] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editBirth, setEditBirth] = useState<Date | null>(null);
+  const [showPicker, setShowPicker] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -59,6 +76,56 @@ export default function MemberScreen() {
     load();
   }, [load]);
 
+  if (!user) return null;
+
+  const hasBirth =
+    user.birth_y != null &&
+    user.birth_m != null &&
+    user.birth_d != null &&
+    user.birth_h != null;
+
+  function openEdit() {
+    setEditName(user!.display_name || "");
+    setEditBirth(
+      hasBirth
+        ? new Date(user!.birth_y!, user!.birth_m! - 1, user!.birth_d!, user!.birth_h!)
+        : null
+    );
+    setEditing(true);
+  }
+
+  function viewMyChart() {
+    nav.navigate("Time", {
+      autoBirth: {
+        y: user!.birth_y!,
+        m: user!.birth_m!,
+        d: user!.birth_d!,
+        h: user!.birth_h!,
+        name: user!.display_name || "本人",
+      },
+    });
+  }
+
+  async function saveProfile() {
+    if (saving) return;
+    setSaving(true);
+    try {
+      const { user: u } = await updateProfile({
+        display_name: editName.trim() || undefined,
+        birth_y: editBirth ? editBirth.getFullYear() : null,
+        birth_m: editBirth ? editBirth.getMonth() + 1 : null,
+        birth_d: editBirth ? editBirth.getDate() : null,
+        birth_h: editBirth ? editBirth.getHours() : null,
+      });
+      setUser(u);
+      setEditing(false);
+    } catch (e) {
+      Alert.alert("儲存失敗", e instanceof ApiError ? e.message : "請稍後再試");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   function onLogout() {
     Alert.alert("登出", "確定要登出嗎?", [
       { text: "取消", style: "cancel" },
@@ -66,15 +133,11 @@ export default function MemberScreen() {
     ]);
   }
 
-  if (!user) return null;
-
   return (
     <SafeAreaView style={styles.safe} edges={["bottom"]}>
       <ScrollView
         contentContainerStyle={styles.scroll}
-        refreshControl={
-          <RefreshControl refreshing={loading} onRefresh={load} />
-        }
+        refreshControl={<RefreshControl refreshing={loading} onRefresh={load} />}
       >
         {/* 會員卡 */}
         <View style={styles.card}>
@@ -84,6 +147,98 @@ export default function MemberScreen() {
             <Text style={styles.pointsLabel}>剩餘點數</Text>
             <Text style={styles.points}>{user.points_balance}</Text>
           </View>
+          <TouchableOpacity style={styles.editLink} onPress={openEdit}>
+            <Text style={styles.editLinkText}>修改會員資料</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* 修改會員資料(展開式) */}
+        {editing && (
+          <View style={styles.editCard}>
+            <Text style={styles.editLabel}>暱稱</Text>
+            <TextInput
+              style={styles.input}
+              value={editName}
+              onChangeText={setEditName}
+              placeholder="顯示名稱"
+              placeholderTextColor={colors.subtle}
+            />
+            <Text style={styles.editLabel}>生日(命盤排卦用)</Text>
+            <Pressable style={styles.input} onPress={() => setShowPicker((v) => !v)}>
+              <Text style={editBirth ? styles.pickerValue : styles.pickerPlaceholder}>
+                {editBirth
+                  ? `${editBirth.getFullYear()}/${pad(editBirth.getMonth() + 1)}/${pad(
+                      editBirth.getDate()
+                    )} ${pad(editBirth.getHours())}時`
+                  : "點此選擇出生年月日與時辰"}
+              </Text>
+            </Pressable>
+            {showPicker && (
+              <View>
+                <DateTimePicker
+                  value={editBirth ?? DEFAULT_BIRTH}
+                  mode="datetime"
+                  display="spinner"
+                  maximumDate={new Date()}
+                  minimumDate={new Date(1900, 0, 1)}
+                  onChange={(_e, d) => {
+                    if (d) setEditBirth(d);
+                    if (Platform.OS !== "ios") setShowPicker(false);
+                  }}
+                />
+                {Platform.OS === "ios" && (
+                  <Pressable style={styles.pickerDone} onPress={() => setShowPicker(false)}>
+                    <Text style={styles.pickerDoneText}>完成</Text>
+                  </Pressable>
+                )}
+              </View>
+            )}
+            <View style={styles.editBtnRow}>
+              <TouchableOpacity
+                style={[styles.saveBtn, saving && styles.disabled]}
+                onPress={saveProfile}
+                disabled={saving}
+              >
+                {saving ? (
+                  <ActivityIndicator color={colors.primaryText} />
+                ) : (
+                  <Text style={styles.saveBtnText}>儲存</Text>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.cancelBtn}
+                onPress={() => setEditing(false)}
+                disabled={saving}
+              >
+                <Text style={styles.cancelBtnText}>取消</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        {/* 我的命盤 */}
+        <View style={styles.chartCard}>
+          <Text style={styles.chartTitle}>我的命盤</Text>
+          {hasBirth ? (
+            <>
+              <Text style={styles.chartBirth}>
+                生日：{user.birth_y}/{pad(user.birth_m!)}/{pad(user.birth_d!)}{" "}
+                {pad(user.birth_h!)}時
+              </Text>
+              <TouchableOpacity style={styles.chartBtn} onPress={viewMyChart}>
+                <Text style={styles.chartBtnText}>查看我的命盤</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <>
+              <Text style={styles.chartHint}>
+                您尚未設定生日。設定後即可在這裡一鍵查看您的命盤。
+              </Text>
+              <TouchableOpacity style={styles.chartBtn} onPress={openEdit}>
+                <Text style={styles.chartBtnText}>設定生日</Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
 
         {/* 點數紀錄 */}
@@ -143,16 +298,76 @@ const styles = StyleSheet.create({
     color: colors.primary,
     marginTop: spacing.xs,
   },
-  topupBtn: {
-    marginTop: spacing.lg,
+  editLink: { marginTop: spacing.lg },
+  editLinkText: { color: colors.primary, fontSize: 14, fontWeight: "700" },
+
+  editCard: {
+    backgroundColor: colors.card,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: colors.primary,
+    borderColor: colors.border,
+    padding: spacing.lg,
+    marginTop: spacing.md,
+  },
+  editLabel: {
+    fontSize: 13,
+    color: colors.subtle,
+    marginBottom: spacing.xs,
+    marginTop: spacing.sm,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 10,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    fontSize: 16,
+    color: colors.text,
+    backgroundColor: colors.bg,
+  },
+  pickerValue: { fontSize: 16, color: colors.text },
+  pickerPlaceholder: { fontSize: 16, color: colors.subtle },
+  pickerDone: { alignItems: "flex-end", padding: spacing.sm },
+  pickerDoneText: { color: colors.primary, fontWeight: "700", fontSize: 15 },
+  editBtnRow: { flexDirection: "row", gap: spacing.md, marginTop: spacing.lg },
+  saveBtn: {
+    flex: 1,
+    backgroundColor: colors.primary,
     borderRadius: 10,
     paddingVertical: spacing.md,
     alignItems: "center",
   },
-  topupText: { color: colors.primary, fontSize: 15, fontWeight: "700" },
+  saveBtnText: { color: colors.primaryText, fontSize: 16, fontWeight: "700" },
+  cancelBtn: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 10,
+    paddingVertical: spacing.md,
+    alignItems: "center",
+  },
+  cancelBtnText: { color: colors.subtle, fontSize: 16, fontWeight: "600" },
   disabled: { opacity: 0.6 },
+
+  chartCard: {
+    backgroundColor: colors.card,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.lg,
+    marginTop: spacing.md,
+  },
+  chartTitle: { fontSize: 16, fontWeight: "700", color: colors.text, marginBottom: spacing.sm },
+  chartBirth: { fontSize: 14, color: colors.text, marginBottom: spacing.md },
+  chartHint: { fontSize: 14, color: colors.subtle, marginBottom: spacing.md, lineHeight: 21 },
+  chartBtn: {
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    paddingVertical: spacing.md,
+    alignItems: "center",
+  },
+  chartBtnText: { color: colors.primaryText, fontSize: 16, fontWeight: "700" },
+
   sectionTitle: {
     fontSize: 16,
     fontWeight: "700",

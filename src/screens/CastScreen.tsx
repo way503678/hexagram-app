@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -42,7 +42,15 @@ interface ChartInput {
   h: number;
 }
 
-export default function CastScreen({ mode }: { mode: CastMode }) {
+export default function CastScreen({
+  mode,
+  route,
+  navigation,
+}: {
+  mode: CastMode;
+  route?: { params?: { autoBirth?: { y: number; m: number; d: number; h: number; name?: string } } };
+  navigation?: { setParams?: (p: object) => void };
+}) {
   const isTime = mode === "time";
   const { user, setUser } = useAuth();
 
@@ -135,7 +143,27 @@ export default function CastScreen({ mode }: { mode: CastMode }) {
     }
   }
 
-  /** 時辰起卦。 */
+  /** 時辰起卦的核心(可帶明確參數,供手動排與自動帶入共用)。 */
+  async function castTime(
+    y: number, m: number, d: number, h: number,
+    name: string, g: "M" | "F" | ""
+  ) {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await castByTime({ y, m, d, h, name, gender: g });
+      setChart(res);
+      // 反推 yao_vals,讓時辰模式也能產生 Prompt
+      setChartInput({ yao_vals: yaoValsFromChart(res), y, m, d, h });
+      setCollapsed(true);
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "起卦失敗,請稍後再試");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  /** 時辰起卦(手動,讀畫面上的輸入)。 */
   async function doChartTime() {
     if (loading) return;
     const name = nameStr.trim();
@@ -147,24 +175,24 @@ export default function CastScreen({ mode }: { mode: CastMode }) {
       Alert.alert("請選擇出生時間", "點上方欄位選擇出生年月日與時辰。");
       return;
     }
-    const y = birth.getFullYear();
-    const m = birth.getMonth() + 1;
-    const d = birth.getDate();
-    const h = birth.getHours();
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await castByTime({ y, m, d, h, name, gender });
-      setChart(res);
-      // 反推 yao_vals,讓時辰模式也能產生 Prompt
-      setChartInput({ yao_vals: yaoValsFromChart(res), y, m, d, h });
-      setCollapsed(true);
-    } catch (e) {
-      setError(e instanceof ApiError ? e.message : "起卦失敗,請稍後再試");
-    } finally {
-      setLoading(false);
-    }
+    await castTime(
+      birth.getFullYear(), birth.getMonth() + 1,
+      birth.getDate(), birth.getHours(), name, gender
+    );
   }
+
+  /** 從會員中心「查看我的命盤」帶生日進來 → 自動帶入並排盤。 */
+  useEffect(() => {
+    const ab = route?.params?.autoBirth;
+    if (!isTime || !ab) return;
+    const bd = new Date(ab.y, ab.m - 1, ab.d, ab.h);
+    setBirth(bd);
+    setNameStr(ab.name || "本人");
+    castTime(ab.y, ab.m, ab.d, ab.h, ab.name || "本人", "");
+    // 清掉參數,避免切換分頁時重複觸發
+    navigation?.setParams?.({ autoBirth: undefined });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [route?.params?.autoBirth]);
 
   async function doPrompt() {
     if (!chartInput || promptLoading) return;

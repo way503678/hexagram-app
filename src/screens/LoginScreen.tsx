@@ -22,6 +22,7 @@ export default function LoginScreen() {
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [password2, setPassword2] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,6 +45,10 @@ export default function LoginScreen() {
     }
     if (isRegister && password.length < 6) {
       setError("密碼至少需 6 個字");
+      return;
+    }
+    if (isRegister && password !== password2) {
+      setError("兩次輸入的密碼不一致");
       return;
     }
 
@@ -112,6 +117,19 @@ export default function LoginScreen() {
 
             {isRegister && (
               <>
+                <Text style={styles.label}>再次輸入密碼</Text>
+                <TextInput
+                  style={styles.input}
+                  value={password2}
+                  onChangeText={setPassword2}
+                  placeholder="再輸入一次密碼"
+                  placeholderTextColor={colors.subtle}
+                  secureTextEntry
+                  autoCapitalize="none"
+                  textContentType="newPassword"
+                  editable={!busy}
+                />
+
                 <Text style={styles.label}>暱稱(選填)</Text>
                 <TextInput
                   style={styles.input}

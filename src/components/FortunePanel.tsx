@@ -1,6 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
-import { fetchFortune, ApiError } from "../api";
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import * as Clipboard from "expo-clipboard";
+import { fetchFortune, fortunePrompt, ApiError } from "../api";
+import { useAuth } from "../AuthContext";
 import { FortuneResult, FortuneRemark, FortuneYaoRow, DominantYao } from "../types";
 import { colors, spacing, wuxingColor } from "../theme";
 
@@ -17,11 +27,47 @@ const LEVEL_COLOR: Record<string, string> = {
 };
 
 export default function FortunePanel({ birth, gender }: Props) {
+  const { user, setUser } = useAuth();
   const [year, setYear] = useState(new Date().getFullYear());
   const [data, setData] = useState<FortuneResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [openMonth, setOpenMonth] = useState<string | null>(null);
+  const [adviceText, setAdviceText] = useState<string | null>(null);
+  const [adviceLoading, setAdviceLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  // 換年或換命盤時,清掉上一份宜忌
+  useEffect(() => {
+    setAdviceText(null);
+    setCopied(false);
+  }, [birth.y, birth.m, birth.d, birth.h, gender, year]);
+
+  async function genAdvice() {
+    if (adviceLoading) return;
+    setAdviceLoading(true);
+    try {
+      const res = await fortunePrompt(birth, year, gender);
+      setAdviceText(res.prompt);
+      if (user && typeof res.balance === "number") {
+        setUser({ ...user, points_balance: res.balance });
+      }
+    } catch (e) {
+      Alert.alert(
+        "產生失敗",
+        e instanceof ApiError ? e.message : "請稍後再試"
+      );
+    } finally {
+      setAdviceLoading(false);
+    }
+  }
+
+  async function copyAdvice() {
+    if (!adviceText) return;
+    await Clipboard.setStringAsync(adviceText);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
 
   useEffect(() => {
     let alive = true;
@@ -70,6 +116,33 @@ export default function FortunePanel({ birth, gender }: Props) {
               <Text style={styles.sub}>
                 當令:{data.流年.主導爻.map((r) => `${r.六親}${r.地支}(${r.當值})`).join("、")}
               </Text>
+            )}
+          </View>
+
+          {/* 流年宜忌(進階・扣點):產生白話建議 prompt */}
+          <View style={styles.adviceWrap}>
+            <TouchableOpacity
+              style={[styles.adviceBtn, adviceLoading && styles.adviceBtnBusy]}
+              onPress={genAdvice}
+              disabled={adviceLoading}
+              activeOpacity={0.85}
+            >
+              {adviceLoading ? (
+                <ActivityIndicator color={colors.primaryText} />
+              ) : (
+                <Text style={styles.adviceBtnText}>🔮 今年宜忌・生活化建議（進階・扣點）</Text>
+              )}
+            </TouchableOpacity>
+            {adviceText && (
+              <View style={styles.adviceBox}>
+                <Text style={styles.adviceHint}>
+                  下面是依你今年命盤產生的「流年宜忌」內容，可複製到任何 AI（Claude／ChatGPT…）請它讀給你聽：
+                </Text>
+                <Text selectable style={styles.adviceContent}>{adviceText}</Text>
+                <TouchableOpacity style={styles.copyBtn} onPress={copyAdvice}>
+                  <Text style={styles.copyBtnText}>{copied ? "✓ 已複製" : "複製"}</Text>
+                </TouchableOpacity>
+              </View>
             )}
           </View>
 
@@ -230,4 +303,33 @@ const styles = StyleSheet.create({
   cGz: { width: 52 },
   cRel2: { flex: 1, textAlign: "right" },
   error: { color: colors.moving, textAlign: "center", marginVertical: spacing.md },
+  adviceWrap: { marginBottom: spacing.md },
+  adviceBtn: {
+    backgroundColor: "#6b2d8b",
+    borderRadius: 10,
+    paddingVertical: spacing.md,
+    alignItems: "center",
+  },
+  adviceBtnBusy: { opacity: 0.6 },
+  adviceBtnText: { color: colors.primaryText, fontSize: 15, fontWeight: "700" },
+  adviceBox: {
+    marginTop: spacing.sm,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 10,
+    padding: spacing.md,
+  },
+  adviceHint: { fontSize: 12, color: colors.subtle, lineHeight: 18, marginBottom: spacing.sm },
+  adviceContent: { fontSize: 13, color: colors.text, lineHeight: 20 },
+  copyBtn: {
+    marginTop: spacing.sm,
+    alignSelf: "flex-start",
+    borderWidth: 1,
+    borderColor: "#6b2d8b",
+    borderRadius: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+  },
+  copyBtnText: { color: "#6b2d8b", fontWeight: "700", fontSize: 14 },
 });

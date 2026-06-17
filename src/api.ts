@@ -141,6 +141,19 @@ export function fetchFortune(
   );
 }
 
+/** 流年宜忌「產生 Prompt」(進階,需登入、扣點)。回傳可貼到自己 AI 的白話流年 prompt。 */
+export function fortunePrompt(
+  birth: { y: number; m: number; d: number; h: number },
+  year: number,
+  gender: "M" | "F" | ""
+): Promise<{ prompt: string; balance: number }> {
+  return postJson<{ prompt: string; balance: number }>("/api/v1/fortune/prompt", {
+    ...birth,
+    year,
+    gender,
+  });
+}
+
 /** 健康檢查(設定頁可用來測連線)。 */
 export async function checkHealth(): Promise<boolean> {
   try {

@@ -168,7 +168,8 @@ export interface AuthResult {
   user: User;
 }
 
-/** Email 註冊。成功回傳 token + 會員資料(後端會送新會員贈點)。 */
+/** Email 註冊。成功回傳 token + 會員資料(後端會送新會員贈點)。
+ *  agreed=true 代表已同意個資同意書 + 免責聲明(App 端按鈕已鎖,送出時必為 true)。 */
 export function registerEmail(
   email: string,
   password: string,
@@ -178,6 +179,7 @@ export function registerEmail(
     email,
     password,
     display_name: displayName,
+    agreed: true,
   });
 }
 

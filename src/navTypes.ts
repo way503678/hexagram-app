@@ -6,4 +6,5 @@ export type RootTabParamList = {
   Almanac: undefined;
   Coin: undefined;
   Time: undefined;
+  Member: undefined;
 };

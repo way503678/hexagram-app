@@ -10,13 +10,28 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * 目前登入 token(由 AuthContext 設定)。設定後,所有 API 請求都會自動
+ * 夾帶 Authorization: Bearer <token>,後端據此辨識會員身分。
+ */
+let authToken: string | null = null;
+
+export function setAuthToken(token: string | null): void {
+  authToken = token;
+}
+
+/** 組裝請求標頭,有 token 就帶上 Authorization。 */
+function authHeaders(base: Record<string, string> = {}): Record<string, string> {
+  return authToken ? { ...base, Authorization: `Bearer ${authToken}` } : base;
+}
+
 async function postJson<T>(path: string, body: unknown): Promise<T> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
   try {
     const res = await fetch(`${API_BASE_URL}${path}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: authHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify(body),
       signal: controller.signal,
     });
@@ -89,7 +104,10 @@ async function getJson<T>(path: string): Promise<T> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
   try {
-    const res = await fetch(`${API_BASE_URL}${path}`, { signal: controller.signal });
+    const res = await fetch(`${API_BASE_URL}${path}`, {
+      headers: authHeaders(),
+      signal: controller.signal,
+    });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       const msg = (data && (data as { error?: string }).error) || `HTTP ${res.status}`;
@@ -129,4 +147,62 @@ export async function checkHealth(): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+// ============================================================
+// 會員登入
+// ============================================================
+export interface User {
+  id: number;
+  auth_provider: string;
+  display_name: string | null;
+  email: string | null;
+  points_balance: number;
+  created_at: string | null;
+}
+
+export interface AuthResult {
+  token: string;
+  user: User;
+}
+
+/** Email 註冊。成功回傳 token + 會員資料(後端會送新會員贈點)。 */
+export function registerEmail(
+  email: string,
+  password: string,
+  displayName?: string
+): Promise<AuthResult> {
+  return postJson<AuthResult>("/api/v1/auth/register", {
+    email,
+    password,
+    display_name: displayName,
+  });
+}
+
+/** Email 登入。成功回傳 token + 會員資料。 */
+export function loginEmail(email: string, password: string): Promise<AuthResult> {
+  return postJson<AuthResult>("/api/v1/auth/login", { email, password });
+}
+
+/** 憑目前 token 取會員資料(含最新點數)。token 失效會丟 ApiError(401)。 */
+export function fetchMe(): Promise<{ user: User }> {
+  return getJson<{ user: User }>("/api/v1/auth/me");
+}
+
+export interface LedgerEntry {
+  delta: number;
+  balance_after: number;
+  reason: string;
+  ref: string | null;
+  created_at: string | null;
+}
+
+/** 目前會員的點數異動紀錄(新到舊)。 */
+export function fetchLedger(): Promise<{ ledger: LedgerEntry[] }> {
+  return getJson<{ ledger: LedgerEntry[] }>("/api/v1/member/ledger");
+}
+
+/** [測試用] 幫目前會員加 10 點。 */
+export function testTopup(): Promise<{ balance: number }> {
+  return postJson<{ balance: number }>("/api/v1/member/test_topup", {});
 }

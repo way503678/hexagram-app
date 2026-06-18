@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -13,7 +14,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors, spacing } from "../theme";
 import { useAuth } from "../AuthContext";
-import { ApiError } from "../api";
+import { ApiError, forgotPassword } from "../api";
 import { PRIVACY_CONSENT, DISCLAIMER } from "../legal";
 
 type Mode = "login" | "register";
@@ -75,6 +76,25 @@ export default function LoginScreen() {
     setError(null);
     setAgreePrivacy(false);
     setAgreeDisclaimer(false);
+  }
+
+  async function onForgot() {
+    const e = email.trim().toLowerCase();
+    if (!e) {
+      setError("請先在上方輸入 Email,再點忘記密碼");
+      return;
+    }
+    const done = () =>
+      Alert.alert(
+        "已寄出",
+        "若這是已註冊的帳號,重設密碼連結已寄到信箱,請點信中連結重設(1 小時內有效)。"
+      );
+    try {
+      await forgotPassword(e);
+      done();
+    } catch {
+      done(); // 一律相同訊息,防帳號列舉
+    }
   }
 
   async function onSubmit() {
@@ -228,6 +248,12 @@ export default function LoginScreen() {
               )}
             </TouchableOpacity>
 
+            {!isRegister && (
+              <TouchableOpacity style={styles.switch} onPress={onForgot} disabled={busy}>
+                <Text style={styles.forgotText}>忘記密碼?</Text>
+              </TouchableOpacity>
+            )}
+
             <TouchableOpacity
               style={styles.switch}
               onPress={switchMode}
@@ -354,4 +380,5 @@ const styles = StyleSheet.create({
   },
   switch: { alignItems: "center", marginTop: spacing.lg },
   switchText: { color: colors.primary, fontSize: 14 },
+  forgotText: { color: colors.subtle, fontSize: 14 },
 });

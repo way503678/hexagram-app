@@ -207,6 +207,11 @@ export function loginEmail(email: string, password: string): Promise<AuthResult>
   return postJson<AuthResult>("/api/v1/auth/login", { email, password });
 }
 
+/** 忘記密碼:寄重設連結(連結走網頁)。一律回成功,防帳號列舉。 */
+export function forgotPassword(email: string): Promise<{ ok: boolean }> {
+  return postJson<{ ok: boolean }>("/api/v1/auth/forgot", { email });
+}
+
 /** 憑目前 token 取會員資料(含最新點數)。token 失效會丟 ApiError(401)。 */
 export function fetchMe(): Promise<{ user: User }> {
   return getJson<{ user: User }>("/api/v1/auth/me");

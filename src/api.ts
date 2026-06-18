@@ -225,6 +225,38 @@ export function fetchLedger(): Promise<{ ledger: LedgerEntry[] }> {
   return getJson<{ ledger: LedgerEntry[] }>("/api/v1/member/ledger");
 }
 
+export interface MyQuestion {
+  id: number;
+  created_at: string | null;
+  question: string | null;
+  ben_gua: string | null;
+  bian_gua: string | null;
+  moving_lines: string | null;
+}
+
+/** 我的卜卦紀錄(只回自己的)。 */
+export function fetchMyQuestions(): Promise<{ questions: MyQuestion[] }> {
+  return getJson<{ questions: MyQuestion[] }>("/api/v1/member/questions");
+}
+
+/** 修改密碼。 */
+export function changePassword(
+  currentPassword: string,
+  newPassword: string,
+  newPassword2: string
+): Promise<{ ok: boolean }> {
+  return postJson<{ ok: boolean }>("/api/v1/member/password", {
+    current_password: currentPassword,
+    new_password: newPassword,
+    new_password2: newPassword2,
+  });
+}
+
+/** 刪除帳號(需密碼確認)。 */
+export function deleteAccount(password: string): Promise<{ ok: boolean }> {
+  return postJson<{ ok: boolean }>("/api/v1/member/delete", { password });
+}
+
 export interface ProfileUpdate {
   display_name?: string;
   gender?: "M" | "F" | "";

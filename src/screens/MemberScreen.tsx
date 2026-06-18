@@ -17,7 +17,16 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { useNavigation } from "@react-navigation/native";
 import { colors, spacing } from "../theme";
 import { useAuth } from "../AuthContext";
-import { fetchLedger, updateProfile, LedgerEntry, ApiError } from "../api";
+import {
+  fetchLedger,
+  updateProfile,
+  fetchMyQuestions,
+  changePassword,
+  deleteAccount,
+  LedgerEntry,
+  MyQuestion,
+  ApiError,
+} from "../api";
 
 /** 帳本 reason 轉中文。 */
 const REASON_LABEL: Record<string, string> = {
@@ -59,6 +68,21 @@ export default function MemberScreen() {
   const [editBirth, setEditBirth] = useState<Date | null>(null);
   const [showPicker, setShowPicker] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // 我的紀錄
+  const [showHistory, setShowHistory] = useState(false);
+  const [history, setHistory] = useState<MyQuestion[] | null>(null);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  // 修改密碼
+  const [showPwd, setShowPwd] = useState(false);
+  const [curPwd, setCurPwd] = useState("");
+  const [newPwd, setNewPwd] = useState("");
+  const [newPwd2, setNewPwd2] = useState("");
+  const [pwdBusy, setPwdBusy] = useState(false);
+  // 刪除帳號
+  const [showDel, setShowDel] = useState(false);
+  const [delPwd, setDelPwd] = useState("");
+  const [delBusy, setDelBusy] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -128,6 +152,65 @@ export default function MemberScreen() {
     } finally {
       setSaving(false);
     }
+  }
+
+  async function toggleHistory() {
+    const next = !showHistory;
+    setShowHistory(next);
+    if (next && history === null) {
+      setHistoryLoading(true);
+      try {
+        const { questions } = await fetchMyQuestions();
+        setHistory(questions);
+      } catch {
+        setHistory([]);
+      } finally {
+        setHistoryLoading(false);
+      }
+    }
+  }
+
+  async function doChangePassword() {
+    if (pwdBusy) return;
+    if (newPwd !== newPwd2) {
+      Alert.alert("無法更新", "兩次輸入的新密碼不一致");
+      return;
+    }
+    if (newPwd.length < 8 || !(/[A-Za-z]/.test(newPwd) && /\d/.test(newPwd))) {
+      Alert.alert("無法更新", "新密碼至少 8 碼,且需英數混合");
+      return;
+    }
+    setPwdBusy(true);
+    try {
+      await changePassword(curPwd, newPwd, newPwd2);
+      setCurPwd(""); setNewPwd(""); setNewPwd2(""); setShowPwd(false);
+      Alert.alert("完成", "密碼已更新");
+    } catch (e) {
+      Alert.alert("更新失敗", e instanceof ApiError ? e.message : "請稍後再試");
+    } finally {
+      setPwdBusy(false);
+    }
+  }
+
+  function doDeleteAccount() {
+    if (delBusy) return;
+    Alert.alert("永久刪除帳號", "刪除後資料、點數、紀錄都會永久消失且無法復原,確定?", [
+      { text: "取消", style: "cancel" },
+      {
+        text: "永久刪除",
+        style: "destructive",
+        onPress: async () => {
+          setDelBusy(true);
+          try {
+            await deleteAccount(delPwd);
+            await logout();  // 清 token、回登入頁
+          } catch (e) {
+            Alert.alert("刪除失敗", e instanceof ApiError ? e.message : "請稍後再試");
+            setDelBusy(false);
+          }
+        },
+      },
+    ]);
   }
 
   function onLogout() {
@@ -294,6 +377,77 @@ export default function MemberScreen() {
           ))
         )}
 
+        {/* 我的紀錄 */}
+        <Text style={styles.sectionTitle}>我的紀錄</Text>
+        <TouchableOpacity style={styles.acctRow} onPress={toggleHistory}>
+          <Text style={styles.acctRowText}>卜卦問事紀錄</Text>
+          <Text style={styles.acctRowArrow}>{showHistory ? "▾" : "▸"}</Text>
+        </TouchableOpacity>
+        {showHistory && (
+          <View style={styles.acctBody}>
+            {historyLoading ? (
+              <ActivityIndicator color={colors.primary} />
+            ) : history && history.length > 0 ? (
+              history.map((q) => (
+                <View key={q.id} style={styles.histItem}>
+                  <Text style={styles.histQ}>{q.question || "—"}</Text>
+                  <Text style={styles.histMeta}>
+                    {formatDate(q.created_at)}　{q.ben_gua || "—"}
+                    {q.bian_gua ? ` → ${q.bian_gua}` : ""}
+                  </Text>
+                </View>
+              ))
+            ) : (
+              <Text style={styles.empty}>還沒有紀錄。卜卦並使用 AI 後會留下。</Text>
+            )}
+          </View>
+        )}
+
+        {/* 帳號管理 */}
+        <Text style={styles.sectionTitle}>帳號管理</Text>
+        <TouchableOpacity style={styles.acctRow} onPress={() => setShowPwd((v) => !v)}>
+          <Text style={styles.acctRowText}>修改密碼</Text>
+          <Text style={styles.acctRowArrow}>{showPwd ? "▾" : "▸"}</Text>
+        </TouchableOpacity>
+        {showPwd && (
+          <View style={styles.acctBody}>
+            <TextInput style={styles.input} value={curPwd} onChangeText={setCurPwd}
+              placeholder="目前密碼" placeholderTextColor={colors.subtle}
+              secureTextEntry autoCapitalize="none" />
+            <TextInput style={[styles.input, { marginTop: spacing.sm }]} value={newPwd} onChangeText={setNewPwd}
+              placeholder="新密碼(至少 8 碼,英數混合)" placeholderTextColor={colors.subtle}
+              secureTextEntry autoCapitalize="none" />
+            <TextInput style={[styles.input, { marginTop: spacing.sm }]} value={newPwd2} onChangeText={setNewPwd2}
+              placeholder="再次輸入新密碼" placeholderTextColor={colors.subtle}
+              secureTextEntry autoCapitalize="none" />
+            <TouchableOpacity style={[styles.saveBtn, { marginTop: spacing.md }, pwdBusy && styles.disabled]}
+              onPress={doChangePassword} disabled={pwdBusy}>
+              {pwdBusy ? <ActivityIndicator color={colors.primaryText} />
+                : <Text style={styles.saveBtnText}>更新密碼</Text>}
+            </TouchableOpacity>
+          </View>
+        )}
+
+        <TouchableOpacity style={styles.acctRow} onPress={() => setShowDel((v) => !v)}>
+          <Text style={[styles.acctRowText, { color: colors.moving }]}>刪除帳號</Text>
+          <Text style={styles.acctRowArrow}>{showDel ? "▾" : "▸"}</Text>
+        </TouchableOpacity>
+        {showDel && (
+          <View style={styles.acctBody}>
+            <Text style={styles.delWarn}>
+              刪除後將永久移除你的會員資料、剩餘點數與所有紀錄,且無法復原。
+            </Text>
+            <TextInput style={styles.input} value={delPwd} onChangeText={setDelPwd}
+              placeholder="輸入密碼以確認" placeholderTextColor={colors.subtle}
+              secureTextEntry autoCapitalize="none" />
+            <TouchableOpacity style={[styles.delBtn, { marginTop: spacing.md }, delBusy && styles.disabled]}
+              onPress={doDeleteAccount} disabled={delBusy}>
+              {delBusy ? <ActivityIndicator color="#fff" />
+                : <Text style={styles.delBtnText}>永久刪除我的帳號</Text>}
+            </TouchableOpacity>
+          </View>
+        )}
+
         <TouchableOpacity style={styles.logoutBtn} onPress={onLogout}>
           <Text style={styles.logoutText}>登出</Text>
         </TouchableOpacity>
@@ -436,6 +590,39 @@ const styles = StyleSheet.create({
   ledgerRight: { alignItems: "flex-end" },
   ledgerDelta: { fontSize: 17, fontWeight: "700" },
   ledgerBalance: { fontSize: 12, color: colors.subtle, marginTop: 2 },
+  acctRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 10,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  acctRowText: { fontSize: 15, color: colors.text, fontWeight: "600" },
+  acctRowArrow: { fontSize: 14, color: colors.subtle },
+  acctBody: {
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 10,
+    padding: spacing.md,
+    marginTop: -spacing.xs,
+    marginBottom: spacing.sm,
+  },
+  histItem: { paddingVertical: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border },
+  histQ: { fontSize: 14, color: colors.text },
+  histMeta: { fontSize: 12, color: colors.subtle, marginTop: 2 },
+  delWarn: { fontSize: 13, color: colors.moving, lineHeight: 20, marginBottom: spacing.md },
+  delBtn: {
+    backgroundColor: "#a02020",
+    borderRadius: 10,
+    paddingVertical: spacing.md,
+    alignItems: "center",
+  },
+  delBtnText: { color: "#fff", fontSize: 16, fontWeight: "700" },
   logoutBtn: {
     marginTop: spacing.xl,
     paddingVertical: spacing.md,

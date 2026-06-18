@@ -86,9 +86,15 @@ export default function LoginScreen() {
       setError("請輸入 Email 與密碼");
       return;
     }
-    if (isRegister && password.length < 6) {
-      setError("密碼至少需 6 個字");
-      return;
+    if (isRegister) {
+      if (password.length < 8) {
+        setError("密碼至少需 8 個字");
+        return;
+      }
+      if (!(/[A-Za-z]/.test(password) && /\d/.test(password))) {
+        setError("密碼需英數混合(同時包含英文字母與數字)");
+        return;
+      }
     }
     if (isRegister && password !== password2) {
       setError("兩次輸入的密碼不一致");
@@ -154,7 +160,7 @@ export default function LoginScreen() {
               style={styles.input}
               value={password}
               onChangeText={setPassword}
-              placeholder={isRegister ? "至少 6 個字" : "請輸入密碼"}
+              placeholder={isRegister ? "至少 8 碼,英數混合" : "請輸入密碼"}
               placeholderTextColor={colors.subtle}
               secureTextEntry
               autoCapitalize="none"

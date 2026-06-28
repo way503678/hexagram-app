@@ -1,10 +1,21 @@
-# 命卦排盤 App — 工作紀錄 / App 專屬背景
+# 命果 MINGO App — 工作紀錄 / App 專屬背景
 
 > **用途**:開新對話、接 App(hexagram-app)相關任務時讀這份。
 > **共用背景**(專案速覽、解卦 prompt 設計原則、跨平台決策、總待辦)在**後端** repo:
 > `/opt/hexagram/docs/WORKLOG.md` —— 這份只放 App 專屬的操作與紀錄,不重複共用內容。
 
-最後更新:2026-06-19
+最後更新:2026-06-28
+
+---
+
+## 0. 換膚紀錄(2026-06-28)
+
+- **改名「命果 MINGO」+ 換 MINGO 設計系統**(設計基準:`hexagram/docs/DESIGN_SYSTEM.md`)。
+- `src/theme.ts`:MINGO 色票(primary `#5E548E`、accent 亮紫 `#A78BFA`、bg 米白 `#F7F4EE`、gold `#F6BD60`),加 `radius`/`gradients`/`shadowSoft`;**命理功能色保留**(moving/shi/ying/五行/紫白/擇日)。
+- 新增 `src/components/ui.tsx`:`GradientCard`/`SectionCard`/`PillTag`/`PrimaryButton`/`GhostButton`/`IconRow`(需 `expo-linear-gradient`,已安裝)。
+- `HomeScreen` 重做(品牌列+問候+漸層主視覺+今日指引卡);`LoginScreen` 品牌改命果 MINGO;`app.json` 改名;`FortunePanel` 舊紫→token;`legal.ts` 改名。
+- **維持** React Navigation + StyleSheet(不改 Expo Router/NativeWind)。tab 結構不變(換膚階段);第二階段才疊新功能(AI 問答/今日指引詳情/探索/改 tab)。
+- 內頁(Member/Cast/Almanac)靠 theme token 自動套色,漸層卡細修列為後續。
 
 ---
 

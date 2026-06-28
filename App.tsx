@@ -17,16 +17,17 @@ import SplashConsent from "./src/screens/SplashConsent";
 import { AuthProvider, useAuth } from "./src/AuthContext";
 import { getItem, setItem } from "./src/storage";
 import { colors, gradients, shadowSoft } from "./src/theme";
+import MingoIcon, { MingoIconName } from "./src/components/MingoIcon";
 
 const CONSENT_KEY = "mingo_consent_v1";
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-/** 一般分頁圖示(emoji,依選取狀態調整透明度)。 */
-function tabIcon(emoji: string) {
+/** 一般分頁圖示(v3 tile 圖示,未選取降透明度)。 */
+function tabIcon(name: MingoIconName) {
   return ({ focused }: { focused: boolean }) => (
-    <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.4 }}>{emoji}</Text>
+    <MingoIcon name={name} size={26} style={{ opacity: focused ? 1 : 0.45 }} />
   );
 }
 
@@ -84,7 +85,7 @@ function MainTabs() {
       <Tab.Screen
         name="Features"
         component={FeaturesScreen}
-        options={{ title: "功能", headerShown: false, tabBarIcon: tabIcon("☷") }}
+        options={{ title: "功能", headerShown: false, tabBarIcon: tabIcon("bagua") }}
       />
       <Tab.Screen
         name="Home"
@@ -98,7 +99,7 @@ function MainTabs() {
       <Tab.Screen
         name="Member"
         component={MemberScreen}
-        options={{ title: "我的", headerShown: false, tabBarIcon: tabIcon("👤") }}
+        options={{ title: "我的", headerShown: false, tabBarIcon: tabIcon("profile") }}
       />
     </Tab.Navigator>
   );

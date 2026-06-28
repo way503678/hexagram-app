@@ -3,11 +3,13 @@
  * 看完按「我已了解」→ 記到本機,之後不再出現。
  */
 import React, { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ImageBackground, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors, spacing } from "../theme";
 import { PrimaryButton } from "../components/ui";
 import { PRIVACY_CONSENT, DISCLAIMER } from "../legal";
+
+const BG = require("../../assets/mingo/splash_background.png");
 
 function ConsentItem({ doc }: { doc: { title: string; body: string[] } }) {
   const [open, setOpen] = useState(false);
@@ -33,7 +35,8 @@ function ConsentItem({ doc }: { doc: { title: string; body: string[] } }) {
 
 export default function SplashConsent({ onAccept }: { onAccept: () => void }) {
   return (
-    <SafeAreaView style={styles.safe}>
+    <ImageBackground source={BG} style={styles.safe} resizeMode="cover">
+      <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.brand}>
           <Text style={styles.symbol}>☯</Text>
@@ -51,12 +54,13 @@ export default function SplashConsent({ onAccept }: { onAccept: () => void }) {
         <PrimaryButton title="我已了解" onPress={onAccept} style={{ marginTop: spacing.lg }} />
         <Text style={styles.foot}>按下即表示你已閱讀並同意上述聲明</Text>
       </ScrollView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
+  safe: { flex: 1, backgroundColor: "transparent" },
   scroll: { padding: spacing.xl, flexGrow: 1, justifyContent: "center" },
   brand: { alignItems: "center", marginBottom: spacing.xl },
   symbol: { fontSize: 56, color: colors.primary },

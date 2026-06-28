@@ -6,6 +6,7 @@ import { useNavigation } from "@react-navigation/native";
 import { colors, radius, spacing } from "../theme";
 import { SectionCard } from "../components/ui";
 import { TouchableOpacity } from "react-native";
+import MingoIcon, { MingoIconName } from "../components/MingoIcon";
 
 function MenuCard({
   icon,
@@ -13,7 +14,7 @@ function MenuCard({
   sub,
   onPress,
 }: {
-  icon: string;
+  icon: MingoIconName;
   title: string;
   sub: string;
   onPress: () => void;
@@ -21,7 +22,7 @@ function MenuCard({
   return (
     <TouchableOpacity activeOpacity={0.85} onPress={onPress}>
       <SectionCard style={styles.menuCard}>
-        <Text style={styles.menuIcon}>{icon}</Text>
+        <MingoIcon name={icon} size={42} style={{ marginRight: spacing.md }} />
         <View style={{ flex: 1 }}>
           <Text style={styles.menuTitle}>{title}</Text>
           <Text style={styles.menuSub}>{sub}</Text>
@@ -39,13 +40,13 @@ export default function FeaturesScreen() {
       <ScrollView contentContainerStyle={styles.scroll}>
         <Text style={styles.h1}>功能</Text>
         <MenuCard
-          icon="📅"
+          icon="calendar"
           title="今日黃曆"
           sub="宜忌・吉時・五行,看今天的能量"
           onPress={() => nav.navigate("Almanac")}
         />
         <MenuCard
-          icon="🪙"
+          icon="coin"
           title="卜卦問事"
           sub="有問題?問命果，陪你想清楚下一步"
           onPress={() => nav.navigate("Cast", { mode: "coin" })}

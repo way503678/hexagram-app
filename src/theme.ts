@@ -4,23 +4,25 @@
  * 低飽和紫色系 + 米白底 + 大圓角 + 柔和陰影 + 漸層。
  */
 export const colors = {
-  // --- MINGO tokens(對齊 Dev Kit v1:暖奶白 + 深紫 + 薰衣草 + 金 + 鼠尾草)---
-  bg: "#FFF9F4", // 頁面背景(creamLight)
-  cream: "#F7F4EE", // 中階奶白
-  surface: "#FBF6EF", // 暖色面板
-  card: "#FFFFFF", // 卡片(elevated)
-  border: "#EAE4DC", // 分隔線(divider)
-  text: "#3C3442", // 主文字(暖深)
-  subtle: "#8D8190", // 次要文字
-  primary: "#5E548E", // 次色 中紫
-  primaryDark: "#2B2D42", // 主色 深紫藍
+  // --- MINGO tokens(對齊 Production Resources v3:暖紫 + 金 + 奶白命理風)---
+  bg: "#FFF8EF", // 頁面背景(cream)
+  cream: "#FFF8EF",
+  surface: "#FBF3E8", // 暖色面板(paper)
+  card: "#FFFFFF", // 卡片(white)
+  border: "#ECE3D7", // 分隔線(暖奶白)
+  text: "#3E2A3F", // 主文字(ink 暖墨紫)
+  subtle: "#8C7C8A", // 次要文字
+  primary: "#6F4C8B", // 主紫(plum)
+  primaryDark: "#3E2A3F", // 最深(ink)
   primaryText: "#FFFFFF",
-  accent: "#A78BFA", // 強調 薰衣草紫(soft purple)
-  lavender: "#E9DDF7", // 淡薰衣草(底色/標籤)
-  gold: "#F6BD60", // 點綴 金黃
-  goldSoft: "#F9D9A6", // 柔金
-  sage: "#A8C9B3", // 鼠尾草綠
-  sageDeep: "#6E8D7D",
+  accent: "#9B78C7", // 強調紫(purple)
+  lavender: "#D8C6EE", // 薰衣草
+  lavenderLight: "#F3EEF9",
+  gold: "#D8A84E", // 金
+  goldSoft: "#F6DFA6", // 柔金(goldLight)
+  peach: "#F2C6AD",
+  rose: "#DFA7B4",
+  sage: "#AFC7A4", // 鼠尾草綠
   // --- 命理功能色(換膚不動,維持判讀正確性)---
   moving: "#c0392b", // 動爻
   shi: "#1f6f43", // 世
@@ -29,9 +31,10 @@ export const colors = {
 
 /** 紫色漸層(深紫卡 / 亮紫卡 / 淺底),配 expo-linear-gradient 的 colors 陣列。 */
 export const gradients = {
-  deep: ["#5E548E", "#2B2D42"] as const, // 深紫卡
-  bright: ["#A78BFA", "#5E548E"] as const, // 亮紫卡
-  light: ["#FFF9F4", "#FFFFFF"] as const, // 淺底
+  deep: ["#6F4C8B", "#3E2A3F"] as const, // 深紫卡(plum→ink)
+  bright: ["#9B78C7", "#6F4C8B"] as const, // 亮紫卡(purple→plum)
+  gold: ["#F6DFA6", "#D8A84E"] as const, // 金卡
+  light: ["#FFF8EF", "#FFFFFF"] as const, // 淺底
 };
 
 export const spacing = {
@@ -42,22 +45,22 @@ export const spacing = {
   xl: 32,
 };
 
-/** 圓角(對齊 Dev Kit)。 */
+/** 圓角(對齊 v3:sm12/md20/lg32/xl48)。 */
 export const radius = {
   sm: 12,
-  md: 18,
-  lg: 24,
-  xl: 32,
+  md: 20,
+  lg: 32,
+  xl: 48,
   pill: 999,
 };
 
-/** 柔和陰影(soft)— 對齊 Dev Kit(大而淡)。 */
+/** 柔和陰影(soft)— 對齊 v3(暖墨紫、大而淡)。 */
 export const shadowSoft = {
-  shadowColor: "#2B2D42",
-  shadowOffset: { width: 0, height: 12 },
-  shadowOpacity: 0.1,
-  shadowRadius: 32,
-  elevation: 4,
+  shadowColor: "#3E2A3F",
+  shadowOffset: { width: 0, height: 14 },
+  shadowOpacity: 0.16,
+  shadowRadius: 28,
+  elevation: 5,
 };
 
 /** 紫白飛星徽章配色:{背景, 文字, 是否描邊}。 */

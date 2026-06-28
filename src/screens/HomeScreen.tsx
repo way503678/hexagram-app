@@ -17,7 +17,7 @@ import { fetchDaily, fetchAlmanacDay, DailyGuide } from "../api";
 import { AlmanacDay } from "../types";
 import { useAuth } from "../AuthContext";
 
-const HERO = require("../../assets/mingo/mountain-sunrise.png");
+const HERO = require("../../assets/mingo/mountain_v3.png");
 
 export default function HomeScreen() {
   const nav = useNavigation<any>();

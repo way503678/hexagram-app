@@ -388,14 +388,14 @@ export default function MemberScreen() {
           )}
         </View>
 
-        {/* 果實紀錄 */}
+        {/* 果實紀錄(最新 5 筆) */}
         <Text style={styles.sectionTitle}>果實紀錄</Text>
         {loading && ledger.length === 0 ? (
           <ActivityIndicator style={{ marginTop: spacing.lg }} color={colors.primary} />
         ) : ledger.length === 0 ? (
           <Text style={styles.empty}>目前沒有果實異動紀錄</Text>
         ) : (
-          ledger.map((row, i) => (
+          ledger.slice(0, 5).map((row, i) => (
             <View key={i} style={styles.ledgerRow}>
               <View style={styles.ledgerLeft}>
                 <Text style={styles.ledgerReason}>{reasonText(row.reason)}</Text>

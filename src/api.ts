@@ -117,6 +117,37 @@ export interface ChatTurn {
   content: string;
 }
 
+export interface Reflection {
+  id: number;
+  created_at: string;
+  question: string | null;
+  feeling: string | null;
+  goal: string;
+  remind_at: string | null;
+  status: string;
+}
+
+/** 🌱 建立成長反思(免費):最有感一句 → AI 生成本週小目標。回傳 {id, goal}。 */
+export function createReflection(
+  feeling: string,
+  question?: string
+): Promise<{ id: number; goal: string }> {
+  return postJson<{ id: number; goal: string }>("/api/v1/reflection", {
+    feeling,
+    question: question || "",
+  });
+}
+
+/** 到回訪時間、尚未回顧的反思(站內提醒)。 */
+export function fetchDueReflections(): Promise<{ reflections: Reflection[] }> {
+  return getJson<{ reflections: Reflection[] }>("/api/v1/reflections/due");
+}
+
+/** 標記某反思已回顧。 */
+export function markReflectionDone(id: number): Promise<{ ok: boolean }> {
+  return postJson<{ ok: boolean }>("/api/v1/reflection/done", { id });
+}
+
 /** 解讀後「繼續聊」(教練式追問,需登入,每則扣 1 點)。帶卦象 + 先前解讀 + 對話歷史。 */
 export function sendChat(
   req: PromptRequest & { reading: string; history: ChatTurn[]; message: string }

@@ -14,7 +14,8 @@
   - `api.ts` `generateReading()` → 後端 `POST /api/v1/reading`(扣 1 點、後端呼叫 Claude、回完整解讀)。
   - `components/MingoReading.tsx`:依【標記】分段渲染(一句話=亮紫卡、陪你一句=金、易經原文/深入理論=可收合),與網頁 `renderMingo` 同邏輯。
   - `CastScreen`:主按鈕「✨ 命果為你解讀」→ 渲染解讀;原「複製 Prompt」降為次要選項。
-- **待辦**:Phase 2 Chat CTA(對話追問)、Phase 3 成長反思 + 提醒。
+- **Phase 2 完成**:`MingoChat`(解讀後繼續聊,`api.sendChat` → `/api/v1/chat`)。
+- **Phase 3 完成**:`MingoReflect`(CastScreen 解讀後「最有感一句 → 本週小事」,`createReflection`);MemberScreen 到期回訪卡(`fetchDueReflections`/`markReflectionDone`)。回訪管道:站內 + Email(後端 dispatch)。
 
 ## 0. 換膚紀錄(2026-06-28)
 

@@ -26,6 +26,9 @@ import {
   LedgerEntry,
   MyQuestion,
   ApiError,
+  fetchDueReflections,
+  markReflectionDone,
+  Reflection,
 } from "../api";
 
 /** 帳本 reason 轉中文。 */
@@ -59,6 +62,7 @@ export default function MemberScreen() {
   const { user, logout, refresh, setUser } = useAuth();
   const nav = useNavigation<any>();
   const [ledger, setLedger] = useState<LedgerEntry[]>([]);
+  const [due, setDue] = useState<Reflection[]>([]);
   const [loading, setLoading] = useState(true);
 
   // 修改會員資料
@@ -90,6 +94,12 @@ export default function MemberScreen() {
       await refresh();
       const { ledger: rows } = await fetchLedger();
       setLedger(rows);
+      try {
+        const { reflections } = await fetchDueReflections();
+        setDue(reflections);
+      } catch {
+        /* 反思讀取失敗不影響主畫面 */
+      }
     } catch {
       /* 讀取失敗就維持原狀,下拉可重試 */
     } finally {
@@ -100,6 +110,15 @@ export default function MemberScreen() {
   useEffect(() => {
     load();
   }, [load]);
+
+  async function doneReflection(id: number) {
+    setDue((arr) => arr.filter((r) => r.id !== id)); // 樂觀更新
+    try {
+      await markReflectionDone(id);
+    } catch {
+      load(); // 失敗就重載還原
+    }
+  }
 
   if (!user) return null;
 
@@ -238,6 +257,25 @@ export default function MemberScreen() {
             <Text style={styles.editLinkText}>修改會員資料</Text>
           </TouchableOpacity>
         </View>
+
+        {/* 🌱 成長反思回訪(到期才出現)*/}
+        {due.length > 0 && (
+          <View style={styles.reflectCard}>
+            <Text style={styles.reflectTitle}>🌱 上週你給自己的小事</Text>
+            {due.map((r) => (
+              <View key={r.id} style={styles.reflectItem}>
+                {!!r.feeling && (
+                  <Text style={styles.reflectFeeling}>當時你最有感的:「{r.feeling}」</Text>
+                )}
+                <Text style={styles.reflectGoal}>✦ {r.goal}</Text>
+                <Text style={styles.reflectAsk}>這週過得如何?有試著做做看嗎?</Text>
+                <TouchableOpacity style={styles.reflectBtn} onPress={() => doneReflection(r.id)}>
+                  <Text style={styles.reflectBtnTxt}>我回顧過了 ✓</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+        )}
 
         {/* 修改會員資料(展開式) */}
         {editing && (
@@ -459,6 +497,34 @@ export default function MemberScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: spacing.lg },
+  reflectCard: {
+    backgroundColor: "#FBF8FF",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.lg,
+    marginTop: spacing.md,
+  },
+  reflectTitle: { fontSize: 15, fontWeight: "800", color: colors.primary, marginBottom: spacing.sm },
+  reflectItem: {
+    borderLeftWidth: 3,
+    borderLeftColor: colors.gold,
+    paddingLeft: 12,
+    paddingVertical: 6,
+    marginTop: spacing.sm,
+  },
+  reflectFeeling: { fontSize: 13, color: colors.subtle, marginBottom: 4 },
+  reflectGoal: { fontSize: 15, color: colors.text, lineHeight: 23 },
+  reflectAsk: { fontSize: 13, color: colors.subtle, marginVertical: 6 },
+  reflectBtn: {
+    alignSelf: "flex-start",
+    backgroundColor: colors.primary,
+    borderRadius: 999,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    marginTop: 2,
+  },
+  reflectBtnTxt: { color: "#fff", fontSize: 13, fontWeight: "600" },
   card: {
     backgroundColor: colors.card,
     borderRadius: 14,

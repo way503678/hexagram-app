@@ -46,13 +46,12 @@ interface ChartInput {
 }
 
 export default function CastScreen({
-  mode,
   route,
   navigation,
 }: {
-  mode: CastMode;
   route?: {
     params?: {
+      mode?: CastMode;
       autoBirth?: {
         y: number; m: number; d: number; h: number;
         name?: string; gender?: "M" | "F" | "";
@@ -61,6 +60,7 @@ export default function CastScreen({
   };
   navigation?: { setParams?: (p: object) => void };
 }) {
+  const mode: CastMode = route?.params?.mode ?? "coin";
   const isTime = mode === "time";
   const { user, setUser } = useAuth();
 
@@ -457,7 +457,7 @@ export default function CastScreen({
             <View style={{ marginTop: spacing.lg }}>
               {/* 命果即時教練式解讀(主要)*/}
               <PrimaryButton
-                label={readingLoading ? "命果解讀中…" : "✨ 命果為你解讀（扣 1 點）"}
+                label={readingLoading ? "命果解讀中…" : "✨ 命果為你解讀（扣 1 顆果實）"}
                 onPress={doReading}
                 disabled={readingLoading}
               />
@@ -478,7 +478,7 @@ export default function CastScreen({
               {/* 進階:複製 prompt 自己貼到慣用 AI(次要)*/}
               <View style={{ marginTop: spacing.lg }}>
               <SecondaryButton
-                label={promptLoading ? "產生中…" : "🤖 改用:複製解讀 Prompt（扣 1 點）"}
+                label={promptLoading ? "產生中…" : "🤖 改用:複製解讀 Prompt（扣 1 顆果實）"}
                 onPress={doPrompt}
                 disabled={promptLoading}
               />

@@ -140,7 +140,8 @@ export default function MemberScreen() {
   }
 
   function viewMyChart() {
-    nav.navigate("Time", {
+    nav.navigate("Cast", {
+      mode: "time",
       autoBirth: {
         y: user!.birth_y!,
         m: user!.birth_m!,
@@ -213,7 +214,7 @@ export default function MemberScreen() {
 
   function doDeleteAccount() {
     if (delBusy) return;
-    Alert.alert("永久刪除帳號", "刪除後資料、點數、紀錄都會永久消失且無法復原,確定?", [
+    Alert.alert("永久刪除帳號", "刪除後資料、果實、紀錄都會永久消失且無法復原,確定?", [
       { text: "取消", style: "cancel" },
       {
         text: "永久刪除",
@@ -250,7 +251,7 @@ export default function MemberScreen() {
           <Text style={styles.name}>{user.display_name || "會員"}</Text>
           {!!user.email && <Text style={styles.email}>{user.email}</Text>}
           <View style={styles.pointsRow}>
-            <Text style={styles.pointsLabel}>剩餘點數</Text>
+            <Text style={styles.pointsLabel}>剩餘果實</Text>
             <Text style={styles.points}>{user.points_balance}</Text>
           </View>
           <TouchableOpacity style={styles.editLink} onPress={openEdit}>
@@ -387,12 +388,12 @@ export default function MemberScreen() {
           )}
         </View>
 
-        {/* 點數紀錄 */}
-        <Text style={styles.sectionTitle}>點數紀錄</Text>
+        {/* 果實紀錄 */}
+        <Text style={styles.sectionTitle}>果實紀錄</Text>
         {loading && ledger.length === 0 ? (
           <ActivityIndicator style={{ marginTop: spacing.lg }} color={colors.primary} />
         ) : ledger.length === 0 ? (
-          <Text style={styles.empty}>目前沒有點數異動紀錄</Text>
+          <Text style={styles.empty}>目前沒有果實異動紀錄</Text>
         ) : (
           ledger.map((row, i) => (
             <View key={i} style={styles.ledgerRow}>
@@ -473,7 +474,7 @@ export default function MemberScreen() {
         {showDel && (
           <View style={styles.acctBody}>
             <Text style={styles.delWarn}>
-              刪除後將永久移除你的會員資料、剩餘點數與所有紀錄,且無法復原。
+              刪除後將永久移除你的會員資料、剩餘果實與所有紀錄,且無法復原。
             </Text>
             <TextInput style={styles.input} value={delPwd} onChangeText={setDelPwd}
               placeholder="輸入密碼以確認" placeholderTextColor={colors.subtle}

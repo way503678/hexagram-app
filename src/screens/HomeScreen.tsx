@@ -1,61 +1,97 @@
-import React from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import React, { useCallback, useState } from "react";
+import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { colors, radius, spacing } from "../theme";
-import { GradientCard, SectionCard } from "../components/ui";
-import { useAuth } from "../AuthContext";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { colors, spacing } from "../theme";
+import { GradientCard, SectionCard, PrimaryButton } from "../components/ui";
+import AlmanacCard from "../components/AlmanacCard";
+import { fetchDaily, fetchAlmanacDay, DailyGuide } from "../api";
+import { AlmanacDay } from "../types";
 
 export default function HomeScreen() {
-  const { user } = useAuth();
-  const name = (user?.display_name || user?.email || "").split("@")[0] || "朋友";
+  const nav = useNavigation<any>();
+  const [daily, setDaily] = useState<DailyGuide | null>(null);
+  const [day, setDay] = useState<AlmanacDay | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const now = new Date();
+    const [dRes, aRes] = await Promise.allSettled([
+      fetchDaily(),
+      fetchAlmanacDay(now.getFullYear(), now.getMonth() + 1, now.getDate()),
+    ]);
+    if (dRes.status === "fulfilled") setDaily(dRes.value);
+    if (aRes.status === "fulfilled") setDay(aRes.value);
+    setLoading(false);
+  }, []);
+
+  // 進入分頁就刷新(設完生日回來會更新今日指引)
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load])
+  );
+
+  const guideLine =
+    daily && !daily.needs_birthday ? daily.整體狀態 : null;
+  const guideSub =
+    daily && !daily.needs_birthday && daily.今日提醒 && daily.今日提醒.length
+      ? daily.今日提醒[0]
+      : null;
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        {/* 頂部品牌列 */}
-        <View style={styles.brandRow}>
-          <View style={styles.brandLeft}>
-            <Text style={styles.brandSymbol}>☯</Text>
-            <View>
-              <Text style={styles.brandZh}>命果</Text>
-              <Text style={styles.brandEn}>MINGO</Text>
-            </View>
-          </View>
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={loading} onRefresh={load} />}
+      >
+        {/* 品牌 */}
+        <View style={styles.brand}>
+          <Text style={styles.brandZh}>命果</Text>
+          <Text style={styles.brandEn}>MINGO</Text>
         </View>
+        <Text style={styles.tagline}>看懂變化,走向更好的自己</Text>
 
-        {/* 問候 */}
-        <Text style={styles.greeting}>你好,{name} ✦</Text>
-        <Text style={styles.greetingSub}>
-          無論你現在在哪個階段,命運都在變化,一切都會更好。
-        </Text>
+        <Text style={styles.lead}>今天適合探索什麼?</Text>
 
-        {/* 主視覺漸層卡 */}
-        <GradientCard variant="deep" style={styles.hero}>
-          <Text style={styles.heroStar}>✦ ˚ ⋆</Text>
-          <Text style={styles.heroTitle}>看懂變化</Text>
-          <Text style={styles.heroTitle}>走向更好的自己</Text>
-          <Text style={styles.heroEn}>KNOW THE CHANGE, WALK YOUR PATH.</Text>
-        </GradientCard>
+        {/* 今日指引(主角)*/}
+        {loading && !daily ? (
+          <SectionCard style={styles.guideLoading}>
+            <ActivityIndicator color={colors.primary} />
+          </SectionCard>
+        ) : daily?.needs_birthday ? (
+          <SectionCard style={styles.guideCard}>
+            <Text style={styles.guideTag}>今日指引</Text>
+            <Text style={styles.guideText}>
+              設定你的生日,就能解鎖每天為你量身的方向。
+            </Text>
+            <PrimaryButton
+              title="去設定生日"
+              onPress={() => nav.navigate("Member")}
+              style={{ marginTop: spacing.md, alignSelf: "flex-start" }}
+            />
+          </SectionCard>
+        ) : (
+          <GradientCard variant="deep" style={styles.guideHero}>
+            <Text style={styles.guideHeroTag}>今日指引 ✦</Text>
+            <Text style={styles.guideHeroText}>{guideLine}</Text>
+            {guideSub ? <Text style={styles.guideHeroSub}>{guideSub}</Text> : null}
+          </GradientCard>
+        )}
 
-        {/* 今日指引(階段一:呈現引導語,詳情頁為後續功能) */}
-        <SectionCard style={styles.guideCard}>
-          <Text style={styles.guideTag}>今日指引</Text>
-          <Text style={styles.guideText}>
-            今天適合慢下來,整理思緒,聆聽內心的聲音。
-          </Text>
-          <Text style={styles.guideHint}>更完整的每日能量解析即將登場 ✦</Text>
-        </SectionCard>
+        {/* 今日黃曆(依據,放卡片內)*/}
+        {day ? <View style={{ marginTop: spacing.md }}><AlmanacCard day={day} /></View> : null}
 
-        {/* 詩句 */}
-        <View style={styles.poem}>
-          <Text style={styles.poemLine}>所往者已逝,所來者未至,</Text>
-          <Text style={styles.poemLine}>所在者,唯此一念之間。</Text>
-        </View>
+        {/* CTA */}
+        <PrimaryButton
+          title="開始今日探索 ✦ 卜一卦"
+          onPress={() => nav.navigate("Cast", { mode: "coin" })}
+          style={{ marginTop: spacing.lg }}
+        />
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>依京房納甲法、野鶴派飛伏理論製作</Text>
-          <Text style={styles.footerText}>僅供研究參考,不能取代專業諮詢</Text>
-        </View>
+        <View style={{ height: spacing.xl }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -63,52 +99,18 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: spacing.lg, paddingBottom: spacing.xl },
-  brandRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: spacing.lg,
-  },
-  brandLeft: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  brandSymbol: { fontSize: 30, color: colors.primary },
-  brandZh: { fontSize: 18, fontWeight: "800", color: colors.text, letterSpacing: 2 },
-  brandEn: { fontSize: 11, color: colors.accent, letterSpacing: 6, fontWeight: "700" },
-  greeting: { fontSize: 22, fontWeight: "800", color: colors.text, letterSpacing: 1 },
-  greetingSub: {
-    fontSize: 14,
-    color: colors.subtle,
-    marginTop: spacing.xs,
-    marginBottom: spacing.lg,
-    lineHeight: 22,
-  },
-  hero: { marginBottom: spacing.lg, minHeight: 168, justifyContent: "center" },
-  heroStar: { color: colors.gold, fontSize: 14, letterSpacing: 4, marginBottom: spacing.sm },
-  heroTitle: {
-    fontSize: 26,
-    fontWeight: "800",
-    color: "#fff",
-    letterSpacing: 3,
-    lineHeight: 36,
-  },
-  heroEn: {
-    fontSize: 10,
-    color: "rgba(255,255,255,0.7)",
-    letterSpacing: 2,
-    marginTop: spacing.md,
-  },
-  guideCard: { marginBottom: spacing.lg },
-  guideTag: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: colors.accent,
-    letterSpacing: 3,
-    marginBottom: spacing.sm,
-  },
+  scroll: { padding: spacing.lg },
+  brand: { flexDirection: "row", alignItems: "baseline", gap: 8 },
+  brandZh: { fontSize: 24, fontWeight: "800", color: colors.text, letterSpacing: 3 },
+  brandEn: { fontSize: 14, color: colors.accent, fontWeight: "700", letterSpacing: 6 },
+  tagline: { fontSize: 14, color: colors.subtle, marginTop: 4, letterSpacing: 1 },
+  lead: { fontSize: 16, fontWeight: "700", color: colors.text, marginTop: spacing.lg, marginBottom: spacing.sm },
+  guideLoading: { alignItems: "center", paddingVertical: spacing.xl },
+  guideCard: {},
+  guideTag: { fontSize: 12, fontWeight: "700", color: colors.accent, letterSpacing: 3, marginBottom: spacing.sm },
   guideText: { fontSize: 16, color: colors.text, lineHeight: 26 },
-  guideHint: { fontSize: 12, color: colors.subtle, marginTop: spacing.md },
-  poem: { alignItems: "center", marginTop: spacing.sm, marginBottom: spacing.xl },
-  poemLine: { fontSize: 15, color: colors.subtle, lineHeight: 28, letterSpacing: 1 },
-  footer: { alignItems: "center" },
-  footerText: { fontSize: 12, color: colors.subtle, lineHeight: 20 },
+  guideHero: { minHeight: 120, justifyContent: "center" },
+  guideHeroTag: { fontSize: 12, color: colors.gold, letterSpacing: 3, marginBottom: spacing.sm },
+  guideHeroText: { fontSize: 19, color: "#fff", fontWeight: "700", lineHeight: 30 },
+  guideHeroSub: { fontSize: 14, color: "rgba(255,255,255,0.85)", lineHeight: 23, marginTop: spacing.sm },
 });

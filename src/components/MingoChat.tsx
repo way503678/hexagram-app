@@ -84,7 +84,7 @@ export default function MingoChat({
           <Text style={styles.sendTxt}>送出</Text>
         </Pressable>
       </View>
-      <Text style={styles.hint}>每則回覆扣 1 點</Text>
+      <Text style={styles.hint}>每則回覆扣 1 顆果實</Text>
     </View>
   );
 }

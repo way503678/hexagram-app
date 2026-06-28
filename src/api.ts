@@ -1,5 +1,5 @@
 import { API_BASE_URL, API_TIMEOUT_MS } from "./config";
-import { ChartResponse, AlmanacMonth, FortuneResult } from "./types";
+import { ChartResponse, AlmanacMonth, AlmanacDay, FortuneResult } from "./types";
 
 export class ApiError extends Error {
   status: number;
@@ -183,6 +183,25 @@ async function getJson<T>(path: string): Promise<T> {
 /** 取得整月萬年曆。 */
 export function fetchAlmanacMonth(y: number, m: number): Promise<AlmanacMonth> {
   return getJson<AlmanacMonth>(`/api/v1/almanac/month?y=${y}&m=${m}`);
+}
+
+export interface DailyGuide {
+  日期?: string;
+  整體狀態?: string;
+  今日提醒?: string[];
+  面向提醒?: string[];
+  定位?: string;
+  needs_birthday?: boolean;
+}
+
+/** 今日指引(登入會員命盤對今日,純引擎)。未設生日回 {needs_birthday:true}。 */
+export function fetchDaily(): Promise<DailyGuide> {
+  return getJson<DailyGuide>("/api/v1/daily");
+}
+
+/** 單日黃曆(免費、免登入)。 */
+export function fetchAlmanacDay(y: number, m: number, d: number): Promise<AlmanacDay> {
+  return getJson<AlmanacDay>(`/api/v1/almanac/day?y=${y}&m=${m}&d=${d}`);
 }
 
 /** 流年分析:出生 y/m/d/h + 性別 + 目標年。 */

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -13,8 +13,12 @@ import AlmanacScreen from "./src/screens/AlmanacScreen";
 import CastScreen from "./src/screens/CastScreen";
 import LoginScreen from "./src/screens/LoginScreen";
 import MemberScreen from "./src/screens/MemberScreen";
+import SplashConsent from "./src/screens/SplashConsent";
 import { AuthProvider, useAuth } from "./src/AuthContext";
+import { getItem, setItem } from "./src/storage";
 import { colors, gradients } from "./src/theme";
+
+const CONSENT_KEY = "mingo_consent_v1";
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -97,12 +101,29 @@ function MainTabs() {
 /** 依登入狀態決定顯示:載入中 → 轉圈;未登入 → 登入頁;已登入 → 主分頁 + 功能頁堆疊。 */
 function Root() {
   const { user, loading } = useAuth();
+  const [consent, setConsent] = useState<boolean | null>(null);
 
-  if (loading) {
+  useEffect(() => {
+    getItem(CONSENT_KEY).then((v) => setConsent(v === "1"));
+  }, []);
+
+  if (consent === null || loading) {
     return (
       <View style={styles.loading}>
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
+    );
+  }
+
+  // 首次開啟:先看同意書
+  if (!consent) {
+    return (
+      <SplashConsent
+        onAccept={() => {
+          setItem(CONSENT_KEY, "1");
+          setConsent(true);
+        }}
+      />
     );
   }
 

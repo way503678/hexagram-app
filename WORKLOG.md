@@ -8,6 +8,19 @@
 
 ---
 
+## 0a. App MVP v1.0 改版(2026-06-28 晚,留存導向)
+
+> 理念:第一版驗證「會不會每天打開」,不是功能多寡。今日指引當主角、黃曆當依據。
+> 做了 1–5,**跳過 6(遊客模式)、7(社群登入/購買果實金流)**(6 待與使用者討論)。
+
+- **點數 → 果實**(全 App UI:剩餘果實/果實紀錄/扣 N 顆果實)。
+- **3-tab 改版**:功能 / 首頁(中央凸起漸層鈕)/ 我的;外層 `Stack` 推黃曆、卜卦。
+  - 新增 `FeaturesScreen`(今日黃曆/卜卦問事);`CastScreen` 改由 `route.params.mode` 取模式;`navTypes` 改 `RootStackParamList`(Tabs/Almanac/Cast)+ `RootTabParamList`(Features/Home/Member)。
+- **首頁重設計**(`HomeScreen`):今日指引為主角(漸層 hero,接後端 `/api/v1/daily`;未設生日導去「我的」設定)+ 可展開今日黃曆卡(`AlmanacCard`:能量★/元素/宜/忌/白話/沖煞,接 `/api/v1/almanac/day`)+「開始今日探索」CTA。`useFocusEffect` 進頁刷新。
+- **Splash + 同意書**(`SplashConsent`):首次開啟顯示 logo + 個資/免責(可展開)+「我已了解」;同意記到本機 `mingo_consent_v1`,之後不再出現。
+- 後端:新增 `GET /api/v1/daily`(登入會員命盤對今日 analyze_daily,純引擎)。
+- **待辦**:6 遊客模式(+ AI 每日 5 次限制,待討論)、7 Apple/Google 登入(待憑證)、購買果實(待綠界金流);我的頁細項(收藏/設定/關於)、黃曆吉時(day_info 暫無時辰資料)。
+
 ## 0b. 教練式解讀對等(2026-06-28 下午,Mingo 1.0)
 
 - 解卦改「人生教練式」(後端 prompt v2.0,見後端 WORKLOG)。App 端對等:

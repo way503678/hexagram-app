@@ -154,7 +154,8 @@ export default function LoginScreen() {
         >
           <View style={styles.top}>
             <Text style={styles.symbol}>☯</Text>
-            <Text style={styles.title}>命卦排盤</Text>
+            <Text style={styles.title}>命果</Text>
+            <Text style={styles.brandEn}>MINGO</Text>
             <Text style={styles.subtitle}>
               {isRegister ? "註冊新會員" : "會員登入"}
             </Text>
@@ -328,12 +329,19 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: colors.text,
     marginTop: spacing.sm,
-    letterSpacing: 4,
+    letterSpacing: 6,
+  },
+  brandEn: {
+    fontSize: 13,
+    color: colors.accent,
+    fontWeight: "700",
+    letterSpacing: 8,
+    marginTop: 2,
   },
   subtitle: {
     fontSize: 15,
     color: colors.subtle,
-    marginTop: spacing.sm,
+    marginTop: spacing.md,
     letterSpacing: 4,
   },
   form: {

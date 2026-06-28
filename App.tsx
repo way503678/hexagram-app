@@ -28,10 +28,17 @@ function MainTabs() {
       screenOptions={{
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.subtle,
-        tabBarStyle: { backgroundColor: colors.card, borderTopColor: colors.border },
+        tabBarStyle: {
+          backgroundColor: colors.card,
+          borderTopColor: colors.border,
+          height: 62,
+          paddingTop: 6,
+          paddingBottom: 8,
+        },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },
         headerStyle: { backgroundColor: colors.bg },
         headerTintColor: colors.text,
-        headerTitleStyle: { fontWeight: "700" },
+        headerTitleStyle: { fontWeight: "700", letterSpacing: 1 },
         headerShadowVisible: false,
       }}
     >

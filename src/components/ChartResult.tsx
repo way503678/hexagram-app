@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
   },
   tag: { fontSize: 12, fontWeight: "700" },
   wx: { fontSize: 11, color: colors.subtle },
-  kong: { color: colors.accent, fontWeight: "700" },
+  kong: { color: colors.primary, fontWeight: "700" },
   legend: {
     marginTop: spacing.sm,
     paddingTop: spacing.sm,

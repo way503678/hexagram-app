@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
   error: { color: colors.moving, textAlign: "center", marginVertical: spacing.md },
   adviceWrap: { marginBottom: spacing.md },
   adviceBtn: {
-    backgroundColor: "#6b2d8b",
+    backgroundColor: colors.primary,
     borderRadius: 10,
     paddingVertical: spacing.md,
     alignItems: "center",
@@ -326,10 +326,10 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     alignSelf: "flex-start",
     borderWidth: 1,
-    borderColor: "#6b2d8b",
+    borderColor: colors.primary,
     borderRadius: 8,
     paddingVertical: 6,
     paddingHorizontal: 14,
   },
-  copyBtnText: { color: "#6b2d8b", fontWeight: "700", fontSize: 14 },
+  copyBtnText: { color: colors.primary, fontWeight: "700", fontSize: 14 },
 });

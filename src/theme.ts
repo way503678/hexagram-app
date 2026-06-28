@@ -1,24 +1,56 @@
-/** 簡單的色彩 / 間距常數,讓畫面風格一致。 */
+/**
+ * 命果 MINGO 設計系統 — 色彩 / 間距 / 圓角。
+ * 基準文件:hexagram/docs/DESIGN_SYSTEM.md(改風格先改那份,再同步此檔)。
+ * 低飽和紫色系 + 米白底 + 大圓角 + 柔和陰影 + 漸層。
+ */
 export const colors = {
-  bg: "#f5f3ef",
-  card: "#ffffff",
-  border: "#e3ddd2",
-  text: "#2b2620",
-  subtle: "#8a8275",
-  primary: "#6b2d8b", // 與網頁 AI 按鈕同色系
-  primaryText: "#ffffff",
-  accent: "#b8860b",
+  // --- MINGO tokens ---
+  bg: "#F7F4EE", // 背景米白(bgLight)
+  card: "#FFFFFF", // 卡片白(surface)
+  border: "#E8E4DC", // 分隔線(borderSoft)
+  text: "#2B2D42", // 主文字(= primaryDark)
+  subtle: "#8E8AA3", // 次要文字(textMuted)
+  primary: "#5E548E", // 次色 中紫
+  primaryDark: "#2B2D42", // 主色 深紫藍
+  primaryText: "#FFFFFF",
+  accent: "#A78BFA", // 強調 亮紫
+  gold: "#F6BD60", // 點綴 金黃
+  // --- 命理功能色(換膚不動,維持判讀正確性)---
   moving: "#c0392b", // 動爻
   shi: "#1f6f43", // 世
   ying: "#2c5d8a", // 應
 };
 
+/** 紫色漸層(深紫卡 / 亮紫卡 / 淺底),配 expo-linear-gradient 的 colors 陣列。 */
+export const gradients = {
+  deep: ["#5E548E", "#2B2D42"] as const, // 深紫卡
+  bright: ["#A78BFA", "#5E548E"] as const, // 亮紫卡
+  light: ["#F7F4EE", "#FFFFFF"] as const, // 淺底
+};
+
 export const spacing = {
   xs: 4,
   sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 24,
+  md: 16,
+  lg: 24,
+  xl: 32,
+};
+
+/** 圓角。 */
+export const radius = {
+  sm: 12,
+  md: 16,
+  lg: 20,
+  pill: 999,
+};
+
+/** 柔和陰影(soft)— 直接攤平給 RN style 用。 */
+export const shadowSoft = {
+  shadowColor: "#2B2D42",
+  shadowOffset: { width: 0, height: 6 },
+  shadowOpacity: 0.08,
+  shadowRadius: 16,
+  elevation: 3,
 };
 
 /** 紫白飛星徽章配色:{背景, 文字, 是否描邊}。 */

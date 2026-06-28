@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: spacing.md },
   head: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  title: { fontSize: 24, fontWeight: "800", color: colors.accent },
+  title: { fontSize: 24, fontWeight: "800", color: colors.primary },
   navBtns: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   navBtn: { paddingHorizontal: spacing.sm },
   navTxt: { fontSize: 26, color: colors.primary, fontWeight: "700" },

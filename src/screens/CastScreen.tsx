@@ -15,7 +15,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import * as Clipboard from "expo-clipboard";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { CastMode } from "../navTypes";
-import { castChart, castByTime, buildPrompt, ApiError } from "../api";
+import { castChart, castByTime, buildPrompt, generateReading, ApiError } from "../api";
+import MingoReading from "../components/MingoReading";
 import { useAuth } from "../AuthContext";
 import { castOneYao, yaoValsFromChart, YAO_NAMES } from "../divination";
 import { CastYao, ChartResponse } from "../types";
@@ -84,6 +85,8 @@ export default function CastScreen({
   const [promptText, setPromptText] = useState<string | null>(null);
   const [promptLoading, setPromptLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [readingText, setReadingText] = useState<string | null>(null);
+  const [readingLoading, setReadingLoading] = useState(false);
 
   const castCount = yaos.filter(Boolean).length;
   const done = castCount === 6;
@@ -232,6 +235,29 @@ export default function CastScreen({
     await Clipboard.setStringAsync(promptText);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  }
+
+  async function doReading() {
+    if (!chartInput || readingLoading) return;
+    const q = question.trim();
+    if (!q) {
+      Alert.alert("請先填寫所問之事", "上方「所問之事」要先填,命果才知道要為你解什麼。");
+      return;
+    }
+    setReadingLoading(true);
+    setError(null);
+    setReadingText(null);
+    try {
+      const res = await generateReading({ question: q, ...chartInput });
+      setReadingText(res.reading);
+      if (user && typeof res.balance === "number") {
+        setUser({ ...user, points_balance: res.balance });
+      }
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "解讀產生失敗,請稍後再試");
+    } finally {
+      setReadingLoading(false);
+    }
   }
 
   return (
@@ -427,8 +453,22 @@ export default function CastScreen({
 
           {!isTime && chartInput && (
             <View style={{ marginTop: spacing.lg }}>
+              {/* 命果即時教練式解讀(主要)*/}
+              <PrimaryButton
+                label={readingLoading ? "命果解讀中…" : "✨ 命果為你解讀（扣 1 點）"}
+                onPress={doReading}
+                disabled={readingLoading}
+              />
+              {readingText && (
+                <View style={{ marginTop: spacing.md }}>
+                  <MingoReading text={readingText} />
+                </View>
+              )}
+
+              {/* 進階:複製 prompt 自己貼到慣用 AI(次要)*/}
+              <View style={{ marginTop: spacing.lg }}>
               <SecondaryButton
-                label={promptLoading ? "產生中…" : "🤖 產生 AI 解讀 Prompt（扣 1 點）"}
+                label={promptLoading ? "產生中…" : "🤖 改用:複製解讀 Prompt（扣 1 點）"}
                 onPress={doPrompt}
                 disabled={promptLoading}
               />
@@ -450,6 +490,7 @@ export default function CastScreen({
                   </ScrollView>
                 </View>
               )}
+              </View>
             </View>
           )}
 

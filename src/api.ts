@@ -102,6 +102,16 @@ export function buildPrompt(
   });
 }
 
+/** 命果 MINGO 即時解讀(教練式,需登入,扣 1 點;後端呼叫 Claude)。回傳完整解讀 + 餘額。 */
+export function generateReading(
+  req: PromptRequest
+): Promise<{ reading: string; balance: number }> {
+  return postJson<{ reading: string; balance: number }>("/api/v1/reading", {
+    aspect: "all",
+    ...req,
+  });
+}
+
 async function getJson<T>(path: string): Promise<T> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), API_TIMEOUT_MS);

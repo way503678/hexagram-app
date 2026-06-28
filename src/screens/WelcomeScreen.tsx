@@ -15,7 +15,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { colors, spacing } from "../theme";
+import { colors, spacing, fonts } from "../theme";
 import { PrimaryButton, GhostButton } from "../components/ui";
 import { PRIVACY_CONSENT, DISCLAIMER } from "../legal";
 import { getItem, setItem } from "../storage";
@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
   brand: { alignItems: "center" },
   symbol: { fontSize: 56, color: colors.primary },
   zh: { fontSize: 32, fontWeight: "800", color: colors.text, letterSpacing: 8, marginTop: spacing.sm },
-  en: { fontSize: 15, color: colors.accent, fontWeight: "700", letterSpacing: 8, marginTop: 2 },
+  en: { fontSize: 16, color: colors.faint, letterSpacing: 8, marginTop: 2, fontFamily: fonts.serif },
   tag: { fontSize: 15, color: colors.subtle, textAlign: "center", lineHeight: 26, marginTop: spacing.md },
   actions: { marginTop: spacing.xl * 2 },
   // 同意 Modal

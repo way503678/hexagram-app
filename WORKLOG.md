@@ -8,6 +8,18 @@
 
 ---
 
+## 0d. 首頁設計規範換色 + Cormorant(2026-06-29)
+
+> 依使用者提供的「命果 設計規範」HTML 稿,套**配色 + 風格 + 排版**(中文字體不動、latin 載 Cormorant)。App + web 一起做(見後端 WORKLOG)。tab 結構不動(維持 3-tab,只換色)。
+
+- **`theme.ts` 全面換色票**:暖米底 `bg #F1E9DC`(漸層 `gradients.page` `#F5EFE4→#E9E0D2`)、靜謐藍紫 `primary #6F5E9B`、`accent #8A79B3`、墨紫 `text #2C2942`、內文 `body #5D5675`、次要 `#6B6385`、淡紫 `faint #8C84A6`、導覽未選 `navIdle #9A93AD`、微光金 `gold #E9B34A`。新增 `gradients.primary/frosted`、圓角 `card 26/btn 22`、`shadowBtn`、`fonts.serif`。命理功能色不動。
+- **`ui.tsx`**:`PrimaryButton` 改漸層填色(`gradients.primary` 135deg)+ 按鈕陰影 + 22 圓角。
+- **`App.tsx`**:`useFonts` 載入 Cormorant(字體未就緒顯示 spinner);tab 未選色 → `navIdle`。
+- **`HomeScreen.tsx`**:外層暖米漸層背景、今日指引改**霧面卡**(`gradients.frosted` + 亮邊 + 卡片陰影)、MINGO 走 Cormorant。
+- **`WelcomeScreen`/`LoginScreen`**:MINGO 字樣套 Cormorant。
+- **依賴**:`expo install expo-font @expo-google-fonts/cormorant-garamond`(SDK56 相容:expo-font ~14.0.12)。
+- tsc 乾淨。**字體未驗於實機**(只過型別),下次 Expo 跑/build 確認 Cormorant 真的載到。
+
 ## 0a. App MVP v1.0 改版(2026-06-28 晚,留存導向)
 
 > 理念:第一版驗證「會不會每天打開」,不是功能多寡。今日指引當主角、黃曆當依據。

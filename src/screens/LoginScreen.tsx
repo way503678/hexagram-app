@@ -12,7 +12,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { colors, spacing } from "../theme";
+import { colors, spacing, fonts } from "../theme";
 import { useAuth } from "../AuthContext";
 import { ApiError, forgotPassword } from "../api";
 
@@ -250,11 +250,11 @@ const styles = StyleSheet.create({
     letterSpacing: 6,
   },
   brandEn: {
-    fontSize: 13,
-    color: colors.accent,
-    fontWeight: "700",
+    fontSize: 15,
+    color: colors.faint,
     letterSpacing: 8,
     marginTop: 2,
+    fontFamily: fonts.serif,
   },
   subtitle: {
     fontSize: 15,

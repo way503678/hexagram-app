@@ -6,6 +6,10 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { LinearGradient } from "expo-linear-gradient";
+import {
+  useFonts,
+  CormorantGaramond_500Medium,
+} from "@expo-google-fonts/cormorant-garamond";
 import { RootStackParamList, RootTabParamList } from "./src/navTypes";
 import HomeScreen from "./src/screens/HomeScreen";
 import FeaturesScreen from "./src/screens/FeaturesScreen";
@@ -58,7 +62,7 @@ function MainTabs() {
     <Tab.Navigator
       screenOptions={{
         tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.subtle,
+        tabBarInactiveTintColor: colors.navIdle,
         tabBarStyle: {
           position: "absolute",
           left: 16,
@@ -152,12 +156,19 @@ function Root() {
 }
 
 export default function App() {
+  const [fontsLoaded] = useFonts({ CormorantGaramond_500Medium });
   return (
     <SafeAreaProvider>
       <StatusBar style="dark" />
-      <AuthProvider>
-        <Root />
-      </AuthProvider>
+      {fontsLoaded ? (
+        <AuthProvider>
+          <Root />
+        </AuthProvider>
+      ) : (
+        <View style={styles.loading}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      )}
     </SafeAreaProvider>
   );
 }

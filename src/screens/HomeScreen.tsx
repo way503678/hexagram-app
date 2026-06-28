@@ -9,8 +9,9 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import { colors, radius, shadowSoft, spacing } from "../theme";
+import { colors, gradients, fonts, radius, shadowSoft, spacing } from "../theme";
 import { PrimaryButton } from "../components/ui";
 import AlmanacCard from "../components/AlmanacCard";
 import { fetchDaily, fetchAlmanacDay, DailyGuide } from "../api";
@@ -53,6 +54,7 @@ export default function HomeScreen() {
       : null;
 
   return (
+    <LinearGradient colors={gradients.page} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.bg}>
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <ScrollView
         contentContainerStyle={styles.scroll}
@@ -74,8 +76,13 @@ export default function HomeScreen() {
           </Text>
         </ImageBackground>
 
-        {/* 今日指引(疊在 Hero 下緣)*/}
-        <View style={styles.guideCard}>
+        {/* 今日指引(霧面卡,疊在 Hero 下緣)*/}
+        <LinearGradient
+          colors={gradients.frosted}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.guideCard}
+        >
           <Text style={styles.tag}>今日指引</Text>
           {loading && !daily ? (
             <ActivityIndicator color={colors.primary} style={{ marginVertical: spacing.md }} />
@@ -96,7 +103,7 @@ export default function HomeScreen() {
               {guideSub ? <Text style={styles.guideSub}>{guideSub}</Text> : null}
             </>
           )}
-        </View>
+        </LinearGradient>
 
         {/* 今日黃曆(依據)*/}
         {day ? (
@@ -113,15 +120,17 @@ export default function HomeScreen() {
         />
       </ScrollView>
     </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
+  bg: { flex: 1 },
+  safe: { flex: 1, backgroundColor: "transparent" },
   scroll: { padding: spacing.lg, paddingBottom: 110 },
   logoRow: { flexDirection: "row", alignItems: "baseline", gap: 8, marginBottom: spacing.md },
   logo: { fontSize: 24, color: colors.primaryDark, fontWeight: "800", letterSpacing: 3 },
-  logoSub: { fontSize: 12, color: colors.gold, letterSpacing: 5, fontWeight: "700" },
+  logoSub: { fontSize: 14, color: colors.faint, letterSpacing: 6, fontFamily: fonts.serif },
   hero: { height: 280, padding: 22, justifyContent: "flex-end" },
   heroImg: { borderRadius: 28 },
   heroShade: {
@@ -132,10 +141,11 @@ const styles = StyleSheet.create({
   h1: { fontSize: 26, fontWeight: "800", color: colors.primaryDark, marginBottom: 8, letterSpacing: 1 },
   heroBody: { fontSize: 15, lineHeight: 24, color: colors.text, maxWidth: "92%" },
   guideCard: {
-    backgroundColor: colors.card,
-    borderRadius: radius.lg,
+    borderRadius: radius.card,
     padding: 20,
     marginTop: -36,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.6)",
     ...shadowSoft,
   },
   tag: { color: colors.primary, fontSize: 13, fontWeight: "700", letterSpacing: 2, marginBottom: 8 },

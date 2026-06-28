@@ -14,7 +14,7 @@ import {
   ViewStyle,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { colors, gradients, radius, shadowSoft, spacing } from "../theme";
+import { colors, gradients, radius, shadowSoft, shadowBtn, spacing } from "../theme";
 
 /** 可指定漸層的圓角卡。variant: deep(深紫) / bright(亮紫) / light(淺底)。 */
 export function GradientCard({
@@ -90,17 +90,25 @@ export function PrimaryButton({
       onPress={onPress}
       disabled={disabled || loading}
       style={({ pressed }) => [
-        styles.primaryBtn,
+        styles.primaryWrap,
+        shadowBtn,
         (disabled || loading) && styles.btnDisabled,
         pressed && !disabled && !loading && styles.btnPressed,
         style,
       ]}
     >
-      {loading ? (
-        <ActivityIndicator color={colors.primaryText} />
-      ) : (
-        <Text style={styles.primaryBtnText}>{title}</Text>
-      )}
+      <LinearGradient
+        colors={gradients.primary}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.primaryBtn}
+      >
+        {loading ? (
+          <ActivityIndicator color={colors.primaryText} />
+        ) : (
+          <Text style={styles.primaryBtnText}>{title}</Text>
+        )}
+      </LinearGradient>
     </Pressable>
   );
 }
@@ -179,11 +187,11 @@ const styles = StyleSheet.create({
   pillText: { fontSize: 14, fontWeight: "600" },
   pillTextOn: { color: colors.primaryText },
   pillTextOff: { color: colors.subtle },
+  primaryWrap: { borderRadius: radius.btn },
   primaryBtn: {
-    backgroundColor: colors.primary,
-    borderRadius: radius.md,
+    borderRadius: radius.btn,
     paddingVertical: 13,
-    paddingHorizontal: 22,
+    paddingHorizontal: 30,
     alignItems: "center",
     justifyContent: "center",
   },

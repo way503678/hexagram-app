@@ -4,22 +4,25 @@
  * 低飽和紫色系 + 米白底 + 大圓角 + 柔和陰影 + 漸層。
  */
 export const colors = {
-  // --- MINGO tokens(對齊 Production Resources v3:暖紫 + 金 + 奶白命理風)---
-  bg: "#FFF8EF", // 頁面背景(cream)
-  cream: "#FFF8EF",
-  surface: "#FBF3E8", // 暖色面板(paper)
+  // --- MINGO tokens(對齊「首頁設計規範」:暖米底 + 靜謐藍紫 + 微光金)---
+  bg: "#F1E9DC", // 頁面背景(暖米;漸層主調,見 gradients.page)
+  cream: "#F5EFE4", // 漸層最亮端
+  surface: "#EDE5D7", // 暖色面板
   card: "#FFFFFF", // 卡片(white)
-  border: "#ECE3D7", // 分隔線(暖奶白)
-  text: "#3E2A3F", // 主文字(ink 暖墨紫)
-  subtle: "#8C7C8A", // 次要文字
-  primary: "#6F4C8B", // 主紫(plum)
-  primaryDark: "#3E2A3F", // 最深(ink)
+  border: "rgba(120,104,160,0.16)", // 分隔線(淡紫)
+  text: "#2C2942", // 主文字 / 標題(墨紫)
+  body: "#5D5675", // 內文段落
+  subtle: "#6B6385", // 次要 / 提示文字
+  faint: "#8C84A6", // 弱化標籤 / latin 標語
+  primary: "#6F5E9B", // 主紫
+  primaryDark: "#2C2942", // 最深(墨紫)
   primaryText: "#FFFFFF",
-  accent: "#9B78C7", // 強調紫(purple)
+  accent: "#8A79B3", // 強調 / 主漸層淺端
+  navIdle: "#9A93AD", // 導覽未選
   lavender: "#D8C6EE", // 薰衣草
   lavenderLight: "#F3EEF9",
-  gold: "#D8A84E", // 金
-  goldSoft: "#F6DFA6", // 柔金(goldLight)
+  gold: "#E9B34A", // 微光金
+  goldSoft: "#F6DFA6", // 柔金
   peach: "#F2C6AD",
   rose: "#DFA7B4",
   sage: "#AFC7A4", // 鼠尾草綠
@@ -29,13 +32,19 @@ export const colors = {
   ying: "#2c5d8a", // 應
 };
 
-/** 紫色漸層(深紫卡 / 亮紫卡 / 淺底),配 expo-linear-gradient 的 colors 陣列。 */
+/** 漸層,配 expo-linear-gradient 的 colors 陣列。 */
 export const gradients = {
-  deep: ["#6F4C8B", "#3E2A3F"] as const, // 深紫卡(plum→ink)
-  bright: ["#9B78C7", "#6F4C8B"] as const, // 亮紫卡(purple→plum)
-  gold: ["#F6DFA6", "#D8A84E"] as const, // 金卡
-  light: ["#FFF8EF", "#FFFFFF"] as const, // 淺底
+  page: ["#F5EFE4", "#F1E9DC", "#E9E0D2"] as const, // 全頁背景(上→下暖米)
+  primary: ["#8A79B3", "#6F5E9B"] as const, // 主按鈕(135deg)
+  frosted: ["rgba(255,253,250,0.85)", "rgba(232,226,240,0.78)"] as const, // 霧面卡(160deg)
+  deep: ["#6F5E9B", "#2C2942"] as const, // 深紫卡(plum→ink)
+  bright: ["#8A79B3", "#6F5E9B"] as const, // 亮紫卡
+  gold: ["#F6DFA6", "#E9B34A"] as const, // 金卡
+  light: ["#F5EFE4", "#FFFFFF"] as const, // 淺底
 };
+
+/** 字體 — 中文走系統字;latin 標語 / MINGO 字樣走 Cormorant。 */
+export const fonts = { serif: "CormorantGaramond_500Medium" };
 
 export const spacing = {
   xs: 4,
@@ -45,22 +54,33 @@ export const spacing = {
   xl: 32,
 };
 
-/** 圓角(對齊 v3:sm12/md20/lg32/xl48)。 */
+/** 圓角(對齊規範:卡片26 / 按鈕22 / 小元件16-18)。 */
 export const radius = {
-  sm: 12,
-  md: 20,
-  lg: 32,
-  xl: 48,
+  sm: 14,
+  md: 18,
+  btn: 22, // 按鈕
+  card: 26, // 卡片
+  lg: 26, // = 卡片(沿用 lg 引用)
+  xl: 32,
   pill: 999,
 };
 
-/** 柔和陰影(soft)— 對齊 v3(暖墨紫、大而淡)。 */
+/** 卡片柔和陰影 — 規範:0 14 34 rgba(95,82,135,.2)。 */
 export const shadowSoft = {
-  shadowColor: "#3E2A3F",
+  shadowColor: "#5F5287",
   shadowOffset: { width: 0, height: 14 },
-  shadowOpacity: 0.16,
-  shadowRadius: 28,
-  elevation: 5,
+  shadowOpacity: 0.2,
+  shadowRadius: 34,
+  elevation: 6,
+};
+
+/** 按鈕陰影 — 規範:0 6 16 rgba(111,94,155,.35)。 */
+export const shadowBtn = {
+  shadowColor: "#6F5E9B",
+  shadowOffset: { width: 0, height: 6 },
+  shadowOpacity: 0.35,
+  shadowRadius: 16,
+  elevation: 4,
 };
 
 /** 紫白飛星徽章配色:{背景, 文字, 是否描邊}。 */

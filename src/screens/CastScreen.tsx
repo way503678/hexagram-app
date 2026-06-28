@@ -17,6 +17,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { CastMode } from "../navTypes";
 import { castChart, castByTime, buildPrompt, generateReading, ApiError } from "../api";
 import MingoReading from "../components/MingoReading";
+import MingoChat from "../components/MingoChat";
 import { useAuth } from "../AuthContext";
 import { castOneYao, yaoValsFromChart, YAO_NAMES } from "../divination";
 import { CastYao, ChartResponse } from "../types";
@@ -462,6 +463,13 @@ export default function CastScreen({
               {readingText && (
                 <View style={{ marginTop: spacing.md }}>
                   <MingoReading text={readingText} />
+                  <MingoChat
+                    chartReq={{ question: question.trim(), ...chartInput }}
+                    reading={readingText}
+                    onBalance={(b) => {
+                      if (user) setUser({ ...user, points_balance: b });
+                    }}
+                  />
                 </View>
               )}
 

@@ -112,6 +112,21 @@ export function generateReading(
   });
 }
 
+export interface ChatTurn {
+  role: "user" | "assistant";
+  content: string;
+}
+
+/** 解讀後「繼續聊」(教練式追問,需登入,每則扣 1 點)。帶卦象 + 先前解讀 + 對話歷史。 */
+export function sendChat(
+  req: PromptRequest & { reading: string; history: ChatTurn[]; message: string }
+): Promise<{ reply: string; balance: number }> {
+  return postJson<{ reply: string; balance: number }>("/api/v1/chat", {
+    aspect: "all",
+    ...req,
+  });
+}
+
 async function getJson<T>(path: string): Promise<T> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), API_TIMEOUT_MS);

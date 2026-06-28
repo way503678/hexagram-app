@@ -180,8 +180,8 @@ const styles = StyleSheet.create({
   pillTextOn: { color: colors.primaryText },
   pillTextOff: { color: colors.subtle },
   primaryBtn: {
-    backgroundColor: colors.accent,
-    borderRadius: radius.pill,
+    backgroundColor: colors.primary,
+    borderRadius: radius.md,
     paddingVertical: 13,
     paddingHorizontal: 22,
     alignItems: "center",

@@ -16,7 +16,7 @@ import MemberScreen from "./src/screens/MemberScreen";
 import SplashConsent from "./src/screens/SplashConsent";
 import { AuthProvider, useAuth } from "./src/AuthContext";
 import { getItem, setItem } from "./src/storage";
-import { colors, gradients } from "./src/theme";
+import { colors, gradients, shadowSoft } from "./src/theme";
 
 const CONSENT_KEY = "mingo_consent_v1";
 
@@ -62,11 +62,17 @@ function MainTabs() {
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.subtle,
         tabBarStyle: {
+          position: "absolute",
+          left: 16,
+          right: 16,
+          bottom: 16,
+          height: 62,
+          borderRadius: 28,
           backgroundColor: colors.card,
-          borderTopColor: colors.border,
-          height: 64,
-          paddingTop: 6,
+          borderTopWidth: 0,
+          paddingTop: 8,
           paddingBottom: 8,
+          ...shadowSoft,
         },
         tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },
         headerStyle: { backgroundColor: colors.bg },

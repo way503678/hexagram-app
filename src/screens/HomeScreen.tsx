@@ -1,15 +1,28 @@
 import React, { useCallback, useState } from "react";
-import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  ImageBackground,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import { colors, spacing } from "../theme";
-import { GradientCard, SectionCard, PrimaryButton } from "../components/ui";
+import { colors, radius, shadowSoft, spacing } from "../theme";
+import { PrimaryButton } from "../components/ui";
 import AlmanacCard from "../components/AlmanacCard";
 import { fetchDaily, fetchAlmanacDay, DailyGuide } from "../api";
 import { AlmanacDay } from "../types";
+import { useAuth } from "../AuthContext";
+
+const HERO = require("../../assets/mingo/mountain-sunrise.png");
 
 export default function HomeScreen() {
   const nav = useNavigation<any>();
+  const { user } = useAuth();
+  const name = (user?.display_name || user?.email || "").split("@")[0] || "朋友";
   const [daily, setDaily] = useState<DailyGuide | null>(null);
   const [day, setDay] = useState<AlmanacDay | null>(null);
   const [loading, setLoading] = useState(true);
@@ -26,17 +39,16 @@ export default function HomeScreen() {
     setLoading(false);
   }, []);
 
-  // 進入分頁就刷新(設完生日回來會更新今日指引)
   useFocusEffect(
     useCallback(() => {
       load();
     }, [load])
   );
 
-  const guideLine =
-    daily && !daily.needs_birthday ? daily.整體狀態 : null;
+  const needBirthday = daily?.needs_birthday;
+  const guideLine = daily && !needBirthday ? daily.整體狀態 : null;
   const guideSub =
-    daily && !daily.needs_birthday && daily.今日提醒 && daily.今日提醒.length
+    daily && !needBirthday && daily.今日提醒 && daily.今日提醒.length
       ? daily.今日提醒[0]
       : null;
 
@@ -48,41 +60,50 @@ export default function HomeScreen() {
         refreshControl={<RefreshControl refreshing={loading} onRefresh={load} />}
       >
         {/* 品牌 */}
-        <View style={styles.brand}>
-          <Text style={styles.brandZh}>命果</Text>
-          <Text style={styles.brandEn}>MINGO</Text>
+        <View style={styles.logoRow}>
+          <Text style={styles.logo}>命果</Text>
+          <Text style={styles.logoSub}>MINGO</Text>
         </View>
-        <Text style={styles.tagline}>看懂變化,走向更好的自己</Text>
 
-        <Text style={styles.lead}>今天適合探索什麼?</Text>
+        {/* 山景晨光 Hero + 問候 */}
+        <ImageBackground source={HERO} style={styles.hero} imageStyle={styles.heroImg}>
+          <View style={styles.heroShade} />
+          <Text style={styles.h1}>你好,{name} ✨</Text>
+          <Text style={styles.heroBody}>
+            無論你現在在哪個階段,命運都在變化,一切都會更好。
+          </Text>
+        </ImageBackground>
 
-        {/* 今日指引(主角)*/}
-        {loading && !daily ? (
-          <SectionCard style={styles.guideLoading}>
-            <ActivityIndicator color={colors.primary} />
-          </SectionCard>
-        ) : daily?.needs_birthday ? (
-          <SectionCard style={styles.guideCard}>
-            <Text style={styles.guideTag}>今日指引</Text>
-            <Text style={styles.guideText}>
-              設定你的生日,就能解鎖每天為你量身的方向。
-            </Text>
-            <PrimaryButton
-              title="去設定生日"
-              onPress={() => nav.navigate("Member")}
-              style={{ marginTop: spacing.md, alignSelf: "flex-start" }}
-            />
-          </SectionCard>
-        ) : (
-          <GradientCard variant="deep" style={styles.guideHero}>
-            <Text style={styles.guideHeroTag}>今日指引 ✦</Text>
-            <Text style={styles.guideHeroText}>{guideLine}</Text>
-            {guideSub ? <Text style={styles.guideHeroSub}>{guideSub}</Text> : null}
-          </GradientCard>
-        )}
+        {/* 今日指引(疊在 Hero 下緣)*/}
+        <View style={styles.guideCard}>
+          <Text style={styles.tag}>今日指引</Text>
+          {loading && !daily ? (
+            <ActivityIndicator color={colors.primary} style={{ marginVertical: spacing.md }} />
+          ) : needBirthday ? (
+            <>
+              <Text style={styles.guideText}>
+                設定你的生日,就能解鎖每天為你量身的方向。
+              </Text>
+              <PrimaryButton
+                title="去設定生日"
+                onPress={() => nav.navigate("Member")}
+                style={{ marginTop: spacing.md, alignSelf: "flex-start" }}
+              />
+            </>
+          ) : (
+            <>
+              <Text style={styles.guideText}>{guideLine}</Text>
+              {guideSub ? <Text style={styles.guideSub}>{guideSub}</Text> : null}
+            </>
+          )}
+        </View>
 
-        {/* 今日黃曆(依據,放卡片內)*/}
-        {day ? <View style={{ marginTop: spacing.md }}><AlmanacCard day={day} /></View> : null}
+        {/* 今日黃曆(依據)*/}
+        {day ? (
+          <View style={{ marginTop: spacing.md }}>
+            <AlmanacCard day={day} />
+          </View>
+        ) : null}
 
         {/* CTA */}
         <PrimaryButton
@@ -90,8 +111,6 @@ export default function HomeScreen() {
           onPress={() => nav.navigate("Cast", { mode: "coin" })}
           style={{ marginTop: spacing.lg }}
         />
-
-        <View style={{ height: spacing.xl }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -99,18 +118,27 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: spacing.lg },
-  brand: { flexDirection: "row", alignItems: "baseline", gap: 8 },
-  brandZh: { fontSize: 24, fontWeight: "800", color: colors.text, letterSpacing: 3 },
-  brandEn: { fontSize: 14, color: colors.accent, fontWeight: "700", letterSpacing: 6 },
-  tagline: { fontSize: 14, color: colors.subtle, marginTop: 4, letterSpacing: 1 },
-  lead: { fontSize: 16, fontWeight: "700", color: colors.text, marginTop: spacing.lg, marginBottom: spacing.sm },
-  guideLoading: { alignItems: "center", paddingVertical: spacing.xl },
-  guideCard: {},
-  guideTag: { fontSize: 12, fontWeight: "700", color: colors.accent, letterSpacing: 3, marginBottom: spacing.sm },
-  guideText: { fontSize: 16, color: colors.text, lineHeight: 26 },
-  guideHero: { minHeight: 120, justifyContent: "center" },
-  guideHeroTag: { fontSize: 12, color: colors.gold, letterSpacing: 3, marginBottom: spacing.sm },
-  guideHeroText: { fontSize: 19, color: "#fff", fontWeight: "700", lineHeight: 30 },
-  guideHeroSub: { fontSize: 14, color: "rgba(255,255,255,0.85)", lineHeight: 23, marginTop: spacing.sm },
+  scroll: { padding: spacing.lg, paddingBottom: 110 },
+  logoRow: { flexDirection: "row", alignItems: "baseline", gap: 8, marginBottom: spacing.md },
+  logo: { fontSize: 24, color: colors.primaryDark, fontWeight: "800", letterSpacing: 3 },
+  logoSub: { fontSize: 12, color: colors.gold, letterSpacing: 5, fontWeight: "700" },
+  hero: { height: 280, padding: 22, justifyContent: "flex-end" },
+  heroImg: { borderRadius: 28 },
+  heroShade: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 28,
+    backgroundColor: "rgba(255,249,244,0.18)",
+  },
+  h1: { fontSize: 26, fontWeight: "800", color: colors.primaryDark, marginBottom: 8, letterSpacing: 1 },
+  heroBody: { fontSize: 15, lineHeight: 24, color: colors.text, maxWidth: "92%" },
+  guideCard: {
+    backgroundColor: colors.card,
+    borderRadius: radius.lg,
+    padding: 20,
+    marginTop: -36,
+    ...shadowSoft,
+  },
+  tag: { color: colors.primary, fontSize: 13, fontWeight: "700", letterSpacing: 2, marginBottom: 8 },
+  guideText: { fontSize: 18, color: colors.primaryDark, fontWeight: "700", lineHeight: 28 },
+  guideSub: { fontSize: 14, color: colors.subtle, lineHeight: 23, marginTop: spacing.sm },
 });

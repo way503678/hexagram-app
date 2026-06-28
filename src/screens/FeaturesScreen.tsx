@@ -58,7 +58,7 @@ export default function FeaturesScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: spacing.lg },
+  scroll: { padding: spacing.lg, paddingBottom: 110 },
   h1: {
     fontSize: 24,
     fontWeight: "800",

@@ -4,17 +4,23 @@
  * 低飽和紫色系 + 米白底 + 大圓角 + 柔和陰影 + 漸層。
  */
 export const colors = {
-  // --- MINGO tokens ---
-  bg: "#F7F4EE", // 背景米白(bgLight)
-  card: "#FFFFFF", // 卡片白(surface)
-  border: "#E8E4DC", // 分隔線(borderSoft)
-  text: "#2B2D42", // 主文字(= primaryDark)
-  subtle: "#8E8AA3", // 次要文字(textMuted)
+  // --- MINGO tokens(對齊 Dev Kit v1:暖奶白 + 深紫 + 薰衣草 + 金 + 鼠尾草)---
+  bg: "#FFF9F4", // 頁面背景(creamLight)
+  cream: "#F7F4EE", // 中階奶白
+  surface: "#FBF6EF", // 暖色面板
+  card: "#FFFFFF", // 卡片(elevated)
+  border: "#EAE4DC", // 分隔線(divider)
+  text: "#3C3442", // 主文字(暖深)
+  subtle: "#8D8190", // 次要文字
   primary: "#5E548E", // 次色 中紫
   primaryDark: "#2B2D42", // 主色 深紫藍
   primaryText: "#FFFFFF",
-  accent: "#A78BFA", // 強調 亮紫
+  accent: "#A78BFA", // 強調 薰衣草紫(soft purple)
+  lavender: "#E9DDF7", // 淡薰衣草(底色/標籤)
   gold: "#F6BD60", // 點綴 金黃
+  goldSoft: "#F9D9A6", // 柔金
+  sage: "#A8C9B3", // 鼠尾草綠
+  sageDeep: "#6E8D7D",
   // --- 命理功能色(換膚不動,維持判讀正確性)---
   moving: "#c0392b", // 動爻
   shi: "#1f6f43", // 世
@@ -25,7 +31,7 @@ export const colors = {
 export const gradients = {
   deep: ["#5E548E", "#2B2D42"] as const, // 深紫卡
   bright: ["#A78BFA", "#5E548E"] as const, // 亮紫卡
-  light: ["#F7F4EE", "#FFFFFF"] as const, // 淺底
+  light: ["#FFF9F4", "#FFFFFF"] as const, // 淺底
 };
 
 export const spacing = {
@@ -36,21 +42,22 @@ export const spacing = {
   xl: 32,
 };
 
-/** 圓角。 */
+/** 圓角(對齊 Dev Kit)。 */
 export const radius = {
   sm: 12,
-  md: 16,
-  lg: 20,
+  md: 18,
+  lg: 24,
+  xl: 32,
   pill: 999,
 };
 
-/** 柔和陰影(soft)— 直接攤平給 RN style 用。 */
+/** 柔和陰影(soft)— 對齊 Dev Kit(大而淡)。 */
 export const shadowSoft = {
   shadowColor: "#2B2D42",
-  shadowOffset: { width: 0, height: 6 },
-  shadowOpacity: 0.08,
-  shadowRadius: 16,
-  elevation: 3,
+  shadowOffset: { width: 0, height: 12 },
+  shadowOpacity: 0.1,
+  shadowRadius: 32,
+  elevation: 4,
 };
 
 /** 紫白飛星徽章配色:{背景, 文字, 是否描邊}。 */

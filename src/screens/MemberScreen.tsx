@@ -497,7 +497,7 @@ export default function MemberScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: spacing.lg },
+  scroll: { padding: spacing.lg, paddingBottom: 110 },
   reflectCard: {
     backgroundColor: "#FBF8FF",
     borderRadius: 16,

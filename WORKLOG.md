@@ -8,6 +8,14 @@
 
 ---
 
+## 0b. 教練式解讀對等(2026-06-28 下午,Mingo 1.0)
+
+- 解卦改「人生教練式」(後端 prompt v2.0,見後端 WORKLOG)。App 端對等:
+  - `api.ts` `generateReading()` → 後端 `POST /api/v1/reading`(扣 1 點、後端呼叫 Claude、回完整解讀)。
+  - `components/MingoReading.tsx`:依【標記】分段渲染(一句話=亮紫卡、陪你一句=金、易經原文/深入理論=可收合),與網頁 `renderMingo` 同邏輯。
+  - `CastScreen`:主按鈕「✨ 命果為你解讀」→ 渲染解讀;原「複製 Prompt」降為次要選項。
+- **待辦**:Phase 2 Chat CTA(對話追問)、Phase 3 成長反思 + 提醒。
+
 ## 0. 換膚紀錄(2026-06-28)
 
 - **改名「命果 MINGO」+ 換 MINGO 設計系統**(設計基準:`hexagram/docs/DESIGN_SYSTEM.md`)。

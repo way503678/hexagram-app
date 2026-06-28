@@ -2,6 +2,7 @@
   "expo": {
     "name": "命果 MINGO",
     "slug": "hexagram-app",
+    "owner": "johnsonku",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -33,6 +34,11 @@
     "plugins": [
       "@react-native-community/datetimepicker",
       "expo-secure-store"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "123f1a45-758d-4204-97ad-a38dfcef9a61"
+      }
+    }
   }
 }

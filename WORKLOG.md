@@ -41,6 +41,16 @@
 
 ---
 
+## 0c. 未登入啟動流程重整(2026-06-28 晚)
+
+> 目標:落地頁只留 logo+slogan;首次彈同意書(按一次不再顯示);同意後才出登入/註冊入口;已登入直接進主頁。
+
+- **`SplashConsent` → `WelcomeScreen`**(改名重做):品牌落地頁只有 ☯+命果+MINGO+slogan;首次開啟(本機 `mingo_consent_v1` 未設)自動彈**同意 Modal**(個資+免責,可展開);按「我已閱讀並同意」存旗標、關 modal;**同意後才顯示「登入 / 註冊新帳號」兩顆按鈕** → `onEnter(mode)`。
+- **`LoginScreen`**:加 `initialMode`/`onBack`;**移除表單內的兩個 ConsentBlock 勾選**(同意已在落地頁完成),改一行小字「註冊即表示同意…」;底部加「← 返回」回落地頁。
+- **`App.tsx` Root**:未登入流程改 `entry` state — `WelcomeScreen` →(選 mode)→ `LoginScreen`;consent gate 移進 Welcome 自管。**已登入(token 還原成功)直接進 Tabs**(本就如此)。
+- **需求 5/6/7 本就滿足**:註冊成功即存 token+登入(AuthContext.register)、已登入直接進主頁、HomeScreen 已有今日黃曆卡(AlmanacCard)。
+- tsc 乾淨。**未動社群登入**(待憑證);登入方式目前只有 Email,故落地頁只放「登入/註冊」兩顆,社群鈕待憑證再加。
+
 ## 一、App 速覽
 
 - **路徑** `/opt/hexagram-app`,**技術** Expo SDK 56 / React Native / TypeScript。

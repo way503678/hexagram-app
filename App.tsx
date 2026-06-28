@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -13,13 +13,10 @@ import AlmanacScreen from "./src/screens/AlmanacScreen";
 import CastScreen from "./src/screens/CastScreen";
 import LoginScreen from "./src/screens/LoginScreen";
 import MemberScreen from "./src/screens/MemberScreen";
-import SplashConsent from "./src/screens/SplashConsent";
+import WelcomeScreen from "./src/screens/WelcomeScreen";
 import { AuthProvider, useAuth } from "./src/AuthContext";
-import { getItem, setItem } from "./src/storage";
 import { colors, gradients, shadowSoft } from "./src/theme";
 import MingoIcon, { MingoIconName } from "./src/components/MingoIcon";
-
-const CONSENT_KEY = "mingo_consent_v1";
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -105,32 +102,21 @@ function MainTabs() {
   );
 }
 
-/** 依登入狀態決定顯示:載入中 → 轉圈;未登入 → 登入頁;已登入 → 主分頁 + 功能頁堆疊。 */
+/**
+ * 依登入狀態決定顯示:
+ *   載入中 → 轉圈;
+ *   已登入 → 直接進主分頁(不再經過登入畫面);
+ *   未登入 → 落地頁(logo+slogan,首次彈同意書)→ 選登入/註冊 → LoginScreen。
+ */
 function Root() {
   const { user, loading } = useAuth();
-  const [consent, setConsent] = useState<boolean | null>(null);
+  const [entry, setEntry] = useState<"login" | "register" | null>(null);
 
-  useEffect(() => {
-    getItem(CONSENT_KEY).then((v) => setConsent(v === "1"));
-  }, []);
-
-  if (consent === null || loading) {
+  if (loading) {
     return (
       <View style={styles.loading}>
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
-    );
-  }
-
-  // 首次開啟:先看同意書
-  if (!consent) {
-    return (
-      <SplashConsent
-        onAccept={() => {
-          setItem(CONSENT_KEY, "1");
-          setConsent(true);
-        }}
-      />
     );
   }
 
@@ -156,8 +142,10 @@ function Root() {
             })}
           />
         </Stack.Navigator>
+      ) : entry ? (
+        <LoginScreen initialMode={entry} onBack={() => setEntry(null)} />
       ) : (
-        <LoginScreen />
+        <WelcomeScreen onEnter={setEntry} />
       )}
     </NavigationContainer>
   );

@@ -292,6 +292,23 @@ export function fetchMe(): Promise<{ user: User }> {
   return getJson<{ user: User }>("/api/v1/auth/me");
 }
 
+/** 個資同意書 + 免責聲明的單一條目(與後端 legal.json 對應)。 */
+export interface LegalDoc {
+  key: string;
+  title: string;
+  body: string[];
+  agree: string;
+}
+export interface Legal {
+  version: string;
+  documents: LegalDoc[];
+}
+
+/** 取個資/免責條文 — 單一來源(後端 legal.json),與網頁同一份。 */
+export function fetchLegal(): Promise<Legal> {
+  return getJson<Legal>("/api/v1/legal");
+}
+
 export interface LedgerEntry {
   delta: number;
   balance_after: number;

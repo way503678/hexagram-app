@@ -17,15 +17,16 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors, spacing, fonts } from "../theme";
 import { PrimaryButton, GhostButton } from "../components/ui";
-import { PRIVACY_CONSENT, DISCLAIMER } from "../legal";
+import { fetchLegal, LegalDoc } from "../api";
 import { getItem, setItem } from "../storage";
 
 const BG = require("../../assets/mingo/splash_background.png");
 const CONSENT_KEY = "mingo_consent_v1";
+const LEGAL_CACHE = "legal_cache_v1";
 
 type Mode = "login" | "register";
 
-function ConsentItem({ doc }: { doc: { title: string; body: string[] } }) {
+function ConsentItem({ doc }: { doc: LegalDoc }) {
   const [open, setOpen] = useState(false);
   return (
     <View style={styles.item}>
@@ -50,9 +51,21 @@ function ConsentItem({ doc }: { doc: { title: string; body: string[] } }) {
 export default function WelcomeScreen({ onEnter }: { onEnter: (mode: Mode) => void }) {
   // null = 還在讀本機旗標;true/false = 是否已同意過
   const [consent, setConsent] = useState<boolean | null>(null);
+  // 條文走單一來源(後端 legal.json);抓不到改用上次快取
+  const [docs, setDocs] = useState<LegalDoc[]>([]);
 
   useEffect(() => {
     getItem(CONSENT_KEY).then((v) => setConsent(v === "1"));
+    (async () => {
+      try {
+        const legal = await fetchLegal();
+        setDocs(legal.documents);
+        setItem(LEGAL_CACHE, JSON.stringify(legal.documents));
+      } catch {
+        const cached = await getItem(LEGAL_CACHE);
+        if (cached) setDocs(JSON.parse(cached));
+      }
+    })();
   }, []);
 
   function accept() {
@@ -92,12 +105,16 @@ export default function WelcomeScreen({ onEnter }: { onEnter: (mode: Mode) => vo
             <Text style={styles.sheetTitle}>第一次使用,請先閱讀並了解</Text>
             <Text style={styles.sheetHint}>點標題可展開內容</Text>
             <ScrollView style={styles.sheetScroll}>
-              <ConsentItem doc={PRIVACY_CONSENT} />
-              <ConsentItem doc={DISCLAIMER} />
+              {docs.length === 0 ? (
+                <Text style={styles.foot}>條文載入中…(需連線)</Text>
+              ) : (
+                docs.map((d, i) => <ConsentItem key={i} doc={d} />)
+              )}
             </ScrollView>
             <PrimaryButton
               title="我已閱讀並同意"
               onPress={accept}
+              disabled={docs.length === 0}
               style={{ marginTop: spacing.lg }}
             />
             <Text style={styles.foot}>按下即表示你已閱讀並同意上述聲明</Text>

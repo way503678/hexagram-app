@@ -8,6 +8,15 @@
 
 ---
 
+## 0e. 個資/免責條文改單一來源(2026-06-29)
+
+> 條文不再 App 自帶副本,改抓後端單一來源 `legal.json`(改一處兩平台同步)。
+
+- **刪 `src/legal.ts`**(原本硬編 PRIVACY_CONSENT/DISCLAIMER)。
+- **`api.ts`**:加 `LegalDoc`/`Legal` 型別 + `fetchLegal()` → `GET /api/v1/legal`。
+- **`WelcomeScreen`**:掛載時 `fetchLegal()` → 同意 Modal 渲染抓到的條文;成功就寫 `legal_cache_v1`,離線改用上次快取;條文沒載到時「我已閱讀並同意」鈕停用(避免同意看不到的內容)。
+- 後端對等見後端 WORKLOG(legal.json + /api/v1/legal)。
+
 ## 0d. 首頁設計規範換色 + Cormorant(2026-06-29)
 
 > 依使用者提供的「命果 設計規範」HTML 稿,套**配色 + 風格 + 排版**(中文字體不動、latin 載 Cormorant)。App + web 一起做(見後端 WORKLOG)。tab 結構不動(維持 3-tab,只換色)。

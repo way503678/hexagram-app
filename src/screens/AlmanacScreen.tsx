@@ -191,7 +191,7 @@ export default function AlmanacScreen() {
         {sel && (
           <View style={styles.detail}>
             <Text style={styles.detailTitle}>
-              {sel.solar}（{WEEKDAYS[(sel.weekday + 1) % 7]}）
+              {sel.solar.slice(0, 4)}年{parseInt(sel.solar.slice(5, 7), 10)}月{parseInt(sel.solar.slice(8, 10), 10)}日（{WEEKDAYS[(sel.weekday + 1) % 7]}）
             </Text>
             <DetailRow label="農曆" value={`${sel.lunar_month_cn}${sel.lunar_day_cn}`} />
             <DetailRow label="干支" value={`${sel.year_gz}年 ${sel.month_gz}月 ${sel.day_gz}日`} />

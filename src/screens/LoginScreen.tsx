@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -36,6 +36,9 @@ export default function LoginScreen({
   const [displayName, setDisplayName] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const pwRef = useRef<TextInput>(null);
+  const pw2Ref = useRef<TextInput>(null);
+  const nameRef = useRef<TextInput>(null);
 
   const isRegister = mode === "register";
 
@@ -113,6 +116,8 @@ export default function LoginScreen({
         <ScrollView
           contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
+          bounces={false}
+          overScrollMode="never"
         >
           <View style={styles.top}>
             <Image source={LOGO} style={styles.logoImg} resizeMode="contain" />
@@ -133,11 +138,15 @@ export default function LoginScreen({
               autoCorrect={false}
               keyboardType="email-address"
               textContentType="emailAddress"
+              returnKeyType="next"
+              blurOnSubmit={false}
+              onSubmitEditing={() => pwRef.current?.focus()}
               editable={!busy}
             />
 
             <Text style={styles.label}>密碼</Text>
             <TextInput
+              ref={pwRef}
               style={styles.input}
               value={password}
               onChangeText={setPassword}
@@ -146,6 +155,9 @@ export default function LoginScreen({
               secureTextEntry
               autoCapitalize="none"
               textContentType={isRegister ? "newPassword" : "password"}
+              returnKeyType={isRegister ? "next" : "done"}
+              blurOnSubmit={!isRegister}
+              onSubmitEditing={() => (isRegister ? pw2Ref.current?.focus() : onSubmit())}
               editable={!busy}
             />
 
@@ -153,6 +165,7 @@ export default function LoginScreen({
               <>
                 <Text style={styles.label}>再次輸入密碼</Text>
                 <TextInput
+                  ref={pw2Ref}
                   style={styles.input}
                   value={password2}
                   onChangeText={setPassword2}
@@ -161,16 +174,22 @@ export default function LoginScreen({
                   secureTextEntry
                   autoCapitalize="none"
                   textContentType="newPassword"
+                  returnKeyType="next"
+                  blurOnSubmit={false}
+                  onSubmitEditing={() => nameRef.current?.focus()}
                   editable={!busy}
                 />
 
                 <Text style={styles.label}>暱稱(選填)</Text>
                 <TextInput
+                  ref={nameRef}
                   style={styles.input}
                   value={displayName}
                   onChangeText={setDisplayName}
                   placeholder="顯示名稱"
                   placeholderTextColor={colors.subtle}
+                  returnKeyType="done"
+                  onSubmitEditing={() => onSubmit()}
                   editable={!busy}
                 />
 

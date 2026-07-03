@@ -24,7 +24,8 @@
         "backgroundColor": "#383258",
         "foregroundImage": "./assets/mingo/app-icon-1024.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "softwareKeyboardLayoutMode": "resize"
     },
     "web": {
       "favicon": "./assets/favicon.png"

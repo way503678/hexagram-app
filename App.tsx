@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { NavigationContainer } from "@react-navigation/native";
@@ -21,6 +21,8 @@ import WelcomeScreen from "./src/screens/WelcomeScreen";
 import { AuthProvider, useAuth } from "./src/AuthContext";
 import { colors, gradients, shadowSoft } from "./src/theme";
 import MingoIcon, { MingoIconName } from "./src/components/MingoIcon";
+
+const MARK = require("./assets/mingo/mingo-mark.png");
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -50,7 +52,7 @@ function CenterTabButton({
           end={{ x: 1, y: 1 }}
           style={[styles.centerBtn, focused && styles.centerBtnOn]}
         >
-          <Text style={styles.centerIcon}>☯</Text>
+          <Image source={MARK} style={styles.centerIcon} resizeMode="contain" />
         </LinearGradient>
       </Pressable>
     </View>
@@ -197,5 +199,5 @@ const styles = StyleSheet.create({
     borderColor: colors.bg,
   },
   centerBtnOn: { borderColor: colors.gold },
-  centerIcon: { fontSize: 28, color: "#fff" },
+  centerIcon: { width: 44, height: 44 },
 });

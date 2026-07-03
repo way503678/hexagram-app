@@ -295,7 +295,7 @@ export default function CastScreen({
               {/* 所問之事(僅手動擲卦;時辰起卦不需要) */}
               {!isTime && (
                 <View style={styles.card}>
-                  <Text style={styles.label}>所問之事</Text>
+                  <Text style={styles.label}>今天要問什麼呢?</Text>
                   <TextInput
                     style={styles.input}
                     placeholder="例如:我下週的面試會順利嗎?"

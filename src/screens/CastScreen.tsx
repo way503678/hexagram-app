@@ -381,7 +381,22 @@ export default function CastScreen({
                   </View>
                 </>
               ) : (
-                <View style={styles.card}>
+                <>
+                {/* 動作鈕在上(對齊 web:擲卦/排盤在爻列表上方) */}
+                {!done ? (
+                  <PrimaryButton
+                    label={`擲第 ${castCount + 1} 爻(${YAO_NAMES[castCount]})`}
+                    onPress={castNext}
+                    disabled={rolling}
+                  />
+                ) : (
+                  <PrimaryButton
+                    label={loading ? "排盤中…" : "排盤 →"}
+                    onPress={doChartCoin}
+                    disabled={loading}
+                  />
+                )}
+                <View style={[styles.card, { marginTop: spacing.md }]}>
                   {[5, 4, 3, 2, 1, 0].map((idx) => {
                     const y = yaos[idx];
                     const isNext = idx === castCount && rolling;
@@ -404,32 +419,16 @@ export default function CastScreen({
                     );
                   })}
                 </View>
+                </>
               )}
 
-              {/* 動作 */}
-              {isTime ? (
+              {/* 動作(時辰模式;擲卦模式的按鈕已移到爻列表上方) */}
+              {isTime && (
                 <PrimaryButton
                   label={loading ? "排命盤中…" : "排命盤"}
                   onPress={doChartTime}
                   disabled={loading}
                 />
-              ) : !done ? (
-                <PrimaryButton
-                  label={`擲第 ${castCount + 1} 爻(${YAO_NAMES[castCount]})`}
-                  onPress={castNext}
-                  disabled={rolling}
-                />
-              ) : (
-                <PrimaryButton
-                  label={loading ? "排盤中…" : "排盤"}
-                  onPress={doChartCoin}
-                  disabled={loading}
-                />
-              )}
-              {!isTime && castCount > 0 && (
-                <Pressable onPress={reset} style={styles.resetBtn} hitSlop={8}>
-                  <Text style={styles.resetText}>重新擲卦</Text>
-                </Pressable>
               )}
             </>
           )}
@@ -689,7 +688,5 @@ const styles = StyleSheet.create({
   },
   collapsedText: { flex: 1, color: colors.text, fontSize: 14 },
   collapsedToggle: { color: colors.primary, fontSize: 14, fontWeight: "700" },
-  resetBtn: { alignSelf: "center", paddingVertical: spacing.md },
-  resetText: { color: colors.subtle, fontSize: 14, textDecorationLine: "underline" },
   error: { marginTop: spacing.lg, color: colors.moving, textAlign: "center" },
 });

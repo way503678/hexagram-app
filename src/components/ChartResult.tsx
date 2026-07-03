@@ -60,8 +60,8 @@ export default function ChartResult({ chart }: Props) {
           <YaoRow key={e.index} e={e} ben={benByIndex.get(e.index)} />
         ))}
         <Text style={styles.legend}>
-          世/應 · <Text style={{ color: colors.moving }}>紅=動爻</Text> · 空=旬空 ·
-          動→變出之爻 · 伏=伏神
+          世/應在爻象下 · <Text style={{ color: colors.moving }}>紅=動爻</Text> · 空=旬空 ·
+          動→變出之爻 · 六親下小字=伏神
         </Text>
       </View>
 
@@ -98,27 +98,27 @@ function YaoRow({ e, ben }: { e: LiuYaoEntry; ben?: Yao }) {
   const state = [e.當值, e.生剋].filter(Boolean).join(" / ");
   const out = e.動爻出去;
   const fu = e.伏神 && e.伏神.length ? e.伏神[0] : null;
-  const shensha = ben?.神煞 || "";
   const details: string[] = [];
   if (state) details.push(`旺衰 ${state}`);
   if (e.動爻 && out) details.push(`動→${out.六親}${out.地支}${out.生剋 ? `(${out.生剋})` : ""}`);
-  if (fu) details.push(`伏:${fu.六親}${fu.地支}`);
-  if (shensha) details.push(shensha);
 
   return (
     <View style={[styles.yaoBlock, e.動爻 && styles.yaoMoving]}>
       <View style={styles.yaoMain}>
-        <Text style={styles.colPos}>
-          {e.爻序名}
-          {e.世 ? <Text style={[styles.tag, { color: colors.shi }]}> 世</Text> : null}
-          {e.應 ? <Text style={[styles.tag, { color: colors.ying }]}> 應</Text> : null}
-        </Text>
-        <Text style={styles.colSymbol}>{ben?.爻象 ?? ""}</Text>
+        <Text style={styles.colPos}>{e.爻序名}</Text>
+        <View style={styles.colSymbolWrap}>
+          <Text style={styles.colSymbol}>{ben?.爻象 ?? ""}</Text>
+          {e.世 ? <Text style={[styles.syTag, { color: colors.shi }]}>世</Text> : null}
+          {e.應 ? <Text style={[styles.syTag, { color: colors.ying }]}>應</Text> : null}
+        </View>
         <Text style={styles.colSix}>{e.六神}</Text>
-        <Text style={[styles.colRel, { color: relColor }]}>
-          {e.六親}
-          <Text style={styles.wx}> {e.五行}</Text>
-        </Text>
+        <View style={styles.colRelWrap}>
+          <Text style={[styles.colRel, { color: relColor }]}>
+            {e.六親}
+            <Text style={styles.wx}> {e.五行}</Text>
+          </Text>
+          {fu ? <Text style={styles.fuSub}>{fu.六親}{fu.地支}</Text> : null}
+        </View>
         <Text style={styles.colGz}>
           {e.干支}
           {e.空亡 ? <Text style={styles.kong}> 空</Text> : null}
@@ -168,15 +168,18 @@ const styles = StyleSheet.create({
   },
   yaoMoving: { backgroundColor: "#fbeeee" },
   yaoMain: { flexDirection: "row", alignItems: "center" },
-  colPos: { width: 64, fontSize: 13, color: colors.text },
+  colPos: { width: 44, fontSize: 13, color: colors.text },
+  colSymbolWrap: { width: 44, alignItems: "center" },
   colSymbol: {
-    width: 40,
     fontSize: 13,
     color: colors.text,
     fontVariant: ["tabular-nums"],
   },
+  syTag: { fontSize: 10, fontWeight: "700", marginTop: 1 },
   colSix: { width: 40, fontSize: 13, color: colors.text },
-  colRel: { width: 60, fontSize: 13 },
+  colRelWrap: { width: 64 },
+  colRel: { fontSize: 13 },
+  fuSub: { fontSize: 10, color: colors.faint, marginTop: 1 },
   colGz: { flex: 1, fontSize: 13, color: colors.text },
   yaoDetail: {
     marginTop: 3,

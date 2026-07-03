@@ -21,7 +21,7 @@
       "package": "com.hexagram.app",
       "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#FFF8EF",
+        "backgroundColor": "#F1E9DC",
         "foregroundImage": "./assets/mingo/app-icon-1024.png"
       },
       "predictiveBackGestureEnabled": false

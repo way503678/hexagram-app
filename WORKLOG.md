@@ -78,7 +78,7 @@
 
 ## 一、App 速覽
 
-- **路徑** `/opt/hexagram-app`,**技術** Expo SDK 56 / React Native / TypeScript。
+- **路徑** `/opt/hexagram-app`,**技術** Expo SDK 54 / RN 0.81 / TypeScript(版本以 package.json 為準;舊紀錄誤寫 SDK 56)。
 - 是後端 web 的**對等行動版**(兩平台對等:改功能 web + app 都要做、功能要一樣)。
 - 連線:App 連**後端的公開 HTTPS 網址**(非 localhost);設定見 `src/config.ts`。
 - **⚠️ Expo 專屬坑(AGENTS.md)**:寫任何程式前,先讀對應版本的 Expo 文件
@@ -86,10 +86,13 @@
 
 ## 二、結構
 
-- 導覽:底部分頁 `App.tsx`(首頁 / 萬年曆 / 卜卦問事 🪙 / 命盤排卦 🕐 / 會員)。
-- 畫面 `src/screens/`:Home、Almanac、Cast(coin/time 兩模式共用)、Login、Member。
+- 導覽(`App.tsx`):**3-tab** 功能(Features)/ 首頁(Home,中央凸起鈕)/ 我的(Member);
+  黃曆(Almanac)、卜卦(Cast,coin/time 共用)由**外層 Stack** 推入。
+  未登入:Welcome(落地頁+同意 Modal)→ Login。
+- 畫面 `src/screens/`:Welcome、Login、Home、Features、Almanac、Cast、Member。
 - 共用:`api.ts`(後端 API)、`AuthContext.tsx`(登入)、`divination.ts`(client 端金錢卦)、
-  `components/`(ChartResult、FortunePanel)。
+  `theme.ts`(MINGO tokens)、`components/`(ui/AlmanacCard/ChartResult/FortunePanel/
+  MingoReading/MingoChat/MingoReflect/MingoIcon)。
 
 ## 三、build / run（與後端 docker 完全不同)
 

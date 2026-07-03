@@ -6,8 +6,6 @@
 export const colors = {
   // --- MINGO tokens(對齊「首頁設計規範」:暖米底 + 靜謐藍紫 + 微光金)---
   bg: "#F1E9DC", // 頁面背景(暖米;漸層主調,見 gradients.page)
-  cream: "#F5EFE4", // 漸層最亮端
-  surface: "#EDE5D7", // 暖色面板
   card: "#FFFFFF", // 卡片(white)
   border: "rgba(120,104,160,0.16)", // 分隔線(淡紫)
   text: "#2C2942", // 主文字 / 標題(墨紫)
@@ -19,13 +17,7 @@ export const colors = {
   primaryText: "#FFFFFF",
   accent: "#8A79B3", // 強調 / 主漸層淺端
   navIdle: "#9A93AD", // 導覽未選
-  lavender: "#D8C6EE", // 薰衣草
-  lavenderLight: "#F3EEF9",
   gold: "#E9B34A", // 微光金
-  goldSoft: "#F6DFA6", // 柔金
-  peach: "#F2C6AD",
-  rose: "#DFA7B4",
-  sage: "#AFC7A4", // 鼠尾草綠
   // --- 命理功能色(換膚不動,維持判讀正確性)---
   moving: "#c0392b", // 動爻
   shi: "#1f6f43", // 世
@@ -37,10 +29,7 @@ export const gradients = {
   page: ["#F5EFE4", "#F1E9DC", "#E9E0D2"] as const, // 全頁背景(上→下暖米)
   primary: ["#8A79B3", "#6F5E9B"] as const, // 主按鈕(135deg)
   frosted: ["rgba(255,253,250,0.85)", "rgba(232,226,240,0.78)"] as const, // 霧面卡(160deg)
-  deep: ["#6F5E9B", "#2C2942"] as const, // 深紫卡(plum→ink)
-  bright: ["#8A79B3", "#6F5E9B"] as const, // 亮紫卡
-  gold: ["#F6DFA6", "#E9B34A"] as const, // 金卡
-  light: ["#F5EFE4", "#FFFFFF"] as const, // 淺底
+  bright: ["#8A79B3", "#6F5E9B"] as const, // 亮紫卡(中央 tab 鈕)
 };
 
 /** 字體 — 中文走系統字;latin 標語 / MINGO 字樣走 Cormorant。 */

@@ -16,10 +16,10 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { colors, gradients, radius, shadowSoft, shadowBtn, spacing } from "../theme";
 
-/** 可指定漸層的圓角卡。variant: deep(深紫) / bright(亮紫) / light(淺底)。 */
+/** 可指定漸層的圓角卡。variant 見 theme.gradients(目前用 bright)。 */
 export function GradientCard({
   children,
-  variant = "deep",
+  variant = "bright",
   style,
 }: {
   children?: React.ReactNode;

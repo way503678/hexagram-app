@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
   logoRow: { flexDirection: "row", alignItems: "baseline", gap: 8, marginBottom: spacing.md },
   logo: { fontSize: 24, color: colors.primaryDark, fontWeight: "800", letterSpacing: 3 },
   logoSub: { fontSize: 14, color: colors.faint, letterSpacing: 6, fontFamily: fonts.serif },
-  hero: { height: 280, padding: 22, justifyContent: "flex-end" },
+  hero: { height: 280, padding: 22, paddingBottom: 64, justifyContent: "flex-end" },
   heroImg: { borderRadius: 28 },
   heroShade: {
     ...StyleSheet.absoluteFillObject,

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -15,6 +16,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { colors, spacing, fonts } from "../theme";
 import { useAuth } from "../AuthContext";
 import { ApiError, forgotPassword } from "../api";
+
+const LOGO = require("../../assets/mingo/mingo-logo.png");
 
 type Mode = "login" | "register";
 
@@ -112,9 +115,7 @@ export default function LoginScreen({
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.top}>
-            <Text style={styles.symbol}>☯</Text>
-            <Text style={styles.title}>命果</Text>
-            <Text style={styles.brandEn}>MINGO</Text>
+            <Image source={LOGO} style={styles.logoImg} resizeMode="contain" />
             <Text style={styles.subtitle}>
               {isRegister ? "註冊新會員" : "會員登入"}
             </Text>
@@ -241,21 +242,7 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
   },
   top: { alignItems: "center", marginBottom: spacing.xl },
-  symbol: { fontSize: 56, color: colors.primary },
-  title: {
-    fontSize: 30,
-    fontWeight: "800",
-    color: colors.text,
-    marginTop: spacing.sm,
-    letterSpacing: 6,
-  },
-  brandEn: {
-    fontSize: 15,
-    color: colors.faint,
-    letterSpacing: 8,
-    marginTop: 2,
-    fontFamily: fonts.serif,
-  },
+  logoImg: { width: 150, height: 224 },
   subtitle: {
     fontSize: 15,
     color: colors.subtle,

@@ -6,6 +6,7 @@
  */
 import React, { useEffect, useState } from "react";
 import {
+  Image,
   ImageBackground,
   Modal,
   Pressable,
@@ -21,6 +22,7 @@ import { fetchLegal, LegalDoc } from "../api";
 import { getItem, setItem } from "../storage";
 
 const BG = require("../../assets/mingo/splash_background.png");
+const LOGO = require("../../assets/mingo/mingo-logo.png");
 const CONSENT_KEY = "mingo_consent_v1";
 const LEGAL_CACHE = "legal_cache_v1";
 
@@ -78,9 +80,7 @@ export default function WelcomeScreen({ onEnter }: { onEnter: (mode: Mode) => vo
       <SafeAreaView style={styles.safe}>
         <View style={styles.center}>
           <View style={styles.brand}>
-            <Text style={styles.symbol}>☯</Text>
-            <Text style={styles.zh}>命果</Text>
-            <Text style={styles.en}>MINGO</Text>
+            <Image source={LOGO} style={styles.logoImg} resizeMode="contain" />
             <Text style={styles.tag}>看懂變化,{"\n"}走向更好的自己</Text>
           </View>
 
@@ -129,9 +129,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "transparent" },
   center: { flex: 1, justifyContent: "center", padding: spacing.xl },
   brand: { alignItems: "center" },
-  symbol: { fontSize: 56, color: colors.primary },
-  zh: { fontSize: 32, fontWeight: "800", color: colors.text, letterSpacing: 8, marginTop: spacing.sm },
-  en: { fontSize: 16, color: colors.faint, letterSpacing: 8, marginTop: 2, fontFamily: fonts.serif },
+  logoImg: { width: 230, height: 343 },
   tag: { fontSize: 15, color: colors.subtle, textAlign: "center", lineHeight: 26, marginTop: spacing.md },
   actions: { marginTop: spacing.xl * 2 },
   // 同意 Modal

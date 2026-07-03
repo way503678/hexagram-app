@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "transparent" },
   center: { flex: 1, justifyContent: "center", padding: spacing.xl },
   brand: { alignItems: "center" },
-  logoImg: { width: 230, height: 343 },
+  logoImg: { width: 196, height: 292 },
   tag: { fontSize: 15, color: colors.subtle, textAlign: "center", lineHeight: 26, marginTop: spacing.md },
   actions: { marginTop: spacing.xl * 2 },
   // 同意 Modal

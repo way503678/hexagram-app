@@ -21,8 +21,10 @@ import {
   loginEmail,
   fetchMe,
   ApiError,
+  claimWelcomePromotion,
 } from "./api";
 import { getItem, setItem, deleteItem } from "./storage";
+import { getSignedAppTransaction } from "../modules/mingo-storekit";
 
 const TOKEN_KEY = "hexagram_auth_token";
 
@@ -115,6 +117,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
   }, [persistToken]);
+
+  // 登入且完成 Email 驗證後，以 Apple 簽署的 AppTransaction 嘗試領取新戶禮。
+  // 失敗不阻擋登入；同一 Apple Account 重複呼叫也只會領取一次。
+  useEffect(() => {
+    if (!user?.email_verified) return;
+    let alive = true;
+    (async () => {
+      const signed = await getSignedAppTransaction();
+      if (!signed) return;
+      try {
+        const result = await claimWelcomePromotion(signed);
+        if (alive && result.balance !== user.points_balance) {
+          setUserState((current) => current ? {
+            ...current,
+            points_balance: result.balance,
+          } : current);
+        }
+      } catch {
+        // StoreKit/網路暫時不可用時，下次登入或啟動會再嘗試。
+      }
+    })();
+    return () => { alive = false; };
+  }, [user?.id, user?.email_verified]);
 
   const setUser = useCallback((u: User) => setUserState(u), []);
 

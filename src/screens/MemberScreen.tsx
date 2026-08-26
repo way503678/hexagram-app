@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Modal,
   Platform,
   Pressable,
   RefreshControl,
@@ -29,6 +30,8 @@ import {
   fetchDueReflections,
   markReflectionDone,
   Reflection,
+  fetchLegal,
+  LegalDoc,
 } from "../api";
 
 /** 帳本 reason 轉中文。 */
@@ -87,6 +90,10 @@ export default function MemberScreen() {
   const [showDel, setShowDel] = useState(false);
   const [delPwd, setDelPwd] = useState("");
   const [delBusy, setDelBusy] = useState(false);
+  // 隱私權條文必須在登入後仍可隨時查看
+  const [legalVisible, setLegalVisible] = useState(false);
+  const [legalDocs, setLegalDocs] = useState<LegalDoc[]>([]);
+  const [legalLoading, setLegalLoading] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -214,7 +221,7 @@ export default function MemberScreen() {
 
   function doDeleteAccount() {
     if (delBusy) return;
-    Alert.alert("永久刪除帳號", "刪除後資料、果實、紀錄都會永久消失且無法復原,確定?", [
+    Alert.alert("永久刪除帳號", "帳號、出生資料、果實、問題與成長紀錄都會永久刪除且無法復原。僅保留不含會員內容、最長 24 個月的優惠防濫用資格紀錄。確定？", [
       { text: "取消", style: "cancel" },
       {
         text: "永久刪除",
@@ -231,6 +238,21 @@ export default function MemberScreen() {
         },
       },
     ]);
+  }
+
+  async function openLegal() {
+    setLegalVisible(true);
+    if (legalDocs.length > 0 || legalLoading) return;
+    setLegalLoading(true);
+    try {
+      const legal = await fetchLegal();
+      setLegalDocs(legal.documents);
+    } catch {
+      Alert.alert("無法載入", "請確認網路後再試一次");
+      setLegalVisible(false);
+    } finally {
+      setLegalLoading(false);
+    }
   }
 
   function onLogout() {
@@ -444,6 +466,10 @@ export default function MemberScreen() {
 
         {/* 帳號管理 */}
         <Text style={styles.sectionTitle}>帳號管理</Text>
+        <TouchableOpacity style={styles.acctRow} onPress={openLegal}>
+          <Text style={styles.acctRowText}>隱私權與資料刪除說明</Text>
+          <Text style={styles.acctRowArrow}>▸</Text>
+        </TouchableOpacity>
         <TouchableOpacity style={styles.acctRow} onPress={() => setShowPwd((v) => !v)}>
           <Text style={styles.acctRowText}>修改密碼</Text>
           <Text style={styles.acctRowArrow}>{showPwd ? "▾" : "▸"}</Text>
@@ -474,7 +500,7 @@ export default function MemberScreen() {
         {showDel && (
           <View style={styles.acctBody}>
             <Text style={styles.delWarn}>
-              刪除後將永久移除你的會員資料、剩餘果實與所有紀錄,且無法復原。
+              帳號、出生資料、剩餘果實、問題與成長紀錄會永久刪除。僅保留不含會員內容、最長 24 個月的優惠防濫用資格紀錄。
             </Text>
             <TextInput style={styles.input} value={delPwd} onChangeText={setDelPwd}
               placeholder="輸入密碼以確認" placeholderTextColor={colors.subtle}
@@ -491,6 +517,30 @@ export default function MemberScreen() {
           <Text style={styles.logoutText}>登出</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      <Modal visible={legalVisible} animationType="slide" transparent
+        onRequestClose={() => setLegalVisible(false)}>
+        <View style={styles.legalBackdrop}>
+          <View style={styles.legalSheet}>
+            <Text style={styles.legalTitle}>隱私權與資料刪除說明</Text>
+            <ScrollView style={styles.legalScroll}>
+              {legalLoading ? (
+                <ActivityIndicator color={colors.primary} />
+              ) : legalDocs.map((doc) => (
+                <View key={doc.key} style={styles.legalDoc}>
+                  <Text style={styles.legalDocTitle}>{doc.title}</Text>
+                  {doc.body.map((paragraph, index) => (
+                    <Text key={index} style={styles.legalParagraph}>{paragraph}</Text>
+                  ))}
+                </View>
+              ))}
+            </ScrollView>
+            <TouchableOpacity style={styles.saveBtn} onPress={() => setLegalVisible(false)}>
+              <Text style={styles.saveBtnText}>關閉</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -498,6 +548,23 @@ export default function MemberScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: spacing.lg, paddingBottom: 110 },
+  legalBackdrop: {
+    flex: 1,
+    justifyContent: "center",
+    padding: spacing.lg,
+    backgroundColor: "rgba(43,45,66,0.45)",
+  },
+  legalSheet: {
+    maxHeight: "85%",
+    padding: spacing.lg,
+    borderRadius: 18,
+    backgroundColor: colors.card,
+  },
+  legalTitle: { fontSize: 18, fontWeight: "800", color: colors.text, marginBottom: spacing.md },
+  legalScroll: { marginBottom: spacing.md },
+  legalDoc: { marginBottom: spacing.lg },
+  legalDocTitle: { fontSize: 16, fontWeight: "700", color: colors.primary, marginBottom: spacing.sm },
+  legalParagraph: { fontSize: 13, lineHeight: 22, color: colors.text, marginBottom: spacing.sm },
   reflectCard: {
     backgroundColor: "#FBF8FF",
     borderRadius: 16,

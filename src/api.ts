@@ -248,6 +248,7 @@ export interface User {
   display_name: string | null;
   email: string | null;
   points_balance: number;
+  email_verified: boolean;
   is_admin?: boolean;
   gender: "M" | "F" | null;
   birth_y: number | null;
@@ -262,7 +263,7 @@ export interface AuthResult {
   user: User;
 }
 
-/** Email 註冊。成功回傳 token + 會員資料(後端會送新會員贈點)。
+/** Email 註冊。成功回傳 token + 會員資料；新戶禮由 Apple AppTransaction 另行判定。
  *  agreed=true 代表已同意個資同意書 + 免責聲明(App 端按鈕已鎖,送出時必為 true)。 */
 export function registerEmail(
   email: string,
@@ -352,6 +353,15 @@ export function changePassword(
 /** 刪除帳號(需密碼確認)。 */
 export function deleteAccount(password: string): Promise<{ ok: boolean }> {
   return postJson<{ ok: boolean }>("/api/v1/member/delete", { password });
+}
+
+/** Apple AppTransaction 驗證通過後領取一次性新戶禮；重複呼叫具冪等性。 */
+export function claimWelcomePromotion(
+  signedAppTransaction: string
+): Promise<{ ok: boolean; granted: boolean; balance: number; campaign: string }> {
+  return postJson("/api/v1/promotions/welcome", {
+    signed_app_transaction: signedAppTransaction,
+  });
 }
 
 export interface ProfileUpdate {

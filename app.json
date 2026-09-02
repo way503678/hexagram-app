@@ -6,23 +6,30 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F8F3EA"
+    },
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.hexagram.app",
+      "bundleIdentifier": "com.mingguo.app",
       "infoPlist": {
         "NSAppTransportSecurity": {
           "comment": "開發階段允許連 LAN http 後端;正式上架請改走 https 並移除此例外",
           "NSAllowsLocalNetworking": true
-        }
-      }
+        },
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "buildNumber": "2"
     },
     "android": {
-      "package": "com.hexagram.app",
+      "package": "com.mingguo.app",
       "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#383258",
-        "foregroundImage": "./assets/mingo/app-icon-1024.png"
+        "backgroundColor": "#2A284D",
+        "foregroundImage": "./assets/android-icon-foreground.png"
       },
       "predictiveBackGestureEnabled": false,
       "softwareKeyboardLayoutMode": "resize"

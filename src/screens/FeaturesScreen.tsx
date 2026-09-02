@@ -38,15 +38,15 @@ export default function FeaturesScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={styles.h1}>功能</Text>
+        <Text style={styles.h1}>探索</Text>
         <MenuCard
-          icon="calendar"
+          icon="guide"
           title="今日黃曆"
           sub="宜忌・吉時・五行,看今天的能量"
           onPress={() => nav.navigate("Almanac")}
         />
         <MenuCard
-          icon="coin"
+          icon="divination"
           title="卜卦問事"
           sub="有問題?問命果，陪你想清楚下一步"
           onPress={() => nav.navigate("Cast", { mode: "coin" })}

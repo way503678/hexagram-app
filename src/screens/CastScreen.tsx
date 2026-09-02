@@ -9,6 +9,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -62,6 +63,8 @@ export default function CastScreen({
 }) {
   const mode: CastMode = route?.params?.mode ?? "coin";
   const isTime = mode === "time";
+  const { width, fontScale } = useWindowDimensions();
+  const compact = width < 400 || fontScale > 1.1;
   const { user, setUser } = useAuth();
 
   const [question, setQuestion] = useState("");
@@ -269,20 +272,31 @@ export default function CastScreen({
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <ScrollView
-          contentContainerStyle={styles.scroll}
+          contentContainerStyle={[styles.scroll, compact && styles.scrollCompact]}
           keyboardShouldPersistTaps="handled"
         >
           {collapsed ? (
             <View style={styles.collapsedBar}>
-              <Text style={styles.collapsedText} numberOfLines={1}>
-                {isTime ? "🕐" : "🪙"} 已排盤{question ? `・${question}` : ""}
-              </Text>
-              <Pressable onPress={() => setCollapsed(false)} hitSlop={8}>
-                <Text style={styles.collapsedToggle}>展開</Text>
-              </Pressable>
-              <Pressable onPress={reset} hitSlop={8}>
-                <Text style={styles.collapsedToggle}>重新起卦</Text>
-              </Pressable>
+              <View style={styles.collapsedSummary}>
+                <Text style={styles.collapsedEyebrow}>
+                  {isTime ? "命盤已完成" : "卦象已完成"}
+                </Text>
+                <Text style={styles.collapsedText} numberOfLines={2}>
+                  {question.trim() || (isTime ? "出生資料已收合" : "所問之事已收合")}
+                </Text>
+              </View>
+              <View style={styles.collapsedActions}>
+                <Pressable
+                  onPress={() => setCollapsed(false)}
+                  hitSlop={8}
+                  style={styles.collapsedAction}
+                >
+                  <Text style={styles.collapsedToggle}>展開</Text>
+                </Pressable>
+                <Pressable onPress={reset} hitSlop={8} style={styles.collapsedAction}>
+                  <Text style={styles.collapsedToggle}>重新起卦</Text>
+                </Pressable>
+              </View>
             </View>
           ) : (
             <>
@@ -440,7 +454,7 @@ export default function CastScreen({
 
           {chart && (
             <View style={{ marginTop: spacing.lg }}>
-              <ChartResult chart={chart} />
+              <ChartResult chart={chart} compact={compact} />
             </View>
           )}
 
@@ -562,6 +576,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   flex: { flex: 1 },
   scroll: { padding: spacing.lg },
+  scrollCompact: { paddingHorizontal: spacing.md, paddingTop: spacing.md },
   subtitle: { marginBottom: spacing.lg, color: colors.subtle },
   card: {
     backgroundColor: colors.card,
@@ -675,18 +690,32 @@ const styles = StyleSheet.create({
     fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
   },
   collapsedBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-    backgroundColor: colors.card,
-    borderRadius: 10,
+    backgroundColor: "#F8F4FF",
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.border,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
+    padding: spacing.md,
     marginBottom: spacing.md,
   },
-  collapsedText: { flex: 1, color: colors.text, fontSize: 14 },
+  collapsedSummary: { minWidth: 0 },
+  collapsedEyebrow: {
+    color: colors.primary,
+    fontSize: 12,
+    fontWeight: "700",
+    marginBottom: 3,
+  },
+  collapsedText: { color: colors.text, fontSize: 14, lineHeight: 20 },
+  collapsedActions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  collapsedAction: {
+    minHeight: 36,
+    justifyContent: "center",
+    paddingHorizontal: spacing.sm,
+  },
   collapsedToggle: { color: colors.primary, fontSize: 14, fontWeight: "700" },
   error: { marginTop: spacing.lg, color: colors.moving, textAlign: "center" },
 });

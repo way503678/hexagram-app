@@ -27,7 +27,7 @@ const MARK = require("./assets/mingo/mingo-mark.png");
 const Tab = createBottomTabNavigator<RootTabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-/** 一般分頁圖示(v3 tile 圖示,未選取降透明度)。 */
+/** 一般分頁圖示（v4 線條圖示，未選取時降透明度）。 */
 function tabIcon(name: MingoIconName) {
   return ({ focused }: { focused: boolean }) => (
     <MingoIcon name={name} size={26} style={{ opacity: focused ? 1 : 0.45 }} />
@@ -88,7 +88,7 @@ function MainTabs() {
       <Tab.Screen
         name="Features"
         component={FeaturesScreen}
-        options={{ title: "功能", headerShown: false, tabBarIcon: tabIcon("bagua") }}
+        options={{ title: "探索", headerShown: false, tabBarIcon: tabIcon("explore") }}
       />
       <Tab.Screen
         name="Home"
@@ -134,6 +134,7 @@ function Root() {
             headerStyle: { backgroundColor: colors.bg },
             headerTintColor: colors.text,
             headerTitleStyle: { fontWeight: "700" },
+            headerBackButtonDisplayMode: "minimal",
             headerShadowVisible: false,
             contentStyle: { backgroundColor: colors.bg },
           }}

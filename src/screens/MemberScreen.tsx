@@ -11,6 +11,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -62,6 +63,8 @@ function formatDate(iso: string | null): string {
 const DEFAULT_BIRTH = new Date(2000, 0, 1, 12, 0);
 
 export default function MemberScreen() {
+  const { width, fontScale } = useWindowDimensions();
+  const compact = width < 390 || fontScale > 1.1;
   const { user, logout, refresh, setUser } = useAuth();
   const nav = useNavigation<any>();
   const [ledger, setLedger] = useState<LedgerEntry[]>([]);
@@ -263,9 +266,9 @@ export default function MemberScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe} edges={["bottom"]}>
+    <SafeAreaView style={styles.safe} edges={["top"]}>
       <ScrollView
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, compact && styles.scrollCompact]}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={load} />}
       >
         {/* 會員卡 */}
@@ -547,7 +550,8 @@ export default function MemberScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: spacing.lg, paddingBottom: 110 },
+  scroll: { padding: spacing.lg, paddingBottom: spacing.xl },
+  scrollCompact: { padding: spacing.md },
   legalBackdrop: {
     flex: 1,
     justifyContent: "center",
@@ -718,10 +722,10 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     marginBottom: spacing.sm,
   },
-  ledgerLeft: { flex: 1 },
+  ledgerLeft: { flex: 1, minWidth: 0, marginRight: spacing.sm },
   ledgerReason: { fontSize: 15, color: colors.text },
   ledgerDate: { fontSize: 12, color: colors.subtle, marginTop: 2 },
-  ledgerRight: { alignItems: "flex-end" },
+  ledgerRight: { flexShrink: 0, alignItems: "flex-end" },
   ledgerDelta: { fontSize: 17, fontWeight: "700" },
   ledgerBalance: { fontSize: 12, color: colors.subtle, marginTop: 2 },
   acctRow: {

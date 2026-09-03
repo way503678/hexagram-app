@@ -13,6 +13,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -51,6 +52,8 @@ function ConsentItem({ doc }: { doc: LegalDoc }) {
 }
 
 export default function WelcomeScreen({ onEnter }: { onEnter: (mode: Mode) => void }) {
+  const { height, width, fontScale } = useWindowDimensions();
+  const compact = width < 390 || height < 720 || fontScale > 1.1;
   // null = 還在讀本機旗標;true/false = 是否已同意過
   const [consent, setConsent] = useState<boolean | null>(null);
   // 條文走單一來源(後端 legal.json);抓不到改用上次快取
@@ -78,15 +81,15 @@ export default function WelcomeScreen({ onEnter }: { onEnter: (mode: Mode) => vo
   return (
     <ImageBackground source={BG} style={styles.safe} resizeMode="cover">
       <SafeAreaView style={styles.safe}>
-        <View style={styles.center}>
+        <View style={[styles.center, compact && styles.centerCompact]}>
           <View style={styles.brand}>
-            <Image source={LOGO} style={styles.logoImg} resizeMode="contain" />
+            <Image source={LOGO} style={[styles.logoImg, compact && styles.logoImgCompact]} resizeMode="contain" />
             <Text style={styles.tag}>看懂變化,{"\n"}走向更好的自己</Text>
           </View>
 
           {/* 同意後才出現登入 / 註冊入口 */}
           {consent && (
-            <View style={styles.actions}>
+            <View style={[styles.actions, compact && styles.actionsCompact]}>
               <PrimaryButton title="登入" onPress={() => onEnter("login")} />
               <GhostButton
                 title="註冊新帳號"
@@ -100,8 +103,8 @@ export default function WelcomeScreen({ onEnter }: { onEnter: (mode: Mode) => vo
 
       {/* 首次開啟:同意書 Modal */}
       <Modal visible={consent === false} animationType="fade" transparent>
-        <View style={styles.backdrop}>
-          <View style={styles.sheet}>
+        <View style={[styles.backdrop, compact && styles.backdropCompact]}>
+          <View style={[styles.sheet, compact && styles.sheetCompact]}>
             <Text style={styles.sheetTitle}>第一次使用,請先閱讀並了解</Text>
             <Text style={styles.sheetHint}>點標題可展開內容</Text>
             <ScrollView style={styles.sheetScroll}>
@@ -128,10 +131,13 @@ export default function WelcomeScreen({ onEnter }: { onEnter: (mode: Mode) => vo
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "transparent" },
   center: { flex: 1, justifyContent: "center", padding: spacing.xl },
+  centerCompact: { padding: spacing.md },
   brand: { alignItems: "center" },
   logoImg: { width: 196, height: 292 },
+  logoImgCompact: { width: 132, height: 197 },
   tag: { fontSize: 15, color: colors.subtle, textAlign: "center", lineHeight: 26, marginTop: spacing.md },
   actions: { marginTop: spacing.xl * 2 },
+  actionsCompact: { marginTop: spacing.lg },
   // 同意 Modal
   backdrop: {
     flex: 1,
@@ -139,12 +145,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     padding: spacing.lg,
   },
+  backdropCompact: { padding: spacing.sm },
   sheet: {
     backgroundColor: colors.card,
     borderRadius: 18,
     padding: spacing.lg,
     maxHeight: "82%",
   },
+  sheetCompact: { padding: spacing.md, maxHeight: "92%" },
   sheetTitle: { fontSize: 16, fontWeight: "800", color: colors.text },
   sheetHint: { fontSize: 12, color: colors.subtle, marginTop: 4, marginBottom: spacing.sm },
   sheetScroll: { flexGrow: 0 },

@@ -6,6 +6,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -21,6 +22,8 @@ import { useAuth } from "../AuthContext";
 const HERO = require("../../assets/mingo/mountain_v3.png");
 
 export default function HomeScreen() {
+  const { width, fontScale } = useWindowDimensions();
+  const compact = width < 390 || fontScale > 1.1;
   const nav = useNavigation<any>();
   const { user } = useAuth();
   const name = (user?.display_name || user?.email || "").split("@")[0] || "朋友";
@@ -57,7 +60,7 @@ export default function HomeScreen() {
     <LinearGradient colors={gradients.page} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.bg}>
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <ScrollView
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, compact && styles.scrollCompact]}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={load} />}
       >
@@ -68,9 +71,9 @@ export default function HomeScreen() {
         </View>
 
         {/* 山景晨光 Hero + 問候 */}
-        <ImageBackground source={HERO} style={styles.hero} imageStyle={styles.heroImg}>
+        <ImageBackground source={HERO} style={[styles.hero, compact && styles.heroCompact]} imageStyle={styles.heroImg}>
           <View style={styles.heroShade} />
-          <Text style={styles.h1}>你好,{name} ✨</Text>
+          <Text style={[styles.h1, compact && styles.h1Compact]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>你好,{name} ✨</Text>
           <Text style={styles.heroBody}>
             無論你現在在哪個階段,命運都在變化,一切都會更好。
           </Text>
@@ -81,7 +84,7 @@ export default function HomeScreen() {
           colors={gradients.frosted}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={styles.guideCard}
+          style={[styles.guideCard, compact && styles.guideCardCompact]}
         >
           <Text style={styles.tag}>今日指引</Text>
           {loading && !daily ? (
@@ -108,7 +111,7 @@ export default function HomeScreen() {
         {/* 今日黃曆(依據)*/}
         {day ? (
           <View style={{ marginTop: spacing.md }}>
-            <AlmanacCard day={day} />
+            <AlmanacCard day={day} compact={compact} />
           </View>
         ) : null}
 
@@ -127,11 +130,13 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   bg: { flex: 1 },
   safe: { flex: 1, backgroundColor: "transparent" },
-  scroll: { padding: spacing.lg, paddingBottom: 110 },
+  scroll: { padding: spacing.lg, paddingBottom: spacing.xl },
+  scrollCompact: { paddingHorizontal: spacing.md, paddingTop: spacing.md },
   logoRow: { flexDirection: "row", alignItems: "baseline", gap: 8, marginBottom: spacing.md },
   logo: { fontSize: 24, color: colors.primaryDark, fontWeight: "800", letterSpacing: 3 },
   logoSub: { fontSize: 14, color: colors.faint, letterSpacing: 6, fontFamily: fonts.serif },
   hero: { height: 280, padding: 22, paddingBottom: 64, justifyContent: "flex-end" },
+  heroCompact: { height: 250, padding: 18, paddingBottom: 54 },
   heroImg: { borderRadius: 28 },
   heroShade: {
     ...StyleSheet.absoluteFillObject,
@@ -139,6 +144,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,249,244,0.18)",
   },
   h1: { fontSize: 26, fontWeight: "800", color: colors.primaryDark, marginBottom: 8, letterSpacing: 1 },
+  h1Compact: { fontSize: 23 },
   heroBody: { fontSize: 15, lineHeight: 24, color: colors.text, maxWidth: "92%" },
   guideCard: {
     borderRadius: radius.card,
@@ -148,6 +154,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.6)",
     ...shadowSoft,
   },
+  guideCardCompact: { padding: spacing.md, marginTop: -30 },
   tag: { color: colors.primary, fontSize: 13, fontWeight: "700", letterSpacing: 2, marginBottom: 8 },
   guideText: { fontSize: 18, color: colors.primaryDark, fontWeight: "700", lineHeight: 28 },
   guideSub: { fontSize: 14, color: colors.subtle, lineHeight: 23, marginTop: spacing.sm },

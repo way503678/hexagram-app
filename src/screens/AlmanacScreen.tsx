@@ -5,6 +5,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -15,6 +16,8 @@ import { colors, spacing, zibaiStyle, ganColor, zeriColor } from "../theme";
 const WEEKDAYS = ["日", "一", "二", "三", "四", "五", "六"];
 
 export default function AlmanacScreen() {
+  const { width, fontScale } = useWindowDimensions();
+  const compact = width < 390 || fontScale > 1.1;
   const today = new Date();
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
   const [y, setY] = useState(today.getFullYear());
@@ -67,10 +70,10 @@ export default function AlmanacScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={["left", "right", "bottom"]}>
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <ScrollView contentContainerStyle={[styles.scroll, compact && styles.scrollCompact]}>
         {/* 標題列 */}
         <View style={styles.head}>
-          <Text style={styles.title}>
+          <Text style={[styles.title, compact && styles.titleCompact]} numberOfLines={1} adjustsFontSizeToFit>
             {y}年{m}月
           </Text>
           <View style={styles.navBtns}>
@@ -118,16 +121,16 @@ export default function AlmanacScreen() {
               return (
                 <Pressable
                   key={day.solar}
-                  style={[styles.cell, sel?.solar === day.solar && styles.cellSel]}
+                  style={[styles.cell, compact && styles.cellCompact, sel?.solar === day.solar && styles.cellSel]}
                   onPress={() => setSel(day)}
                 >
                   <View style={styles.cellTop}>
                     <View style={[styles.dnumWrap, isToday && styles.todayWrap]}>
-                      <Text style={[styles.dnum, col === 0 && styles.sunText, isToday && styles.todayNum]}>
+                      <Text style={[styles.dnum, compact && styles.dnumCompact, col === 0 && styles.sunText, isToday && styles.todayNum]}>
                         {parseInt(day.solar.slice(8, 10), 10)}
                       </Text>
                     </View>
-                    <Text style={[styles.gz, { color: ganColor(day.day_gz[0]) }]}>{day.day_gz}</Text>
+                    <Text style={[styles.gz, compact && styles.gzCompact, { color: ganColor(day.day_gz[0]) }]} numberOfLines={1}>{day.day_gz}</Text>
                   </View>
                   <Text style={styles.lunar} numberOfLines={1}>
                     {day.jieqi ? <Text style={styles.jqInCell}>{day.jieqi}</Text> : day.lunar_label}
@@ -248,8 +251,10 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: spacing.md },
+  scrollCompact: { paddingHorizontal: spacing.xs },
   head: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   title: { fontSize: 24, fontWeight: "800", color: colors.primary },
+  titleCompact: { fontSize: 20 },
   navBtns: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   navBtn: { paddingHorizontal: spacing.sm },
   navTxt: { fontSize: 26, color: colors.primary, fontWeight: "700" },
@@ -266,13 +271,16 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: colors.border,
   },
+  cellCompact: { minHeight: 58, paddingHorizontal: 1 },
   cellSel: { backgroundColor: "#f3eaf8" },
   cellTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
   dnumWrap: { width: 24, height: 24, alignItems: "center", justifyContent: "center" },
   todayWrap: { backgroundColor: "#333", borderRadius: 12 },
   dnum: { fontSize: 16, fontWeight: "800", color: "#333" },
+  dnumCompact: { fontSize: 14 },
   todayNum: { color: "#fff" },
   gz: { fontSize: 13, lineHeight: 14, width: 15, textAlign: "center", fontWeight: "700" },
+  gzCompact: { fontSize: 11, width: 13 },
   lunar: { fontSize: 11, color: colors.subtle, marginTop: 1, fontWeight: "600" },
   jqInCell: { color: "#7a3b9e", fontWeight: "700" },
   cellBottom: { marginTop: 2, flexDirection: "row", alignItems: "center", flexWrap: "wrap" },

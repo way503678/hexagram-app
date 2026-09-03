@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from "react-native";
 import * as Clipboard from "expo-clipboard";
@@ -27,6 +28,8 @@ const LEVEL_COLOR: Record<string, string> = {
 };
 
 export default function FortunePanel({ birth, gender }: Props) {
+  const { width, fontScale } = useWindowDimensions();
+  const compact = width < 390 || fontScale > 1.1;
   const { user, setUser } = useAuth();
   const [year, setYear] = useState(new Date().getFullYear());
   const [data, setData] = useState<FortuneResult | null>(null);
@@ -154,7 +157,7 @@ export default function FortunePanel({ birth, gender }: Props) {
           {/* 流年六爻表 */}
           <View style={styles.card}>
             <Text style={styles.tableTitle}>流年對六爻</Text>
-            <YaoTable rows={data.流年.對六爻} />
+            <YaoTable rows={data.流年.對六爻} compact={compact} />
           </View>
 
           {/* 流月 */}
@@ -181,7 +184,7 @@ export default function FortunePanel({ birth, gender }: Props) {
                     {remarks.map((rm, i) => (
                       <Remark key={i} rm={rm} compact />
                     ))}
-                    <YaoTable rows={mo.對六爻} />
+                    <YaoTable rows={mo.對六爻} compact={compact} />
                   </View>
                 )}
               </View>
@@ -211,14 +214,14 @@ function Remark({ rm, compact }: { rm: FortuneRemark; compact?: boolean }) {
   );
 }
 
-function YaoTable({ rows }: { rows: FortuneYaoRow[] }) {
+function YaoTable({ rows, compact = false }: { rows: FortuneYaoRow[]; compact?: boolean }) {
   const ordered = [...rows].sort((a, b) => rowIdx(b) - rowIdx(a)); // 上→初
   return (
     <View>
       <View style={[styles.tr, styles.thead]}>
-        <Text style={[styles.th, styles.cPos]}>爻</Text>
-        <Text style={[styles.th, styles.cRel]}>六親</Text>
-        <Text style={[styles.th, styles.cGz]}>干支</Text>
+        <Text style={[styles.th, styles.cPos, compact && styles.cPosCompact]}>爻</Text>
+        <Text style={[styles.th, styles.cRel, compact && styles.cRelCompact]}>六親</Text>
+        <Text style={[styles.th, styles.cGz, compact && styles.cGzCompact]}>干支</Text>
         <Text style={[styles.th, styles.cRel2]}>生剋/合沖</Text>
       </View>
       {ordered.map((r, i) => {
@@ -226,14 +229,14 @@ function YaoTable({ rows }: { rows: FortuneYaoRow[] }) {
         const sk = [r.生剋, r.合沖, r.當值].filter(Boolean).join("·");
         return (
           <View key={i} style={[styles.tr, r.動爻 && styles.trMoving]}>
-            <Text style={[styles.td, styles.cPos]}>
+            <Text style={[styles.td, styles.cPos, compact && styles.cPosCompact]} numberOfLines={1} adjustsFontSizeToFit>
               {r.爻序名}
               {r.世 ? <Text style={{ color: colors.shi }}> 世</Text> : null}
               {r.應 ? <Text style={{ color: colors.ying }}> 應</Text> : null}
             </Text>
-            <Text style={[styles.td, styles.cRel, { color: relColor }]}>{r.六親}</Text>
-            <Text style={[styles.td, styles.cGz]}>{r.干支}</Text>
-            <Text style={[styles.td, styles.cRel2]}>{sk || "—"}</Text>
+            <Text style={[styles.td, styles.cRel, compact && styles.cRelCompact, { color: relColor }]} numberOfLines={1} adjustsFontSizeToFit>{r.六親}</Text>
+            <Text style={[styles.td, styles.cGz, compact && styles.cGzCompact]} numberOfLines={1} adjustsFontSizeToFit>{r.干支}</Text>
+            <Text style={[styles.td, styles.cRel2]} numberOfLines={2}>{sk || "—"}</Text>
           </View>
         );
       })}
@@ -299,8 +302,11 @@ const styles = StyleSheet.create({
   th: { fontSize: 11, fontWeight: "700", color: colors.subtle },
   td: { fontSize: 13, color: colors.text },
   cPos: { width: 66 },
+  cPosCompact: { width: 52 },
   cRel: { width: 44 },
+  cRelCompact: { width: 38 },
   cGz: { width: 52 },
+  cGzCompact: { width: 44 },
   cRel2: { flex: 1, textAlign: "right" },
   error: { color: colors.moving, textAlign: "center", marginVertical: spacing.md },
   adviceWrap: { marginBottom: spacing.md },

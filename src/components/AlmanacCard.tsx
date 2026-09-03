@@ -18,7 +18,7 @@ function stars(n: number) {
   return "★★★★★".slice(0, n) + "☆☆☆☆☆".slice(0, 5 - n);
 }
 
-export default function AlmanacCard({ day }: { day: AlmanacDay }) {
+export default function AlmanacCard({ day, compact = false }: { day: AlmanacDay; compact?: boolean }) {
   const [open, setOpen] = useState(false);
   const z = day.擇日;
   const element = GAN_WX[(day.day_gz || "").charAt(0)] || "—";
@@ -27,10 +27,10 @@ export default function AlmanacCard({ day }: { day: AlmanacDay }) {
   const avoid = z?.忌 || [];
 
   return (
-    <SectionCard style={styles.card}>
-      <View style={styles.head}>
+    <SectionCard style={[styles.card, compact && styles.cardCompact]}>
+      <View style={[styles.head, compact && styles.headCompact]}>
         <Text style={styles.title}>今日黃曆</Text>
-        <Text style={styles.date}>
+        <Text style={styles.date} numberOfLines={2}>
           {day.lunar_month_cn}
           {day.lunar_day_cn}・{day.day_gz}日
         </Text>
@@ -39,7 +39,7 @@ export default function AlmanacCard({ day }: { day: AlmanacDay }) {
       <View style={styles.row}>
         <View style={styles.metric}>
           <Text style={styles.metricLabel}>今日能量</Text>
-          <Text style={styles.stars}>{stars(energy)}</Text>
+          <Text style={styles.stars} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{stars(energy)}</Text>
         </View>
         <View style={styles.metric}>
           <Text style={styles.metricLabel}>今日元素</Text>
@@ -50,13 +50,17 @@ export default function AlmanacCard({ day }: { day: AlmanacDay }) {
       {suit.length > 0 && (
         <View style={styles.line}>
           <Text style={styles.lineLabel}>今日適合</Text>
-          <Text style={styles.suitText}>✔ {suit.slice(0, 4).join("　✔ ")}</Text>
+          <View style={styles.tagList}>
+            {suit.slice(0, 4).map((item) => <Text key={item} style={styles.suitText}>✔ {item}</Text>)}
+          </View>
         </View>
       )}
       {avoid.length > 0 && (
         <View style={styles.line}>
           <Text style={styles.lineLabel}>盡量避免</Text>
-          <Text style={styles.avoidText}>✘ {avoid.slice(0, 4).join("　✘ ")}</Text>
+          <View style={styles.tagList}>
+            {avoid.slice(0, 4).map((item) => <Text key={item} style={styles.avoidText}>✘ {item}</Text>)}
+          </View>
         </View>
       )}
 
@@ -83,23 +87,26 @@ export default function AlmanacCard({ day }: { day: AlmanacDay }) {
 
 const styles = StyleSheet.create({
   card: {},
+  cardCompact: { padding: spacing.md },
   head: {
     flexDirection: "row",
     alignItems: "baseline",
     justifyContent: "space-between",
     marginBottom: spacing.md,
   },
+  headCompact: { alignItems: "flex-start" },
   title: { fontSize: 16, fontWeight: "800", color: colors.text, letterSpacing: 1 },
-  date: { fontSize: 13, color: colors.subtle },
+  date: { flexShrink: 1, marginLeft: spacing.sm, fontSize: 13, color: colors.subtle, textAlign: "right" },
   row: { flexDirection: "row", gap: spacing.lg, marginBottom: spacing.md },
   metric: { flex: 1 },
   metricLabel: { fontSize: 12, color: colors.subtle, marginBottom: 4 },
   stars: { fontSize: 18, color: colors.gold, letterSpacing: 2 },
   element: { fontSize: 22, fontWeight: "800" },
-  line: { flexDirection: "row", marginBottom: 6 },
-  lineLabel: { fontSize: 13, color: colors.subtle, width: 64 },
-  suitText: { flex: 1, fontSize: 14, color: colors.text, lineHeight: 22 },
-  avoidText: { flex: 1, fontSize: 14, color: "#a06a6a", lineHeight: 22 },
+  line: { flexDirection: "row", alignItems: "flex-start", marginBottom: 6 },
+  lineLabel: { flexShrink: 0, fontSize: 13, color: colors.subtle, width: 64, lineHeight: 22 },
+  tagList: { flex: 1, minWidth: 0, flexDirection: "row", flexWrap: "wrap", columnGap: 12 },
+  suitText: { fontSize: 14, color: colors.text, lineHeight: 22 },
+  avoidText: { fontSize: 14, color: "#a06a6a", lineHeight: 22 },
   plain: {
     fontSize: 14,
     color: colors.text,

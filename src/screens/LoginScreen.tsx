@@ -10,6 +10,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -28,6 +29,8 @@ export default function LoginScreen({
   initialMode?: Mode;
   onBack?: () => void;
 }) {
+  const { height, width, fontScale } = useWindowDimensions();
+  const compact = width < 390 || height < 720 || fontScale > 1.1;
   const { login, register } = useAuth();
   const [mode, setMode] = useState<Mode>(initialMode);
   const [email, setEmail] = useState("");
@@ -114,13 +117,13 @@ export default function LoginScreen({
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <ScrollView
-          contentContainerStyle={styles.scroll}
+          contentContainerStyle={[styles.scroll, compact && styles.scrollCompact]}
           keyboardShouldPersistTaps="handled"
           bounces={false}
           overScrollMode="never"
         >
-          <View style={styles.top}>
-            <Image source={LOGO} style={styles.logoImg} resizeMode="contain" />
+          <View style={[styles.top, compact && styles.topCompact]}>
+            <Image source={LOGO} style={[styles.logoImg, compact && styles.logoImgCompact]} resizeMode="contain" />
             <Text style={styles.subtitle}>
               {isRegister ? "註冊新會員" : "會員登入"}
             </Text>
@@ -260,8 +263,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     padding: spacing.xl,
   },
+  scrollCompact: { justifyContent: "flex-start", padding: spacing.md },
   top: { alignItems: "center", marginBottom: spacing.xl },
+  topCompact: { marginBottom: spacing.md },
   logoImg: { width: 150, height: 224 },
+  logoImgCompact: { width: 104, height: 155 },
   subtitle: {
     fontSize: 15,
     color: colors.subtle,

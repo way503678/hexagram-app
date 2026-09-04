@@ -15,6 +15,11 @@
 - 點日期或「本月重要日子」後，詳情改成畫面中央的可捲動彈出卡片；可用右上角、背景或 Android 返回鍵關閉。
 - `tsc --noEmit`、Expo Doctor 18/18 與 Expo web export 通過。
 
+## 0i. 首頁問候與今日指引分離（2026-09-04）
+
+- 移除「今日指引」卡片原本用來覆蓋山景 Hero 的負上邊距；一般與小螢幕版均改為正常 16pt 間距。
+- Hero 改用最小高度與一致內距，讓問候、說明文字隨字級增加時能在卡片內擴展，不會被下方卡片蓋住。
+
 ## 0g. 品牌圖片與圖示更新（2026-09-02）
 
 - 依 `/opt/icon` 新版品牌稿更新 App icon、中文 Logo、品牌 mark、favicon、Android adaptive icon 與 native splash。

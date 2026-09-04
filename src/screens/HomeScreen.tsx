@@ -79,7 +79,7 @@ export default function HomeScreen() {
           </Text>
         </ImageBackground>
 
-        {/* 今日指引(霧面卡,疊在 Hero 下緣)*/}
+        {/* 今日指引（與 Hero 分開排列，避免小螢幕或放大字級時重疊） */}
         <LinearGradient
           colors={gradients.frosted}
           start={{ x: 0, y: 0 }}
@@ -135,8 +135,8 @@ const styles = StyleSheet.create({
   logoRow: { flexDirection: "row", alignItems: "baseline", gap: 8, marginBottom: spacing.md },
   logo: { fontSize: 24, color: colors.primaryDark, fontWeight: "800", letterSpacing: 3 },
   logoSub: { fontSize: 14, color: colors.faint, letterSpacing: 6, fontFamily: fonts.serif },
-  hero: { height: 280, padding: 22, paddingBottom: 64, justifyContent: "flex-end" },
-  heroCompact: { height: 250, padding: 18, paddingBottom: 54 },
+  hero: { minHeight: 280, padding: 22, justifyContent: "flex-end" },
+  heroCompact: { minHeight: 250, padding: 18 },
   heroImg: { borderRadius: 28 },
   heroShade: {
     ...StyleSheet.absoluteFillObject,
@@ -149,12 +149,12 @@ const styles = StyleSheet.create({
   guideCard: {
     borderRadius: radius.card,
     padding: 20,
-    marginTop: -36,
+    marginTop: spacing.md,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.6)",
     ...shadowSoft,
   },
-  guideCardCompact: { padding: spacing.md, marginTop: -30 },
+  guideCardCompact: { padding: spacing.md },
   tag: { color: colors.primary, fontSize: 13, fontWeight: "700", letterSpacing: 2, marginBottom: 8 },
   guideText: { fontSize: 18, color: colors.primaryDark, fontWeight: "700", lineHeight: 28 },
   guideSub: { fontSize: 14, color: colors.subtle, lineHeight: 23, marginTop: spacing.sm },

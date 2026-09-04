@@ -1,9 +1,8 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   Modal,
-  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -15,7 +14,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import { useNavigation } from "@react-navigation/native";
 import { colors, spacing } from "../theme";
 import { useAuth } from "../AuthContext";
@@ -61,6 +59,71 @@ function formatDate(iso: string | null): string {
 }
 
 const DEFAULT_BIRTH = new Date(2000, 0, 1, 12, 0);
+const PICKER_ROW_HEIGHT = 42;
+const BIRTH_YEARS = Array.from(
+  { length: new Date().getFullYear() - 1899 },
+  (_, index) => 1900 + index
+);
+const BIRTH_MONTHS = Array.from({ length: 12 }, (_, index) => index + 1);
+const BIRTH_HOURS = Array.from({ length: 24 }, (_, index) => index);
+
+function BirthPartPicker({
+  label,
+  values,
+  selected,
+  suffix,
+  onSelect,
+}: {
+  label: string;
+  values: number[];
+  selected: number;
+  suffix: string;
+  onSelect: (value: number) => void;
+}) {
+  const scrollRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    const index = values.indexOf(selected);
+    if (index < 0) return;
+    const scrollToSelected = () => {
+      scrollRef.current?.scrollTo({
+        y: Math.max(0, (index - 2) * PICKER_ROW_HEIGHT),
+        animated: false,
+      });
+    };
+    const frame = requestAnimationFrame(scrollToSelected);
+    return () => cancelAnimationFrame(frame);
+  }, [selected, values.length]);
+
+  return (
+    <View style={styles.birthColumn}>
+      <Text style={styles.birthColumnLabel}>{label}</Text>
+      <ScrollView
+        ref={scrollRef}
+        style={styles.birthList}
+        showsVerticalScrollIndicator={false}
+        nestedScrollEnabled
+      >
+        {values.map((value) => {
+          const active = value === selected;
+          return (
+            <Pressable
+              key={value}
+              accessibilityRole="button"
+              accessibilityState={{ selected: active }}
+              onPress={() => onSelect(value)}
+              style={[styles.birthOption, active && styles.birthOptionActive]}
+            >
+              <Text style={[styles.birthOptionText, active && styles.birthOptionTextActive]}>
+                {value}{suffix}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+    </View>
+  );
+}
 
 export default function MemberScreen() {
   const { width, fontScale } = useWindowDimensions();
@@ -76,6 +139,7 @@ export default function MemberScreen() {
   const [editName, setEditName] = useState("");
   const [editGender, setEditGender] = useState<"M" | "F" | "">("");
   const [editBirth, setEditBirth] = useState<Date | null>(null);
+  const [birthDraft, setBirthDraft] = useState(DEFAULT_BIRTH);
   const [showPicker, setShowPicker] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -147,6 +211,30 @@ export default function MemberScreen() {
         : null
     );
     setEditing(true);
+  }
+
+  function openBirthPicker() {
+    setBirthDraft(new Date(editBirth ?? DEFAULT_BIRTH));
+    setShowPicker(true);
+  }
+
+  function setBirthPart(part: "year" | "month" | "day" | "hour", value: number) {
+    setBirthDraft((current) => {
+      const now = new Date();
+      let year = part === "year" ? value : current.getFullYear();
+      let month = part === "month" ? value : current.getMonth() + 1;
+      let day = part === "day" ? value : current.getDate();
+      let hour = part === "hour" ? value : current.getHours();
+
+      if (year === now.getFullYear()) month = Math.min(month, now.getMonth() + 1);
+      const monthDays = new Date(year, month, 0).getDate();
+      day = Math.min(day, monthDays);
+      if (year === now.getFullYear() && month === now.getMonth() + 1) {
+        day = Math.min(day, now.getDate());
+        if (day === now.getDate()) hour = Math.min(hour, now.getHours());
+      }
+      return new Date(year, month - 1, day, hour, 0, 0, 0);
+    });
   }
 
   function viewMyChart() {
@@ -336,7 +424,7 @@ export default function MemberScreen() {
               )}
             </View>
             <Text style={styles.editLabel}>生日(命盤排卦用)</Text>
-            <Pressable style={styles.input} onPress={() => setShowPicker((v) => !v)}>
+            <Pressable style={styles.input} onPress={openBirthPicker}>
               <Text style={editBirth ? styles.pickerValue : styles.pickerPlaceholder}>
                 {editBirth
                   ? `${editBirth.getFullYear()}/${pad(editBirth.getMonth() + 1)}/${pad(
@@ -345,26 +433,6 @@ export default function MemberScreen() {
                   : "點此選擇出生年月日與時辰"}
               </Text>
             </Pressable>
-            {showPicker && (
-              <View>
-                <DateTimePicker
-                  value={editBirth ?? DEFAULT_BIRTH}
-                  mode="datetime"
-                  display="spinner"
-                  maximumDate={new Date()}
-                  minimumDate={new Date(1900, 0, 1)}
-                  onChange={(_e, d) => {
-                    if (d) setEditBirth(d);
-                    if (Platform.OS !== "ios") setShowPicker(false);
-                  }}
-                />
-                {Platform.OS === "ios" && (
-                  <Pressable style={styles.pickerDone} onPress={() => setShowPicker(false)}>
-                    <Text style={styles.pickerDoneText}>完成</Text>
-                  </Pressable>
-                )}
-              </View>
-            )}
             <View style={styles.editBtnRow}>
               <TouchableOpacity
                 style={[styles.saveBtn, saving && styles.disabled]}
@@ -521,6 +589,95 @@ export default function MemberScreen() {
         </TouchableOpacity>
       </ScrollView>
 
+      <Modal
+        visible={showPicker}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowPicker(false)}
+      >
+        <View style={styles.birthBackdrop}>
+          {showPicker && (
+            <View style={styles.birthSheet}>
+              <Text style={styles.birthTitle}>選擇出生日期與時辰</Text>
+              <Text style={styles.birthHint}>年、月、日、時可以分開選擇</Text>
+              <View style={styles.birthColumns}>
+              <BirthPartPicker
+                label="年份"
+                values={BIRTH_YEARS}
+                selected={birthDraft.getFullYear()}
+                suffix=""
+                onSelect={(value) => setBirthPart("year", value)}
+              />
+              <BirthPartPicker
+                label="月份"
+                values={BIRTH_MONTHS.slice(
+                  0,
+                  birthDraft.getFullYear() === new Date().getFullYear()
+                    ? new Date().getMonth() + 1
+                    : 12
+                )}
+                selected={birthDraft.getMonth() + 1}
+                suffix="月"
+                onSelect={(value) => setBirthPart("month", value)}
+              />
+              <BirthPartPicker
+                label="日期"
+                values={Array.from(
+                  {
+                    length:
+                      birthDraft.getFullYear() === new Date().getFullYear() &&
+                      birthDraft.getMonth() === new Date().getMonth()
+                        ? new Date().getDate()
+                        : new Date(
+                            birthDraft.getFullYear(),
+                            birthDraft.getMonth() + 1,
+                            0
+                          ).getDate(),
+                  },
+                  (_, index) => index + 1
+                )}
+                selected={birthDraft.getDate()}
+                suffix="日"
+                onSelect={(value) => setBirthPart("day", value)}
+              />
+              <BirthPartPicker
+                label="時辰"
+                values={BIRTH_HOURS.slice(
+                  0,
+                  birthDraft.getFullYear() === new Date().getFullYear() &&
+                  birthDraft.getMonth() === new Date().getMonth() &&
+                  birthDraft.getDate() === new Date().getDate()
+                    ? new Date().getHours() + 1
+                    : 24
+                )}
+                selected={birthDraft.getHours()}
+                suffix="時"
+                onSelect={(value) => setBirthPart("hour", value)}
+              />
+              </View>
+              <Text style={styles.birthPreview}>
+                {birthDraft.getFullYear()}年{birthDraft.getMonth() + 1}月
+                {birthDraft.getDate()}日 {pad(birthDraft.getHours())}時
+              </Text>
+              <View style={styles.birthActions}>
+                <Pressable style={styles.birthCancel} onPress={() => setShowPicker(false)}>
+                  <Text style={styles.birthCancelText}>取消</Text>
+                </Pressable>
+                <Pressable
+                  style={styles.birthConfirm}
+                  onPress={() => {
+                    setEditBirth(new Date(birthDraft));
+                    setShowPicker(false);
+                  }}
+                >
+                  <Text style={styles.birthConfirmText}>確認日期</Text>
+                </Pressable>
+              </View>
+            </View>
+          )}
+        </View>
+      </Modal>
+
       <Modal visible={legalVisible} animationType="slide" transparent
         onRequestClose={() => setLegalVisible(false)}>
         <View style={styles.legalBackdrop}>
@@ -657,8 +814,70 @@ const styles = StyleSheet.create({
   genderBtnTextOn: { color: colors.primaryText, fontWeight: "700" },
   pickerValue: { fontSize: 16, color: colors.text },
   pickerPlaceholder: { fontSize: 16, color: colors.subtle },
-  pickerDone: { alignItems: "flex-end", padding: spacing.sm },
-  pickerDoneText: { color: colors.primary, fontWeight: "700", fontSize: 15 },
+  birthBackdrop: {
+    flex: 1,
+    justifyContent: "center",
+    padding: spacing.md,
+    backgroundColor: "rgba(43,45,66,0.45)",
+  },
+  birthSheet: {
+    backgroundColor: colors.card,
+    borderRadius: 18,
+    padding: spacing.md,
+    maxHeight: "86%",
+  },
+  birthTitle: { fontSize: 18, fontWeight: "800", color: colors.text },
+  birthHint: { fontSize: 13, color: colors.subtle, marginTop: spacing.xs, marginBottom: spacing.md },
+  birthColumns: { flexDirection: "row", gap: spacing.xs },
+  birthColumn: { flex: 1, minWidth: 0 },
+  birthColumnLabel: {
+    color: colors.subtle,
+    fontSize: 12,
+    fontWeight: "700",
+    textAlign: "center",
+    marginBottom: spacing.xs,
+  },
+  birthList: {
+    height: PICKER_ROW_HEIGHT * 5,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 10,
+    backgroundColor: colors.bg,
+  },
+  birthOption: {
+    height: PICKER_ROW_HEIGHT,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 2,
+  },
+  birthOptionActive: { backgroundColor: colors.primary },
+  birthOptionText: { color: colors.text, fontSize: 14 },
+  birthOptionTextActive: { color: colors.primaryText, fontWeight: "800" },
+  birthPreview: {
+    color: colors.primary,
+    fontSize: 15,
+    fontWeight: "700",
+    textAlign: "center",
+    marginTop: spacing.md,
+  },
+  birthActions: { flexDirection: "row", gap: spacing.sm, marginTop: spacing.md },
+  birthCancel: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 10,
+  },
+  birthCancelText: { color: colors.subtle, fontSize: 15, fontWeight: "700" },
+  birthConfirm: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: spacing.md,
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+  },
+  birthConfirmText: { color: colors.primaryText, fontSize: 15, fontWeight: "700" },
   editBtnRow: { flexDirection: "row", gap: spacing.md, marginTop: spacing.lg },
   saveBtn: {
     flex: 1,

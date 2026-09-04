@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -67,6 +68,18 @@ export default function AlmanacScreen() {
   }
 
   const lead = data ? (data.first_weekday + 1) % 7 : 0;
+  const calendarRows = data
+    ? Array.from(
+        { length: Math.ceil((lead + data.days.length) / 7) },
+        (_, row) =>
+          Array.from({ length: 7 }, (__, col) => {
+            const dayIndex = row * 7 + col - lead;
+            return dayIndex >= 0 && dayIndex < data.days.length
+              ? data.days[dayIndex]
+              : null;
+          })
+      )
+    : [];
 
   return (
     <SafeAreaView style={styles.safe} edges={["left", "right", "bottom"]}>
@@ -111,55 +124,60 @@ export default function AlmanacScreen() {
         {/* 月曆格 */}
         {data && !loading && (
           <View style={styles.grid}>
-            {Array.from({ length: lead }).map((_, i) => (
-              <View key={`e${i}`} style={styles.cell} />
-            ))}
-            {data.days.map((day, idx) => {
-              const col = (idx + lead) % 7;
-              const isToday = day.solar === todayStr;
-              const zb = zibaiStyle[day.day_zibai];
-              return (
-                <Pressable
-                  key={day.solar}
-                  style={[styles.cell, compact && styles.cellCompact, sel?.solar === day.solar && styles.cellSel]}
-                  onPress={() => setSel(day)}
-                >
-                  <View style={styles.cellTop}>
-                    <View style={[styles.dnumWrap, isToday && styles.todayWrap]}>
-                      <Text style={[styles.dnum, compact && styles.dnumCompact, col === 0 && styles.sunText, isToday && styles.todayNum]}>
-                        {parseInt(day.solar.slice(8, 10), 10)}
-                      </Text>
-                    </View>
-                    <Text style={[styles.gz, compact && styles.gzCompact, { color: ganColor(day.day_gz[0]) }]} numberOfLines={1}>{day.day_gz}</Text>
-                  </View>
-                  <Text style={styles.lunar} numberOfLines={1}>
-                    {day.jieqi ? <Text style={styles.jqInCell}>{day.jieqi}</Text> : day.lunar_label}
-                  </Text>
-                  <View style={styles.cellBottom}>
-                    <View
-                      style={[
-                        styles.zb,
-                        { backgroundColor: zb.bg },
-                        zb.border && styles.zbBorder,
-                      ]}
+            {calendarRows.map((row, rowIndex) => (
+              <View key={`row-${rowIndex}`} style={styles.calendarRow}>
+                {row.map((day, col) => {
+                  if (!day) {
+                    return <View key={`empty-${rowIndex}-${col}`} style={styles.cell} />;
+                  }
+                  const isToday = day.solar === todayStr;
+                  const zb = zibaiStyle[day.day_zibai];
+                  return (
+                    <Pressable
+                      key={day.solar}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${parseInt(day.solar.slice(8, 10), 10)}日，查看詳細黃曆`}
+                      style={[styles.cell, compact && styles.cellCompact, sel?.solar === day.solar && styles.cellSel]}
+                      onPress={() => setSel(day)}
                     >
-                      <Text style={[styles.zbTxt, { color: zb.fg }]}>{day.day_zibai_name}</Text>
-                    </View>
-                    {day.擇日 && (
-                      <Text
-                        style={[
-                          styles.jx,
-                          { color: zeriColor[day.擇日.吉凶] || colors.subtle },
-                        ]}
-                        numberOfLines={1}
-                      >
-                        {day.擇日.建除}·{day.擇日.吉凶}
+                      <View style={styles.cellTop}>
+                        <View style={[styles.dnumWrap, isToday && styles.todayWrap]}>
+                          <Text style={[styles.dnum, compact && styles.dnumCompact, col === 0 && styles.sunText, isToday && styles.todayNum]}>
+                            {parseInt(day.solar.slice(8, 10), 10)}
+                          </Text>
+                        </View>
+                        <Text style={[styles.gz, compact && styles.gzCompact, { color: ganColor(day.day_gz[0]) }]} numberOfLines={1}>{day.day_gz}</Text>
+                      </View>
+                      <Text style={styles.lunar} numberOfLines={1}>
+                        {day.jieqi ? <Text style={styles.jqInCell}>{day.jieqi}</Text> : day.lunar_label}
                       </Text>
-                    )}
-                  </View>
-                </Pressable>
-              );
-            })}
+                      <View style={styles.cellBottom}>
+                        <View
+                          style={[
+                            styles.zb,
+                            { backgroundColor: zb.bg },
+                            zb.border && styles.zbBorder,
+                          ]}
+                        >
+                          <Text style={[styles.zbTxt, { color: zb.fg }]}>{day.day_zibai_name}</Text>
+                        </View>
+                        {day.擇日 && (
+                          <Text
+                            style={[
+                              styles.jx,
+                              { color: zeriColor[day.擇日.吉凶] || colors.subtle },
+                            ]}
+                            numberOfLines={1}
+                          >
+                            {day.擇日.建除}·{day.擇日.吉凶}
+                          </Text>
+                        )}
+                      </View>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ))}
           </View>
         )}
 
@@ -190,51 +208,81 @@ export default function AlmanacScreen() {
           </View>
         )}
 
-        {/* 選取日詳情 */}
-        {sel && (
-          <View style={styles.detail}>
-            <Text style={styles.detailTitle}>
-              {sel.solar.slice(0, 4)}年{parseInt(sel.solar.slice(5, 7), 10)}月{parseInt(sel.solar.slice(8, 10), 10)}日（{WEEKDAYS[(sel.weekday + 1) % 7]}）
-            </Text>
-            <DetailRow label="農曆" value={`${sel.lunar_month_cn}${sel.lunar_day_cn}`} />
-            <DetailRow label="干支" value={`${sel.year_gz}年 ${sel.month_gz}月 ${sel.day_gz}日`} />
-            <DetailRow label="生肖" value={sel.shengxiao} />
-            {sel.jieqi && <DetailRow label="節氣" value={`${sel.jieqi} ${sel.jieqi_time ?? ""}`} />}
-            <DetailRow label="日紫白" value={sel.day_zibai_name} />
-            <DetailRow label="年紫白" value={sel.year_zibai.name} />
-            {sel.擇日 && (
-              <>
-                <View style={styles.detailDivider} />
-                <View style={styles.zeriHead}>
-                  <Text style={styles.zeriTitle}>董公擇日</Text>
-                  <Text
-                    style={[styles.zeriBadge, { backgroundColor: zeriColor[sel.擇日.吉凶] || colors.subtle }]}
-                  >
-                    {sel.擇日.吉凶}
-                  </Text>
-                </View>
-                <Text style={styles.baihua}>{sel.擇日.白話}</Text>
-                <View style={styles.yjRow}>
-                  <Text style={[styles.yjTag, styles.yiTag]}>宜</Text>
-                  <Text style={styles.yjText}>{sel.擇日.宜.join("、")}</Text>
-                </View>
-                <View style={styles.yjRow}>
-                  <Text style={[styles.yjTag, styles.jiTag]}>忌</Text>
-                  <Text style={styles.yjText}>{sel.擇日.忌.join("、")}</Text>
-                </View>
-                <DetailRow label="建除" value={`${sel.擇日.建除}日`} />
-                <DetailRow label="正沖" value={`生肖屬${sel.擇日.正沖生肖}`} />
-                <DetailRow label="三煞" value={sel.擇日.三煞註} />
-                <Text style={styles.zeriNote}>
-                  ※ 擇日吉凶為傳統神煞推算之參考,請斟酌使用。
-                </Text>
-              </>
-            )}
-          </View>
-        )}
-
         <View style={{ height: spacing.xl }} />
       </ScrollView>
+
+      {/* 選取日詳情 */}
+      <Modal
+        visible={sel !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSel(null)}
+      >
+        <View style={styles.modalRoot}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="關閉日期詳情"
+            style={styles.modalBackdrop}
+            onPress={() => setSel(null)}
+          />
+          <SafeAreaView style={styles.modalSafe} edges={["top", "bottom"]} pointerEvents="box-none">
+            {sel && (
+              <View style={styles.modalCard}>
+                <View style={styles.modalHead}>
+                  <Text style={styles.detailTitle} numberOfLines={2} adjustsFontSizeToFit>
+                    {sel.solar.slice(0, 4)}年{parseInt(sel.solar.slice(5, 7), 10)}月{parseInt(sel.solar.slice(8, 10), 10)}日（{WEEKDAYS[(sel.weekday + 1) % 7]}）
+                  </Text>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="關閉"
+                    hitSlop={10}
+                    onPress={() => setSel(null)}
+                    style={styles.closeBtn}
+                  >
+                    <Text style={styles.closeTxt}>×</Text>
+                  </Pressable>
+                </View>
+                <ScrollView contentContainerStyle={styles.detail} showsVerticalScrollIndicator={false}>
+                  <DetailRow label="農曆" value={`${sel.lunar_month_cn}${sel.lunar_day_cn}`} />
+                  <DetailRow label="干支" value={`${sel.year_gz}年 ${sel.month_gz}月 ${sel.day_gz}日`} />
+                  <DetailRow label="生肖" value={sel.shengxiao} />
+                  {sel.jieqi && <DetailRow label="節氣" value={`${sel.jieqi} ${sel.jieqi_time ?? ""}`} />}
+                  <DetailRow label="日紫白" value={sel.day_zibai_name} />
+                  <DetailRow label="年紫白" value={sel.year_zibai.name} />
+                  {sel.擇日 && (
+                    <>
+                      <View style={styles.detailDivider} />
+                      <View style={styles.zeriHead}>
+                        <Text style={styles.zeriTitle}>董公擇日</Text>
+                        <Text
+                          style={[styles.zeriBadge, { backgroundColor: zeriColor[sel.擇日.吉凶] || colors.subtle }]}
+                        >
+                          {sel.擇日.吉凶}
+                        </Text>
+                      </View>
+                      <Text style={styles.baihua}>{sel.擇日.白話}</Text>
+                      <View style={styles.yjRow}>
+                        <Text style={[styles.yjTag, styles.yiTag]}>宜</Text>
+                        <Text style={styles.yjText}>{sel.擇日.宜.join("、")}</Text>
+                      </View>
+                      <View style={styles.yjRow}>
+                        <Text style={[styles.yjTag, styles.jiTag]}>忌</Text>
+                        <Text style={styles.yjText}>{sel.擇日.忌.join("、")}</Text>
+                      </View>
+                      <DetailRow label="建除" value={`${sel.擇日.建除}日`} />
+                      <DetailRow label="正沖" value={`生肖屬${sel.擇日.正沖生肖}`} />
+                      <DetailRow label="三煞" value={sel.擇日.三煞註} />
+                      <Text style={styles.zeriNote}>
+                        ※ 擇日吉凶為傳統神煞推算之參考,請斟酌使用。
+                      </Text>
+                    </>
+                  )}
+                </ScrollView>
+              </View>
+            )}
+          </SafeAreaView>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -260,12 +308,14 @@ const styles = StyleSheet.create({
   navTxt: { fontSize: 26, color: colors.primary, fontWeight: "700" },
   navToday: { fontSize: 16, color: colors.primary, fontWeight: "700" },
   jq: { color: "#7a3b9e", fontSize: 13, marginTop: 2, marginBottom: spacing.sm },
-  weekRow: { flexDirection: "row" },
-  weekCell: { width: `${100 / 7}%`, textAlign: "center", color: colors.subtle, fontSize: 14, fontWeight: "700", paddingVertical: 5 },
+  weekRow: { flexDirection: "row", width: "100%" },
+  weekCell: { flex: 1, minWidth: 0, textAlign: "center", color: colors.subtle, fontSize: 14, fontWeight: "700", paddingVertical: 5 },
   sunText: { color: "#c0392b" },
-  grid: { flexDirection: "row", flexWrap: "wrap" },
+  grid: { width: "100%" },
+  calendarRow: { flexDirection: "row", width: "100%" },
   cell: {
-    width: `${100 / 7}%`,
+    flex: 1,
+    minWidth: 0,
     minHeight: 62,
     padding: 2,
     borderWidth: 0.5,
@@ -289,14 +339,32 @@ const styles = StyleSheet.create({
   zbTxt: { fontSize: 13, fontWeight: "800" },
   jx: { fontSize: 9.5, fontWeight: "700", marginLeft: 2 },
   detail: {
-    marginTop: spacing.lg,
+    padding: spacing.lg,
+    paddingTop: spacing.sm,
+  },
+  modalRoot: { flex: 1, justifyContent: "center" },
+  modalBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(25, 23, 42, 0.48)" },
+  modalSafe: { flex: 1, justifyContent: "center", paddingHorizontal: spacing.md },
+  modalCard: {
+    maxHeight: "86%",
     backgroundColor: colors.card,
-    borderRadius: 10,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: colors.border,
-    padding: spacing.lg,
+    overflow: "hidden",
   },
-  detailTitle: { fontSize: 16, fontWeight: "700", color: colors.text, marginBottom: spacing.sm },
+  modalHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    paddingLeft: spacing.lg,
+    paddingRight: spacing.sm,
+    paddingVertical: spacing.sm,
+  },
+  detailTitle: { flex: 1, fontSize: 16, fontWeight: "700", color: colors.text },
+  closeBtn: { width: 36, height: 36, alignItems: "center", justifyContent: "center" },
+  closeTxt: { color: colors.subtle, fontSize: 28, lineHeight: 30 },
   detailRow: { flexDirection: "row", paddingVertical: 3 },
   detailLabel: { width: 72, color: colors.subtle, fontSize: 13 },
   detailValue: { flex: 1, color: colors.text, fontSize: 14, lineHeight: 20 },

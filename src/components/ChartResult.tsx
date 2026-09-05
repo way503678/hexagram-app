@@ -61,57 +61,55 @@ export default function ChartResult({ chart, compact = false }: Props) {
       <View style={[styles.card, compact && styles.cardCompact]}>
         <Text style={styles.tableTitle}>六爻(本卦)</Text>
         <View style={styles.yaoHeader}>
-          <Text style={[styles.headerText, styles.headerSymbol, compact && styles.headerSymbolCompact]}>爻象</Text>
-          <Text style={[styles.headerText, styles.headerSix, compact && styles.headerSixCompact]}>六神</Text>
-          <Text style={[styles.headerText, styles.headerRel, compact && styles.headerRelCompact]}>六親</Text>
-          <Text style={[styles.headerText, styles.headerGz]}>干支</Text>
+          <Text style={[styles.headerText, styles.equalCell]}>爻象</Text>
+          <Text style={[styles.headerText, styles.equalCell]}>六神</Text>
+          <Text style={[styles.headerText, styles.equalCell]}>六親</Text>
+          <Text style={[styles.headerText, styles.equalCell]}>干支</Text>
         </View>
         {rows.map((e) => (
           <YaoRow key={e.index} e={e} ben={benByIndex.get(e.index)} compact={compact} />
         ))}
+
+        {/* 變卦沿用本卦四等分欄位，合併於同一卡片方便上下對照。 */}
+        {bian && (
+          <View style={styles.bianSection}>
+            <Text style={styles.tableTitle}>變卦 · {bian.卦名}</Text>
+            <Text style={styles.guaSub}>
+              {bian.卦宮}宮 · {bian.卦變} · 世爻五行 {bian.世爻五行}
+            </Text>
+            <Text style={[styles.guaCi, { marginBottom: spacing.sm }]}>{bian.卦辭}</Text>
+            <View style={styles.yaoHeader}>
+              <Text style={[styles.headerText, styles.equalCell]}>爻象</Text>
+              <Text style={[styles.headerText, styles.equalCell]}>六神</Text>
+              <Text style={[styles.headerText, styles.equalCell]}>六親</Text>
+              <Text style={[styles.headerText, styles.equalCell]}>干支</Text>
+            </View>
+            {topDown(bian.爻).map((y) => {
+              const relColor = wuxingColor[y.五行] || colors.text;
+              return (
+                <View key={y.爻序index} style={styles.bianRow}>
+                  <View style={styles.bianSymbol}>
+                    <YaoGlyph yin={y.陰陽 === "陰"} width={compact ? 48 : 56} compact />
+                  </View>
+                  <Text style={styles.bianSix} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78}>
+                    {y.六神}
+                  </Text>
+                  <Text style={[styles.bianRel, { color: relColor }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78}>
+                    {y.六親}<Text style={styles.wx}> {y.五行}</Text>
+                  </Text>
+                  <Text style={styles.bianGz} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78}>
+                    {y.干支}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        )}
         <Text style={styles.legend}>
           世/應在爻象下 · <Text style={{ color: colors.moving }}>紅=動爻</Text> · 空=旬空 ·
           動→變出之爻 · 六親下小字=伏神
         </Text>
       </View>
-
-      {/* 變卦 */}
-      {bian && (
-        <View style={[styles.card, compact && styles.cardCompact]}>
-          <Text style={styles.tableTitle}>變卦 · {bian.卦名}</Text>
-          <Text style={styles.guaSub}>
-            {bian.卦宮}宮 · {bian.卦變} · 世爻五行 {bian.世爻五行}
-          </Text>
-          <Text style={[styles.guaCi, { marginBottom: spacing.sm }]}>{bian.卦辭}</Text>
-          {topDown(bian.爻).map((y) => {
-            const relColor = wuxingColor[y.五行] || colors.text;
-            return (
-              <View key={y.爻序index} style={styles.bianRow}>
-                <View style={[styles.bianSymbol, compact && styles.bianSymbolCompact]}>
-                  <YaoGlyph yin={y.陰陽 === "陰"} width={compact ? 48 : 56} compact />
-                </View>
-                <Text
-                  style={[styles.bianRel, compact && styles.bianRelCompact, { color: relColor }]}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.78}
-                >
-                  {y.六親}
-                  <Text style={styles.wx}> {y.五行}</Text>
-                </Text>
-                <Text
-                  style={styles.bianGz}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.78}
-                >
-                  {y.干支}
-                </Text>
-              </View>
-            );
-          })}
-        </View>
-      )}
     </View>
   );
 }
@@ -126,7 +124,7 @@ function YaoRow({ e, ben, compact }: { e: LiuYaoEntry; ben?: Yao; compact: boole
   return (
     <View style={[styles.yaoBlock, e.動爻 && styles.yaoMoving]}>
       <View style={styles.yaoMain}>
-        <View style={[styles.colSymbolWrap, compact && styles.colSymbolWrapCompact]}>
+        <View style={styles.colSymbolWrap}>
           <YaoGlyph
             yin={(ben?.陰陽 ?? e.陰陽) === "陰"}
             moving={e.動爻}
@@ -137,14 +135,14 @@ function YaoRow({ e, ben, compact }: { e: LiuYaoEntry; ben?: Yao; compact: boole
           {e.應 ? <Text style={[styles.syTag, { color: colors.ying }]}>應爻</Text> : null}
         </View>
         <Text
-          style={[styles.colSix, compact && styles.colSixCompact]}
+          style={styles.colSix}
           numberOfLines={1}
           adjustsFontSizeToFit
           minimumFontScale={0.78}
         >
           {e.六神}
         </Text>
-        <View style={[styles.colRelWrap, compact && styles.colRelWrapCompact]}>
+        <View style={styles.colRelWrap}>
           <Text style={[styles.colRel, { color: relColor }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78}>
             {e.六親}
             <Text style={styles.wx}> {e.五行}</Text>
@@ -211,32 +209,23 @@ const styles = StyleSheet.create({
     paddingBottom: 5,
   },
   headerText: { color: colors.faint, fontSize: 10.5, fontWeight: "700" },
-  headerSymbol: { width: 72 },
-  headerSymbolCompact: { width: 62 },
-  headerSix: { width: 44 },
-  headerSixCompact: { width: 40 },
-  headerRel: { width: 70 },
-  headerRelCompact: { width: 62 },
-  headerGz: { flex: 1, minWidth: 0, textAlign: "right" },
+  equalCell: { width: "25%", minWidth: 0 },
   yaoMain: { width: "100%", flexDirection: "row", alignItems: "flex-start", minHeight: 38 },
-  colSymbolWrap: { width: 72, alignItems: "flex-start" },
-  colSymbolWrapCompact: { width: 62 },
+  colSymbolWrap: { width: "25%", minWidth: 0, alignItems: "flex-start" },
   syTag: { fontSize: 10, fontWeight: "700", marginTop: 1 },
-  colSix: { width: 44, fontSize: 13, lineHeight: 28, color: colors.text },
-  colSixCompact: { width: 40 },
-  colRelWrap: { width: 70, paddingTop: 5 },
-  colRelWrapCompact: { width: 62 },
+  colSix: { width: "25%", minWidth: 0, fontSize: 13, lineHeight: 28, color: colors.text },
+  colRelWrap: { width: "25%", minWidth: 0, paddingTop: 5 },
   colRel: { fontSize: 13 },
   fuSub: { fontSize: 10, color: colors.faint, marginTop: 1 },
-  colGz: { flex: 1, minWidth: 0, paddingTop: 5, fontSize: 13, color: colors.text, textAlign: "right" },
+  colGz: { width: "25%", minWidth: 0, paddingTop: 5, fontSize: 13, color: colors.text },
   yaoDetail: {
     marginTop: 2,
-    marginLeft: 72,
+    marginLeft: "25%",
     fontSize: 11.5,
     color: colors.subtle,
     lineHeight: 17,
   },
-  yaoDetailCompact: { marginLeft: 62, fontSize: 11 },
+  yaoDetailCompact: { fontSize: 11 },
   tag: { fontSize: 12, fontWeight: "700" },
   wx: { fontSize: 11, color: colors.subtle },
   kong: { color: colors.primary, fontWeight: "700" },
@@ -249,13 +238,26 @@ const styles = StyleSheet.create({
     color: colors.subtle,
     lineHeight: 16,
   },
-  bianRow: { width: "100%", flexDirection: "row", alignItems: "center", paddingVertical: 4 },
+  bianSection: {
+    marginTop: spacing.md,
+    paddingTop: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  bianRow: {
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingVertical: 7,
+  },
   bianSymbol: {
-    width: 72,
+    width: "25%",
+    minWidth: 0,
     alignItems: "flex-start",
   },
-  bianSymbolCompact: { width: 62 },
-  bianRel: { width: 64, fontSize: 13 },
-  bianRelCompact: { width: 58 },
-  bianGz: { flex: 1, minWidth: 0, fontSize: 13, color: colors.text, textAlign: "right" },
+  bianSix: { width: "25%", minWidth: 0, fontSize: 13, color: colors.text },
+  bianRel: { width: "25%", minWidth: 0, fontSize: 13 },
+  bianGz: { width: "25%", minWidth: 0, fontSize: 13, color: colors.text },
 });

@@ -15,6 +15,7 @@
 - 六爻與變卦列明確填滿卡片可用寬度，最右側干支靠右對齊；中間剩餘空間會隨手機寬度伸縮，已用 320px 與 430px 寬度預覽確認。
 - 變卦同步移除爻序欄並共用固定幾何爻象，維持本卦與變卦的視覺規則一致。
 - `tsc --noEmit`、Expo Doctor 18/18 與 Expo web export 通過；尚未發布新版本。
+- 2026-09-05 啟動雙平台測試版發布：iOS build 7 送 TestFlight、Android versionCode 5 送 Google Play internal；來源 commit `5bc55af`。
 
 ## 0h. 萬年曆七欄與日期詳情修正（2026-09-04）
 

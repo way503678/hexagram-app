@@ -2,6 +2,7 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { ChartResponse, LiuYaoEntry, Yao } from "../types";
 import { colors, spacing, wuxingColor } from "../theme";
+import YaoGlyph from "./YaoGlyph";
 
 interface Props {
   chart: ChartResponse;
@@ -59,6 +60,12 @@ export default function ChartResult({ chart, compact = false }: Props) {
       {/* 六爻 */}
       <View style={[styles.card, compact && styles.cardCompact]}>
         <Text style={styles.tableTitle}>六爻(本卦)</Text>
+        <View style={styles.yaoHeader}>
+          <Text style={[styles.headerText, styles.headerSymbol, compact && styles.headerSymbolCompact]}>爻象</Text>
+          <Text style={[styles.headerText, styles.headerSix, compact && styles.headerSixCompact]}>六神</Text>
+          <Text style={[styles.headerText, styles.headerRel, compact && styles.headerRelCompact]}>六親</Text>
+          <Text style={[styles.headerText, styles.headerGz]}>干支</Text>
+        </View>
         {rows.map((e) => (
           <YaoRow key={e.index} e={e} ben={benByIndex.get(e.index)} compact={compact} />
         ))}
@@ -80,17 +87,9 @@ export default function ChartResult({ chart, compact = false }: Props) {
             const relColor = wuxingColor[y.五行] || colors.text;
             return (
               <View key={y.爻序index} style={styles.bianRow}>
-                <Text style={[styles.bianPos, compact && styles.bianPosCompact]}>
-                  {y.爻序名}
-                </Text>
-                <Text
-                  style={[styles.bianSymbol, compact && styles.bianSymbolCompact]}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.75}
-                >
-                  {y.爻象}
-                </Text>
+                <View style={[styles.bianSymbol, compact && styles.bianSymbolCompact]}>
+                  <YaoGlyph yin={y.陰陽 === "陰"} width={compact ? 48 : 56} compact />
+                </View>
                 <Text
                   style={[styles.bianRel, compact && styles.bianRelCompact, { color: relColor }]}
                   numberOfLines={1}
@@ -129,18 +128,15 @@ function YaoRow({ e, ben, compact }: { e: LiuYaoEntry; ben?: Yao; compact: boole
   return (
     <View style={[styles.yaoBlock, e.動爻 && styles.yaoMoving]}>
       <View style={styles.yaoMain}>
-        <Text style={[styles.colPos, compact && styles.colPosCompact]}>{e.爻序名}</Text>
         <View style={[styles.colSymbolWrap, compact && styles.colSymbolWrapCompact]}>
-          <Text
-            style={styles.colSymbol}
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.72}
-          >
-            {ben?.爻象 ?? ""}
-          </Text>
-          {e.世 ? <Text style={[styles.syTag, { color: colors.shi }]}>世</Text> : null}
-          {e.應 ? <Text style={[styles.syTag, { color: colors.ying }]}>應</Text> : null}
+          <YaoGlyph
+            yin={(ben?.陰陽 ?? e.陰陽) === "陰"}
+            moving={e.動爻}
+            width={compact ? 54 : 62}
+            compact
+          />
+          {e.世 ? <Text style={[styles.syTag, { color: colors.shi }]}>世爻</Text> : null}
+          {e.應 ? <Text style={[styles.syTag, { color: colors.ying }]}>應爻</Text> : null}
         </View>
         <Text
           style={[styles.colSix, compact && styles.colSixCompact]}
@@ -210,32 +206,38 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   yaoMoving: { backgroundColor: "#fbeeee" },
-  yaoMain: { flexDirection: "row", alignItems: "center" },
-  colPos: { width: 44, fontSize: 13, color: colors.text },
-  colPosCompact: { width: 38 },
-  colSymbolWrap: { width: 44, alignItems: "center" },
-  colSymbolWrapCompact: { width: 40 },
-  colSymbol: {
-    fontSize: 13,
-    color: colors.text,
-    fontVariant: ["tabular-nums"],
+  yaoHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingBottom: 5,
   },
+  headerText: { color: colors.faint, fontSize: 10.5, fontWeight: "700" },
+  headerSymbol: { width: 72 },
+  headerSymbolCompact: { width: 62 },
+  headerSix: { width: 44 },
+  headerSixCompact: { width: 40 },
+  headerRel: { width: 70 },
+  headerRelCompact: { width: 62 },
+  headerGz: { flex: 1 },
+  yaoMain: { flexDirection: "row", alignItems: "flex-start", minHeight: 38 },
+  colSymbolWrap: { width: 72, alignItems: "flex-start" },
+  colSymbolWrapCompact: { width: 62 },
   syTag: { fontSize: 10, fontWeight: "700", marginTop: 1 },
-  colSix: { width: 40, fontSize: 13, color: colors.text },
-  colSixCompact: { width: 36 },
-  colRelWrap: { width: 64 },
-  colRelWrapCompact: { width: 58 },
+  colSix: { width: 44, fontSize: 13, lineHeight: 28, color: colors.text },
+  colSixCompact: { width: 40 },
+  colRelWrap: { width: 70, paddingTop: 5 },
+  colRelWrapCompact: { width: 62 },
   colRel: { fontSize: 13 },
   fuSub: { fontSize: 10, color: colors.faint, marginTop: 1 },
-  colGz: { flex: 1, fontSize: 13, color: colors.text },
+  colGz: { flex: 1, minWidth: 0, paddingTop: 5, fontSize: 13, color: colors.text },
   yaoDetail: {
-    marginTop: 3,
-    marginLeft: 64,
+    marginTop: 2,
+    marginLeft: 72,
     fontSize: 11.5,
     color: colors.subtle,
     lineHeight: 17,
   },
-  yaoDetailCompact: { marginLeft: 42, fontSize: 11 },
+  yaoDetailCompact: { marginLeft: 62, fontSize: 11 },
   tag: { fontSize: 12, fontWeight: "700" },
   wx: { fontSize: 11, color: colors.subtle },
   kong: { color: colors.primary, fontWeight: "700" },
@@ -249,15 +251,11 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   bianRow: { flexDirection: "row", alignItems: "center", paddingVertical: 4 },
-  bianPos: { width: 52, fontSize: 13, color: colors.subtle },
-  bianPosCompact: { width: 42 },
   bianSymbol: {
-    width: 56,
-    fontSize: 14,
-    color: colors.text,
-    fontVariant: ["tabular-nums"],
+    width: 72,
+    alignItems: "flex-start",
   },
-  bianSymbolCompact: { width: 48 },
+  bianSymbolCompact: { width: 62 },
   bianRel: { width: 64, fontSize: 13 },
   bianRelCompact: { width: 58 },
   bianGz: { flex: 1, fontSize: 13, color: colors.text },

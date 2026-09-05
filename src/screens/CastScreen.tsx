@@ -26,6 +26,7 @@ import { CastYao, ChartResponse } from "../types";
 import { colors, spacing } from "../theme";
 import ChartResult from "../components/ChartResult";
 import FortunePanel from "../components/FortunePanel";
+import YaoGlyph from "../components/YaoGlyph";
 
 const EMPTY: (CastYao | null)[] = [null, null, null, null, null, null];
 
@@ -417,15 +418,18 @@ export default function CastScreen({
                     return (
                       <View key={idx} style={styles.yaoRow}>
                         <Text style={styles.yaoLabel}>{YAO_NAMES[idx]}</Text>
-                        <Text
-                          style={[
-                            styles.yaoSymbol,
-                            y?.動 && { color: colors.moving },
-                            !y && styles.yaoEmpty,
-                          ]}
-                        >
-                          {isNext ? preview || "⋯" : y ? y.symbol : "──────"}
-                        </Text>
+                        <View style={styles.yaoGlyphCell}>
+                          {isNext ? (
+                            <Text style={styles.yaoPreview}>{preview || "⋯"}</Text>
+                          ) : (
+                            <YaoGlyph
+                              yin={y?.陰陽 === "陰"}
+                              moving={y?.動}
+                              empty={!y}
+                              width={104}
+                            />
+                          )}
+                        </View>
                         <Text style={styles.yaoName}>
                           {isNext ? "擲卦中…" : y ? y.name : "未擲"}
                         </Text>
@@ -639,15 +643,14 @@ const styles = StyleSheet.create({
   pickerDoneText: { color: colors.primary, fontSize: 16, fontWeight: "700" },
   yaoRow: { flexDirection: "row", alignItems: "center", paddingVertical: 6 },
   yaoLabel: { width: 48, color: colors.subtle, fontSize: 14 },
-  yaoSymbol: {
-    flex: 1,
-    fontSize: 22,
-    letterSpacing: 2,
-    color: colors.text,
-    fontVariant: ["tabular-nums"],
+  yaoGlyphCell: { flex: 1, minWidth: 0, alignItems: "flex-start" },
+  yaoPreview: {
+    width: 104,
+    textAlign: "center",
+    fontSize: 20,
+    color: colors.moving,
   },
-  yaoEmpty: { color: colors.border },
-  yaoName: { width: 84, textAlign: "right", color: colors.subtle, fontSize: 13 },
+  yaoName: { width: 76, textAlign: "right", color: colors.subtle, fontSize: 13 },
   btn: {
     backgroundColor: colors.primary,
     borderRadius: 10,

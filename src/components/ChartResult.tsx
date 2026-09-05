@@ -89,10 +89,6 @@ export default function ChartResult({ chart, compact = false }: Props) {
             </View>
           </ScrollView>
         </View>
-        <Text style={styles.legend}>
-          左側只顯示變出之爻 · 世/應在本卦爻象下 · <Text style={{ color: colors.moving }}>紅=動爻</Text> ·
-          空=旬空 · 六親下小字=伏神
-        </Text>
       </View>
     </View>
   );
@@ -220,13 +216,4 @@ const styles = StyleSheet.create({
   syTag: { fontSize: 9, fontWeight: "700", marginTop: 1 },
   colRel: { fontSize: 12, textAlign: "center" },
   fuSub: { fontSize: 9, color: colors.faint, marginTop: 1, textAlign: "center" },
-  legend: {
-    marginTop: spacing.sm,
-    paddingTop: spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    fontSize: 11,
-    color: colors.subtle,
-    lineHeight: 16,
-  },
 });

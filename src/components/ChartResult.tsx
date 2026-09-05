@@ -198,12 +198,14 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   yaoBlock: {
+    width: "100%",
     borderTopWidth: 1,
     borderTopColor: colors.border,
     paddingVertical: 7,
   },
   yaoMoving: { backgroundColor: "#fbeeee" },
   yaoHeader: {
+    width: "100%",
     flexDirection: "row",
     alignItems: "center",
     paddingBottom: 5,
@@ -215,8 +217,8 @@ const styles = StyleSheet.create({
   headerSixCompact: { width: 40 },
   headerRel: { width: 70 },
   headerRelCompact: { width: 62 },
-  headerGz: { flex: 1 },
-  yaoMain: { flexDirection: "row", alignItems: "flex-start", minHeight: 38 },
+  headerGz: { flex: 1, minWidth: 0, textAlign: "right" },
+  yaoMain: { width: "100%", flexDirection: "row", alignItems: "flex-start", minHeight: 38 },
   colSymbolWrap: { width: 72, alignItems: "flex-start" },
   colSymbolWrapCompact: { width: 62 },
   syTag: { fontSize: 10, fontWeight: "700", marginTop: 1 },
@@ -226,7 +228,7 @@ const styles = StyleSheet.create({
   colRelWrapCompact: { width: 62 },
   colRel: { fontSize: 13 },
   fuSub: { fontSize: 10, color: colors.faint, marginTop: 1 },
-  colGz: { flex: 1, minWidth: 0, paddingTop: 5, fontSize: 13, color: colors.text },
+  colGz: { flex: 1, minWidth: 0, paddingTop: 5, fontSize: 13, color: colors.text, textAlign: "right" },
   yaoDetail: {
     marginTop: 2,
     marginLeft: 72,
@@ -247,7 +249,7 @@ const styles = StyleSheet.create({
     color: colors.subtle,
     lineHeight: 16,
   },
-  bianRow: { flexDirection: "row", alignItems: "center", paddingVertical: 4 },
+  bianRow: { width: "100%", flexDirection: "row", alignItems: "center", paddingVertical: 4 },
   bianSymbol: {
     width: 72,
     alignItems: "flex-start",
@@ -255,5 +257,5 @@ const styles = StyleSheet.create({
   bianSymbolCompact: { width: 62 },
   bianRel: { width: 64, fontSize: 13 },
   bianRelCompact: { width: 58 },
-  bianGz: { flex: 1, fontSize: 13, color: colors.text },
+  bianGz: { flex: 1, minWidth: 0, fontSize: 13, color: colors.text, textAlign: "right" },
 });

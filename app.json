@@ -24,7 +24,7 @@
     },
     "android": {
       "package": "com.mingguo.app",
-      "versionCode": 6,
+      "versionCode": 7,
       "adaptiveIcon": {
         "backgroundColor": "#2A284D",
         "foregroundImage": "./assets/android-icon-foreground.png"

@@ -16,7 +16,7 @@
 - 依實機回饋改為網頁版同列排盤：左側變卦只在動爻列顯示爻象、六親、干支，右側本卦顯示爻象、六神、六親、干支；移除下方獨立變卦的六神、卦宮、卦辭等內容。一般手機完整顯示，窄螢幕維持正常字級並預設停在本卦端，可向左滑看變卦。
 - 手機版本卦欄位調整為爻象、干支、六親、六神；六親不再附五行文字，旬空「空」改顯示於干支正下方。
 - 六爻卡片底部的圖例與操作說明整段移除，卡片在最後一爻後直接結束。
-- 2026-09-05 手機卦象欄位細節調整版已提交 TestFlight：iOS build 9，來源 commit `ce57de6`；Apple 處理完成後供內部測試。
+- 2026-09-05 手機卦象欄位細節調整版已完成雙平台測試發布：iOS build 9 已提交 TestFlight，Android versionCode 7 已提交 Google Play internal；App 內容來源 commit `ce57de6`。
 - 2026-09-05 此同列排盤版本的雙平台測試發布完成：iOS build 8 已在 TestFlight 內部測試，Android versionCode 6 已送達 Google Play internal；來源 commit `c709684`。
 - 變卦同步移除爻序欄並共用固定幾何爻象，維持本卦與變卦的視覺規則一致。
 - `tsc --noEmit`、Expo Doctor 18/18 與 Expo web export 通過。

@@ -79,9 +79,9 @@ export default function ChartResult({ chart, compact = false }: Props) {
                 <Text style={[styles.headerText, styles.tableCell]}>六親</Text>
                 <Text style={[styles.headerText, styles.tableCell]}>干支</Text>
                 <Text style={[styles.headerText, styles.tableCell, styles.groupDivider]}>爻象</Text>
-                <Text style={[styles.headerText, styles.tableCell]}>六神</Text>
-                <Text style={[styles.headerText, styles.tableCell]}>六親</Text>
                 <Text style={[styles.headerText, styles.tableCell]}>干支</Text>
+                <Text style={[styles.headerText, styles.tableCell]}>六親</Text>
+                <Text style={[styles.headerText, styles.tableCell]}>六神</Text>
               </View>
               {rows.map((e) => (
                 <YaoRow key={e.index} e={e} ben={benByIndex.get(e.index)} compact={compact} />
@@ -128,24 +128,20 @@ function YaoRow({ e, ben, compact }: { e: LiuYaoEntry; ben?: Yao; compact: boole
           {e.世 ? <Text style={[styles.syTag, { color: colors.shi }]}>世爻</Text> : null}
           {e.應 ? <Text style={[styles.syTag, { color: colors.ying }]}>應爻</Text> : null}
         </View>
-        <Text
-          style={styles.tableTextCell}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.78}
-        >
-          {e.六神}
-        </Text>
+        <View style={styles.tableStackCell}>
+          <Text style={styles.tableCellMain} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.68}>
+            {e.干支}
+          </Text>
+          {e.空亡 ? <Text style={styles.kongSub}>空</Text> : null}
+        </View>
         <View style={styles.tableRelCell}>
           <Text style={[styles.colRel, { color: relColor }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78}>
             {e.六親}
-            <Text style={styles.wx}> {e.五行}</Text>
           </Text>
           {fu ? <Text style={styles.fuSub}>{fu.六親}{fu.地支}</Text> : null}
         </View>
         <Text style={styles.tableTextCell} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.68}>
-          {e.干支}
-          {e.空亡 ? <Text style={styles.kong}> 空</Text> : null}
+          {e.六神}
         </Text>
       </View>
     </View>
@@ -217,13 +213,13 @@ const styles = StyleSheet.create({
     color: colors.text,
     textAlign: "center",
   },
+  tableStackCell: { width: "14.285714%", minWidth: 0, paddingTop: 5, alignItems: "center" },
+  tableCellMain: { width: "100%", paddingHorizontal: 1, fontSize: 12, color: colors.text, textAlign: "center" },
+  kongSub: { marginTop: 1, fontSize: 9, color: colors.primary, fontWeight: "700" },
   tableRelCell: { width: "14.285714%", minWidth: 0, paddingTop: 5, alignItems: "center" },
   syTag: { fontSize: 9, fontWeight: "700", marginTop: 1 },
   colRel: { fontSize: 12, textAlign: "center" },
   fuSub: { fontSize: 9, color: colors.faint, marginTop: 1, textAlign: "center" },
-  tag: { fontSize: 12, fontWeight: "700" },
-  wx: { fontSize: 11, color: colors.subtle },
-  kong: { color: colors.primary, fontWeight: "700" },
   legend: {
     marginTop: spacing.sm,
     paddingTop: spacing.sm,

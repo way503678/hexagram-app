@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { ChartResponse, LiuYaoEntry, Yao } from "../types";
 import { colors, spacing, wuxingColor } from "../theme";
 import YaoGlyph from "./YaoGlyph";
@@ -19,6 +19,8 @@ function topDown<T extends { index?: number; 爻序index?: number }>(arr: T[]): 
 }
 
 export default function ChartResult({ chart, compact = false }: Props) {
+  const tableScrollRef = React.useRef<ScrollView>(null);
+  const [tableViewportWidth, setTableViewportWidth] = React.useState(0);
   const inner = chart.卦象;
   const ben = inner.本卦;
   const bian = inner.變卦;
@@ -59,55 +61,37 @@ export default function ChartResult({ chart, compact = false }: Props) {
 
       {/* 六爻 */}
       <View style={[styles.card, compact && styles.cardCompact]}>
-        <Text style={styles.tableTitle}>六爻(本卦)</Text>
-        <View style={styles.yaoHeader}>
-          <Text style={[styles.headerText, styles.equalCell]}>爻象</Text>
-          <Text style={[styles.headerText, styles.equalCell]}>六神</Text>
-          <Text style={[styles.headerText, styles.equalCell]}>六親</Text>
-          <Text style={[styles.headerText, styles.equalCell]}>干支</Text>
-        </View>
-        {rows.map((e) => (
-          <YaoRow key={e.index} e={e} ben={benByIndex.get(e.index)} compact={compact} />
-        ))}
-
-        {/* 變卦沿用本卦四等分欄位，合併於同一卡片方便上下對照。 */}
-        {bian && (
-          <View style={styles.bianSection}>
-            <Text style={styles.tableTitle}>變卦 · {bian.卦名}</Text>
-            <Text style={styles.guaSub}>
-              {bian.卦宮}宮 · {bian.卦變} · 世爻五行 {bian.世爻五行}
-            </Text>
-            <Text style={[styles.guaCi, { marginBottom: spacing.sm }]}>{bian.卦辭}</Text>
-            <View style={styles.yaoHeader}>
-              <Text style={[styles.headerText, styles.equalCell]}>爻象</Text>
-              <Text style={[styles.headerText, styles.equalCell]}>六神</Text>
-              <Text style={[styles.headerText, styles.equalCell]}>六親</Text>
-              <Text style={[styles.headerText, styles.equalCell]}>干支</Text>
+        <Text style={styles.tableTitle}>六爻</Text>
+        <View style={styles.tableViewport} onLayout={(event) => setTableViewportWidth(event.nativeEvent.layout.width)}>
+          <ScrollView
+            ref={tableScrollRef}
+            horizontal
+            showsHorizontalScrollIndicator={compact}
+            onContentSizeChange={() => tableScrollRef.current?.scrollToEnd({ animated: false })}
+          >
+            <View style={[styles.tableGrid, { width: Math.max(tableViewportWidth, 346) }]}>
+              <View style={styles.groupHeader}>
+                <Text style={[styles.groupTitle, styles.bianGroup]}>變卦</Text>
+                <Text style={[styles.groupTitle, styles.benGroup]}>本卦</Text>
+              </View>
+              <View style={styles.yaoHeader}>
+                <Text style={[styles.headerText, styles.tableCell]}>爻象</Text>
+                <Text style={[styles.headerText, styles.tableCell]}>六親</Text>
+                <Text style={[styles.headerText, styles.tableCell]}>干支</Text>
+                <Text style={[styles.headerText, styles.tableCell, styles.groupDivider]}>爻象</Text>
+                <Text style={[styles.headerText, styles.tableCell]}>六神</Text>
+                <Text style={[styles.headerText, styles.tableCell]}>六親</Text>
+                <Text style={[styles.headerText, styles.tableCell]}>干支</Text>
+              </View>
+              {rows.map((e) => (
+                <YaoRow key={e.index} e={e} ben={benByIndex.get(e.index)} compact={compact} />
+              ))}
             </View>
-            {topDown(bian.爻).map((y) => {
-              const relColor = wuxingColor[y.五行] || colors.text;
-              return (
-                <View key={y.爻序index} style={styles.bianRow}>
-                  <View style={styles.bianSymbol}>
-                    <YaoGlyph yin={y.陰陽 === "陰"} width={compact ? 48 : 56} compact />
-                  </View>
-                  <Text style={styles.bianSix} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78}>
-                    {y.六神}
-                  </Text>
-                  <Text style={[styles.bianRel, { color: relColor }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78}>
-                    {y.六親}<Text style={styles.wx}> {y.五行}</Text>
-                  </Text>
-                  <Text style={styles.bianGz} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78}>
-                    {y.干支}
-                  </Text>
-                </View>
-              );
-            })}
-          </View>
-        )}
+          </ScrollView>
+        </View>
         <Text style={styles.legend}>
-          世/應在爻象下 · <Text style={{ color: colors.moving }}>紅=動爻</Text> · 空=旬空 ·
-          動→變出之爻 · 六親下小字=伏神
+          左側只顯示變出之爻 · 世/應在本卦爻象下 · <Text style={{ color: colors.moving }}>紅=動爻</Text> ·
+          空=旬空 · 六親下小字=伏神
         </Text>
       </View>
     </View>
@@ -118,47 +102,52 @@ function YaoRow({ e, ben, compact }: { e: LiuYaoEntry; ben?: Yao; compact: boole
   const relColor = wuxingColor[e.五行] || colors.text;
   const out = e.動爻出去;
   const fu = e.伏神 && e.伏神.length ? e.伏神[0] : null;
-  const details: string[] = [];
-  if (e.動爻 && out) details.push(`動→${out.六親}${out.地支}${out.生剋 ? `(${out.生剋})` : ""}`);
+  const baseYin = (ben?.陰陽 ?? e.陰陽) === "陰";
+  const showChanged = e.動爻 && !!out;
+  const outColor = out ? wuxingColor[out.五行] || colors.text : colors.text;
 
   return (
     <View style={[styles.yaoBlock, e.動爻 && styles.yaoMoving]}>
       <View style={styles.yaoMain}>
-        <View style={styles.colSymbolWrap}>
+        <View style={styles.tableSymbolCell}>
+          {showChanged ? <YaoGlyph yin={!baseYin} width={compact ? 32 : 40} compact /> : null}
+        </View>
+        <Text style={[styles.tableTextCell, { color: outColor }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.68}>
+          {showChanged ? out?.六親 : ""}
+        </Text>
+        <Text style={styles.tableTextCell} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.68}>
+          {showChanged ? out?.干支 : ""}
+        </Text>
+        <View style={[styles.tableSymbolCell, styles.groupDivider]}>
           <YaoGlyph
-            yin={(ben?.陰陽 ?? e.陰陽) === "陰"}
+            yin={baseYin}
             moving={e.動爻}
-            width={compact ? 54 : 62}
+            width={compact ? 32 : 40}
             compact
           />
           {e.世 ? <Text style={[styles.syTag, { color: colors.shi }]}>世爻</Text> : null}
           {e.應 ? <Text style={[styles.syTag, { color: colors.ying }]}>應爻</Text> : null}
         </View>
         <Text
-          style={styles.colSix}
+          style={styles.tableTextCell}
           numberOfLines={1}
           adjustsFontSizeToFit
           minimumFontScale={0.78}
         >
           {e.六神}
         </Text>
-        <View style={styles.colRelWrap}>
+        <View style={styles.tableRelCell}>
           <Text style={[styles.colRel, { color: relColor }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78}>
             {e.六親}
             <Text style={styles.wx}> {e.五行}</Text>
           </Text>
           {fu ? <Text style={styles.fuSub}>{fu.六親}{fu.地支}</Text> : null}
         </View>
-        <Text style={styles.colGz} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>
+        <Text style={styles.tableTextCell} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.68}>
           {e.干支}
           {e.空亡 ? <Text style={styles.kong}> 空</Text> : null}
         </Text>
       </View>
-      {details.length > 0 && (
-        <Text style={[styles.yaoDetail, compact && styles.yaoDetailCompact]}>
-          {details.join("　·　")}
-        </Text>
-      )}
     </View>
   );
 }
@@ -202,30 +191,36 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   yaoMoving: { backgroundColor: "#fbeeee" },
+  tableViewport: { width: "100%", overflow: "hidden" },
+  tableGrid: { minWidth: 346 },
+  groupHeader: { width: "100%", flexDirection: "row", alignItems: "center", marginBottom: 3 },
+  groupTitle: { color: colors.subtle, fontSize: 11, fontWeight: "700", textAlign: "center" },
+  bianGroup: { width: "42.857142%" },
+  benGroup: { width: "57.142858%", borderLeftWidth: 1, borderLeftColor: colors.border },
   yaoHeader: {
     width: "100%",
     flexDirection: "row",
     alignItems: "center",
     paddingBottom: 5,
   },
-  headerText: { color: colors.faint, fontSize: 10.5, fontWeight: "700" },
-  equalCell: { width: "25%", minWidth: 0 },
+  headerText: { color: colors.faint, fontSize: 9.5, fontWeight: "700", textAlign: "center" },
+  tableCell: { width: "14.285714%", minWidth: 0 },
+  groupDivider: { borderLeftWidth: 1, borderLeftColor: colors.border },
   yaoMain: { width: "100%", flexDirection: "row", alignItems: "flex-start", minHeight: 38 },
-  colSymbolWrap: { width: "25%", minWidth: 0, alignItems: "flex-start" },
-  syTag: { fontSize: 10, fontWeight: "700", marginTop: 1 },
-  colSix: { width: "25%", minWidth: 0, fontSize: 13, lineHeight: 28, color: colors.text },
-  colRelWrap: { width: "25%", minWidth: 0, paddingTop: 5 },
-  colRel: { fontSize: 13 },
-  fuSub: { fontSize: 10, color: colors.faint, marginTop: 1 },
-  colGz: { width: "25%", minWidth: 0, paddingTop: 5, fontSize: 13, color: colors.text },
-  yaoDetail: {
-    marginTop: 2,
-    marginLeft: "25%",
-    fontSize: 11.5,
-    color: colors.subtle,
-    lineHeight: 17,
+  tableSymbolCell: { width: "14.285714%", minWidth: 0, alignItems: "center" },
+  tableTextCell: {
+    width: "14.285714%",
+    minWidth: 0,
+    paddingTop: 5,
+    paddingHorizontal: 1,
+    fontSize: 12,
+    color: colors.text,
+    textAlign: "center",
   },
-  yaoDetailCompact: { fontSize: 11 },
+  tableRelCell: { width: "14.285714%", minWidth: 0, paddingTop: 5, alignItems: "center" },
+  syTag: { fontSize: 9, fontWeight: "700", marginTop: 1 },
+  colRel: { fontSize: 12, textAlign: "center" },
+  fuSub: { fontSize: 9, color: colors.faint, marginTop: 1, textAlign: "center" },
   tag: { fontSize: 12, fontWeight: "700" },
   wx: { fontSize: 11, color: colors.subtle },
   kong: { color: colors.primary, fontWeight: "700" },
@@ -238,26 +233,4 @@ const styles = StyleSheet.create({
     color: colors.subtle,
     lineHeight: 16,
   },
-  bianSection: {
-    marginTop: spacing.md,
-    paddingTop: spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  bianRow: {
-    width: "100%",
-    flexDirection: "row",
-    alignItems: "center",
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    paddingVertical: 7,
-  },
-  bianSymbol: {
-    width: "25%",
-    minWidth: 0,
-    alignItems: "flex-start",
-  },
-  bianSix: { width: "25%", minWidth: 0, fontSize: 13, color: colors.text },
-  bianRel: { width: "25%", minWidth: 0, fontSize: 13 },
-  bianGz: { width: "25%", minWidth: 0, fontSize: 13, color: colors.text },
 });

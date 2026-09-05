@@ -118,11 +118,9 @@ export default function ChartResult({ chart, compact = false }: Props) {
 
 function YaoRow({ e, ben, compact }: { e: LiuYaoEntry; ben?: Yao; compact: boolean }) {
   const relColor = wuxingColor[e.五行] || colors.text;
-  const state = [e.當值, e.生剋].filter(Boolean).join(" / ");
   const out = e.動爻出去;
   const fu = e.伏神 && e.伏神.length ? e.伏神[0] : null;
   const details: string[] = [];
-  if (state) details.push(`旺衰 ${state}`);
   if (e.動爻 && out) details.push(`動→${out.六親}${out.地支}${out.生剋 ? `(${out.生剋})` : ""}`);
 
   return (
@@ -156,7 +154,6 @@ function YaoRow({ e, ben, compact }: { e: LiuYaoEntry; ben?: Yao; compact: boole
         <Text style={styles.colGz} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>
           {e.干支}
           {e.空亡 ? <Text style={styles.kong}> 空</Text> : null}
-          {e.動爻 ? <Text style={{ color: colors.moving }}> 動</Text> : null}
         </Text>
       </View>
       {details.length > 0 && (

@@ -20,10 +20,12 @@ import { AlmanacDay } from "../types";
 import { useAuth } from "../AuthContext";
 
 const HERO = require("../../assets/mingo/mountain_v3.png");
+const BRAND_MARK = require("../../assets/mingo/mingo-mark.png");
 
 export default function HomeScreen() {
-  const { width, fontScale } = useWindowDimensions();
+  const { width, height, fontScale } = useWindowDimensions();
   const compact = width < 390 || fontScale > 1.1;
+  const heroMinHeight = Math.max(compact ? 360 : 400, Math.round(height * 0.58));
   const nav = useNavigation<any>();
   const { user } = useAuth();
   const name = (user?.display_name || user?.email || "").split("@")[0] || "朋友";
@@ -63,6 +65,7 @@ export default function HomeScreen() {
       <SafeAreaView style={styles.safe} edges={["top"]}>
         {/* 品牌固定；問候放進下方滑動內容 */}
         <View style={[styles.titleWrap, compact && styles.titleWrapCompact]}>
+          <Image source={BRAND_MARK} resizeMode="contain" style={styles.brandMark} />
           <Text style={styles.logo}>命果</Text>
         </View>
 
@@ -73,17 +76,23 @@ export default function HomeScreen() {
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={loading} onRefresh={load} />}
         >
-          <View style={[styles.heroCopy, compact && styles.heroCopyCompact]}>
+          <View
+            style={[
+              styles.heroCopy,
+              compact && styles.heroCopyCompact,
+              { minHeight: heroMinHeight },
+            ]}
+          >
             <Text
               style={[styles.h1, compact && styles.h1Compact]}
               numberOfLines={1}
               adjustsFontSizeToFit
               minimumFontScale={0.72}
             >
-              你好,{name} ✨
+              你好，{name} ☀️
             </Text>
             <Text style={styles.heroBody}>
-              無論你現在在哪個階段,命運都在變化,一切都會更好。
+              命運在變化，{"\n"}而你，永遠有選擇。
             </Text>
           </View>
 
@@ -144,25 +153,30 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(255,249,244,0.18)",
   },
-  titleWrap: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg },
+  titleWrap: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+  },
   titleWrapCompact: { paddingHorizontal: spacing.md, paddingTop: spacing.md },
-  logo: { fontSize: 24, color: colors.primaryDark, fontWeight: "800", letterSpacing: 3 },
+  brandMark: { width: 28, height: 28 },
+  logo: { fontSize: 20, color: colors.primaryDark, fontWeight: "800", letterSpacing: 4 },
   heroCopy: {
-    paddingHorizontal: 22,
-    paddingTop: spacing.md,
+    paddingTop: 44,
     paddingBottom: spacing.lg,
   },
   heroCopyCompact: {
-    paddingHorizontal: 18,
-    paddingTop: spacing.sm,
+    paddingTop: 40,
     paddingBottom: spacing.md,
   },
   cardScroller: { flex: 1 },
   cards: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xl },
   cardsCompact: { paddingHorizontal: spacing.md },
-  h1: { fontSize: 26, fontWeight: "800", color: colors.primaryDark, marginBottom: 8, letterSpacing: 1 },
-  h1Compact: { fontSize: 23 },
-  heroBody: { fontSize: 15, lineHeight: 24, color: colors.text, maxWidth: "92%" },
+  h1: { fontSize: 24, fontWeight: "800", color: colors.primaryDark, marginBottom: 12, letterSpacing: 0.5 },
+  h1Compact: { fontSize: 22 },
+  heroBody: { fontSize: 16, lineHeight: 26, color: colors.text, fontWeight: "600" },
   guideCard: {
     borderRadius: radius.card,
     padding: 20,

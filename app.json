@@ -20,11 +20,11 @@
         },
         "ITSAppUsesNonExemptEncryption": false
       },
-      "buildNumber": "11"
+      "buildNumber": "12"
     },
     "android": {
       "package": "com.mingguo.app",
-      "versionCode": 9,
+      "versionCode": 10,
       "adaptiveIcon": {
         "backgroundColor": "#2A284D",
         "foregroundImage": "./assets/android-icon-foreground.png"

@@ -61,11 +61,18 @@ export default function HomeScreen() {
       <Image source={HERO} resizeMode="cover" style={styles.backgroundImage} />
       <View style={styles.pageShade} pointerEvents="none" />
       <SafeAreaView style={styles.safe} edges={["top"]}>
-        {/* 固定於背景上方的品牌與問候 */}
-        <View style={[styles.fixedTop, compact && styles.fixedTopCompact]}>
-          <View style={styles.logoRow}>
-            <Text style={styles.logo}>命果</Text>
-          </View>
+        {/* 品牌固定；問候放進下方滑動內容 */}
+        <View style={[styles.titleWrap, compact && styles.titleWrapCompact]}>
+          <Text style={styles.logo}>命果</Text>
+        </View>
+
+        {/* 背景與品牌固定，問候和前景卡片一起滑動 */}
+        <ScrollView
+          style={styles.cardScroller}
+          contentContainerStyle={[styles.cards, compact && styles.cardsCompact]}
+          showsVerticalScrollIndicator={false}
+          refreshControl={<RefreshControl refreshing={loading} onRefresh={load} />}
+        >
           <View style={[styles.heroCopy, compact && styles.heroCopyCompact]}>
             <Text
               style={[styles.h1, compact && styles.h1Compact]}
@@ -79,15 +86,7 @@ export default function HomeScreen() {
               無論你現在在哪個階段,命運都在變化,一切都會更好。
             </Text>
           </View>
-        </View>
 
-        {/* 背景與上方文字固定，只有前景卡片區可以滑動 */}
-        <ScrollView
-          style={styles.cardScroller}
-          contentContainerStyle={[styles.cards, compact && styles.cardsCompact]}
-          showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={loading} onRefresh={load} />}
-        >
           <LinearGradient
             colors={gradients.frosted}
             start={{ x: 0, y: 0 }}
@@ -145,20 +144,18 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(255,249,244,0.18)",
   },
-  fixedTop: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg },
-  fixedTopCompact: { paddingHorizontal: spacing.md, paddingTop: spacing.md },
-  logoRow: { flexDirection: "row", alignItems: "baseline", marginBottom: spacing.md },
+  titleWrap: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg },
+  titleWrapCompact: { paddingHorizontal: spacing.md, paddingTop: spacing.md },
   logo: { fontSize: 24, color: colors.primaryDark, fontWeight: "800", letterSpacing: 3 },
   heroCopy: {
-    minHeight: 280,
     paddingHorizontal: 22,
-    paddingVertical: 22,
-    justifyContent: "flex-end",
+    paddingTop: spacing.md,
+    paddingBottom: spacing.lg,
   },
   heroCopyCompact: {
-    minHeight: 250,
     paddingHorizontal: 18,
-    paddingVertical: 18,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.md,
   },
   cardScroller: { flex: 1 },
   cards: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xl },

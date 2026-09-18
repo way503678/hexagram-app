@@ -18,7 +18,7 @@ import LoginScreen from "./src/screens/LoginScreen";
 import MemberScreen from "./src/screens/MemberScreen";
 import WelcomeScreen from "./src/screens/WelcomeScreen";
 import { AuthProvider, useAuth } from "./src/AuthContext";
-import { colors, shadowSoft } from "./src/theme";
+import { colors } from "./src/theme";
 import MingoIcon, { MingoIconName } from "./src/components/MingoIcon";
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
@@ -69,15 +69,11 @@ function MainTabs() {
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.navIdle,
         tabBarStyle: {
-          marginHorizontal: 16,
-          marginBottom: 8,
-          height: 70,
-          borderRadius: 28,
-          backgroundColor: colors.card,
+          height: 78,
+          backgroundColor: colors.bg,
           borderTopWidth: 0,
           paddingTop: 8,
           paddingBottom: 10,
-          ...shadowSoft,
         },
         tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },
         headerStyle: { backgroundColor: colors.bg },

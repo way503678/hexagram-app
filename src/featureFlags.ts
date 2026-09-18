@@ -3,6 +3,7 @@
  */
 export const featureFlags = {
   dailyGuide: false,
-  almanac: false,
+  almanac: true,
+  homeAlmanac: false,
   fortuneDetails: false,
 } as const;

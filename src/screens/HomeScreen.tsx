@@ -2,7 +2,6 @@ import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   Image,
-  Platform,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -23,11 +22,12 @@ import { featureFlags } from "../featureFlags";
 
 const HERO = require("../../assets/mingo/mountain_v3.png");
 const BRAND_MARK = require("../../assets/mingo/mingo-mark.png");
+const BRAND_LOCKUP = require("../../assets/mingo/mingo-logo.png");
 
 export default function HomeScreen() {
   const { width, height, fontScale } = useWindowDimensions();
   const compact = width < 390 || fontScale > 1.1;
-  const heroMinHeight = Math.max(compact ? 360 : 400, Math.round(height * 0.58));
+  const heroMinHeight = Math.max(compact ? 480 : 520, Math.round(height * 0.72));
   const nav = useNavigation<any>();
   const { user } = useAuth();
   const name = (user?.display_name || user?.email || "").split("@")[0] || "朋友";
@@ -42,7 +42,7 @@ export default function HomeScreen() {
     if (featureFlags.dailyGuide) {
       requests.push(fetchDaily().then(setDaily));
     }
-    if (featureFlags.almanac) {
+    if (featureFlags.homeAlmanac) {
       requests.push(
         fetchAlmanacDay(now.getFullYear(), now.getMonth() + 1, now.getDate()).then(setDay)
       );
@@ -72,7 +72,13 @@ export default function HomeScreen() {
         {/* 品牌固定；問候放進下方滑動內容 */}
         <View style={[styles.titleWrap, compact && styles.titleWrapCompact]}>
           <Image source={BRAND_MARK} resizeMode="contain" style={styles.brandMark} />
-          <Text style={styles.logo}>命果</Text>
+          <View
+            style={styles.brandWordmark}
+            accessibilityRole="image"
+            accessibilityLabel="命果"
+          >
+            <Image source={BRAND_LOCKUP} resizeMode="contain" style={styles.brandLockupSource} />
+          </View>
         </View>
 
         {/* 背景與品牌固定，問候和前景卡片一起滑動 */}
@@ -132,7 +138,7 @@ export default function HomeScreen() {
             </LinearGradient>
           ) : null}
 
-          {featureFlags.almanac && day ? (
+          {featureFlags.homeAlmanac && day ? (
             <View style={{ marginTop: spacing.md }}>
               <AlmanacCard day={day} compact={compact} />
             </View>
@@ -170,12 +176,17 @@ const styles = StyleSheet.create({
   },
   titleWrapCompact: { paddingHorizontal: spacing.md, paddingTop: spacing.md },
   brandMark: { width: 28, height: 28 },
-  logo: {
-    fontSize: 20,
-    color: colors.primaryDark,
-    fontFamily: Platform.OS === "ios" ? "Songti TC" : "serif",
-    fontWeight: "700",
-    letterSpacing: 4,
+  brandWordmark: {
+    width: 54,
+    height: 22,
+    overflow: "hidden",
+  },
+  brandLockupSource: {
+    position: "absolute",
+    width: 59,
+    height: 80,
+    left: -2,
+    top: -57,
   },
   heroCopy: {
     paddingTop: 44,

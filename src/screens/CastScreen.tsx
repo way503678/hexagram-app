@@ -27,6 +27,7 @@ import { colors, spacing } from "../theme";
 import ChartResult from "../components/ChartResult";
 import FortunePanel from "../components/FortunePanel";
 import YaoGlyph from "../components/YaoGlyph";
+import { featureFlags } from "../featureFlags";
 
 const EMPTY: (CastYao | null)[] = [null, null, null, null, null, null];
 
@@ -462,12 +463,19 @@ export default function CastScreen({
             </View>
           )}
 
-          {/* 命盤排卦:卦象後接流年面板 */}
+          {/* 詳細流年／流月暫留程式，後續大版本再開放。 */}
           {isTime && chart && chartInput && (
-            <FortunePanel
-              birth={{ y: chartInput.y, m: chartInput.m, d: chartInput.d, h: chartInput.h }}
-              gender={gender}
-            />
+            featureFlags.fortuneDetails ? (
+              <FortunePanel
+                birth={{ y: chartInput.y, m: chartInput.m, d: chartInput.d, h: chartInput.h }}
+                gender={gender}
+              />
+            ) : (
+              <View style={[styles.card, styles.comingSoonCard]}>
+                <Text style={styles.comingSoonTitle}>流年運勢</Text>
+                <Text style={styles.comingSoonLabel}>Coming Soon</Text>
+              </View>
+            )
           )}
 
           {!isTime && chartInput && (
@@ -591,6 +599,9 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   label: { fontWeight: "700", color: colors.text, marginBottom: spacing.sm },
+  comingSoonCard: { marginTop: spacing.lg, alignItems: "center", paddingVertical: spacing.xl },
+  comingSoonTitle: { color: colors.text, fontSize: 20, fontWeight: "800", letterSpacing: 2 },
+  comingSoonLabel: { color: colors.faint, fontSize: 13, fontWeight: "600", letterSpacing: 2, marginTop: spacing.sm },
   input: {
     minHeight: 64,
     borderWidth: 1,

@@ -7,6 +7,7 @@ import { colors, radius, spacing } from "../theme";
 import { SectionCard } from "../components/ui";
 import { TouchableOpacity } from "react-native";
 import MingoIcon, { MingoIconName } from "../components/MingoIcon";
+import { featureFlags } from "../featureFlags";
 
 function MenuCard({
   icon,
@@ -42,13 +43,15 @@ export default function FeaturesScreen() {
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <ScrollView contentContainerStyle={[styles.scroll, compact && styles.scrollCompact]}>
         <Text style={styles.h1}>探索</Text>
-        <MenuCard
-          icon="guide"
-          title="今日黃曆"
-          sub="宜忌・吉時・五行,看今天的能量"
-          compact={compact}
-          onPress={() => nav.navigate("Almanac")}
-        />
+        {featureFlags.almanac ? (
+          <MenuCard
+            icon="guide"
+            title="今日黃曆"
+            sub="宜忌・吉時・五行,看今天的能量"
+            compact={compact}
+            onPress={() => nav.navigate("Almanac")}
+          />
+        ) : null}
         <MenuCard
           icon="divination"
           title="卜卦問事"
@@ -56,7 +59,7 @@ export default function FeaturesScreen() {
           compact={compact}
           onPress={() => nav.navigate("Cast", { mode: "coin" })}
         />
-        <Text style={styles.soon}>更多功能(流年・命盤・AI)即將登場 ✦</Text>
+        <Text style={styles.soon}>更多功能即將登場 ✦</Text>
       </ScrollView>
     </SafeAreaView>
   );

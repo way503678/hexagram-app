@@ -2,6 +2,7 @@ import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   Image,
+  Platform,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -18,6 +19,7 @@ import AlmanacCard from "../components/AlmanacCard";
 import { fetchDaily, fetchAlmanacDay, DailyGuide } from "../api";
 import { AlmanacDay } from "../types";
 import { useAuth } from "../AuthContext";
+import { featureFlags } from "../featureFlags";
 
 const HERO = require("../../assets/mingo/mountain_v3.png");
 const BRAND_MARK = require("../../assets/mingo/mingo-mark.png");
@@ -36,12 +38,16 @@ export default function HomeScreen() {
   const load = useCallback(async () => {
     setLoading(true);
     const now = new Date();
-    const [dRes, aRes] = await Promise.allSettled([
-      fetchDaily(),
-      fetchAlmanacDay(now.getFullYear(), now.getMonth() + 1, now.getDate()),
-    ]);
-    if (dRes.status === "fulfilled") setDaily(dRes.value);
-    if (aRes.status === "fulfilled") setDay(aRes.value);
+    const requests: Promise<void>[] = [];
+    if (featureFlags.dailyGuide) {
+      requests.push(fetchDaily().then(setDaily));
+    }
+    if (featureFlags.almanac) {
+      requests.push(
+        fetchAlmanacDay(now.getFullYear(), now.getMonth() + 1, now.getDate()).then(setDay)
+      );
+    }
+    await Promise.allSettled(requests);
     setLoading(false);
   }, []);
 
@@ -96,35 +102,37 @@ export default function HomeScreen() {
             </Text>
           </View>
 
-          <LinearGradient
-            colors={gradients.frosted}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={[styles.guideCard, compact && styles.guideCardCompact]}
-          >
-            <Text style={styles.tag}>今日指引</Text>
-            {loading && !daily ? (
-              <ActivityIndicator color={colors.primary} style={{ marginVertical: spacing.md }} />
-            ) : needBirthday ? (
-              <>
-                <Text style={styles.guideText}>
-                  設定你的生日,就能解鎖每天為你量身的方向。
-                </Text>
-                <PrimaryButton
-                  title="去設定生日"
-                  onPress={() => nav.navigate("Member")}
-                  style={{ marginTop: spacing.md, alignSelf: "flex-start" }}
-                />
-              </>
-            ) : (
-              <>
-                <Text style={styles.guideText}>{guideLine}</Text>
-                {guideSub ? <Text style={styles.guideSub}>{guideSub}</Text> : null}
-              </>
-            )}
-          </LinearGradient>
+          {featureFlags.dailyGuide ? (
+            <LinearGradient
+              colors={gradients.frosted}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={[styles.guideCard, compact && styles.guideCardCompact]}
+            >
+              <Text style={styles.tag}>今日指引</Text>
+              {loading && !daily ? (
+                <ActivityIndicator color={colors.primary} style={{ marginVertical: spacing.md }} />
+              ) : needBirthday ? (
+                <>
+                  <Text style={styles.guideText}>
+                    設定你的生日,就能解鎖每天為你量身的方向。
+                  </Text>
+                  <PrimaryButton
+                    title="去設定生日"
+                    onPress={() => nav.navigate("Member")}
+                    style={{ marginTop: spacing.md, alignSelf: "flex-start" }}
+                  />
+                </>
+              ) : (
+                <>
+                  <Text style={styles.guideText}>{guideLine}</Text>
+                  {guideSub ? <Text style={styles.guideSub}>{guideSub}</Text> : null}
+                </>
+              )}
+            </LinearGradient>
+          ) : null}
 
-          {day ? (
+          {featureFlags.almanac && day ? (
             <View style={{ marginTop: spacing.md }}>
               <AlmanacCard day={day} compact={compact} />
             </View>
@@ -162,7 +170,13 @@ const styles = StyleSheet.create({
   },
   titleWrapCompact: { paddingHorizontal: spacing.md, paddingTop: spacing.md },
   brandMark: { width: 28, height: 28 },
-  logo: { fontSize: 20, color: colors.primaryDark, fontWeight: "800", letterSpacing: 4 },
+  logo: {
+    fontSize: 20,
+    color: colors.primaryDark,
+    fontFamily: Platform.OS === "ios" ? "Songti TC" : "serif",
+    fontWeight: "700",
+    letterSpacing: 4,
+  },
   heroCopy: {
     paddingTop: 44,
     paddingBottom: spacing.lg,

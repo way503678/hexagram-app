@@ -1,11 +1,10 @@
 import React, { useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { LinearGradient } from "expo-linear-gradient";
 import {
   useFonts,
   CormorantGaramond_500Medium,
@@ -19,7 +18,7 @@ import LoginScreen from "./src/screens/LoginScreen";
 import MemberScreen from "./src/screens/MemberScreen";
 import WelcomeScreen from "./src/screens/WelcomeScreen";
 import { AuthProvider, useAuth } from "./src/AuthContext";
-import { colors, gradients, shadowSoft } from "./src/theme";
+import { colors, shadowSoft } from "./src/theme";
 import MingoIcon, { MingoIconName } from "./src/components/MingoIcon";
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
@@ -30,31 +29,6 @@ const FeaturesStack = createNativeStackNavigator<FeaturesStackParamList>();
 function tabIcon(name: MingoIconName) {
   return ({ focused }: { focused: boolean }) => (
     <MingoIcon name={name} size={26} style={{ opacity: focused ? 1 : 0.45 }} />
-  );
-}
-
-/** 中央「首頁」凸起按鈕(Apple Music 風)。 */
-function CenterTabButton({
-  onPress,
-  accessibilityState,
-}: {
-  onPress?: (e: unknown) => void;
-  accessibilityState?: { selected?: boolean };
-}) {
-  const focused = !!accessibilityState?.selected;
-  return (
-    <View style={styles.centerWrap} pointerEvents="box-none">
-      <Pressable onPress={onPress as (e: unknown) => void} style={styles.centerPress}>
-        <LinearGradient
-          colors={gradients.bright}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[styles.centerBtn, focused && styles.centerBtnOn]}
-        >
-          <MingoIcon name="home" size={32} />
-        </LinearGradient>
-      </Pressable>
-    </View>
   );
 }
 
@@ -121,9 +95,9 @@ function MainTabs() {
         name="Home"
         component={HomeScreen}
         options={{
-          title: "",
+          title: "首頁",
           headerShown: false,
-          tabBarButton: (props) => <CenterTabButton {...(props as object)} />,
+          tabBarIcon: tabIcon("home"),
         }}
       />
       <Tab.Screen
@@ -209,21 +183,4 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: colors.bg,
   },
-  centerWrap: { flex: 1, alignItems: "center", justifyContent: "flex-start" },
-  centerPress: { top: -12, alignItems: "center" },
-  centerBtn: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: colors.primaryDark,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 6,
-    borderWidth: 3,
-    borderColor: colors.bg,
-  },
-  centerBtnOn: { borderColor: colors.gold },
 });

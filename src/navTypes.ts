@@ -14,9 +14,14 @@ export type RootTabParamList = {
   Member: undefined;
 };
 
-/** 外層 Stack:分頁 + 推入的功能頁(黃曆 / 卜卦)。 */
+/** 「探索」分頁內的功能頁；保留底部分頁列，方便隨時切換功能。 */
+export type FeaturesStackParamList = {
+  FeaturesHome: undefined;
+  Almanac: undefined;
+};
+
+/** 外層 Stack:主分頁 + 可由多個分頁進入的卜卦頁。 */
 export type RootStackParamList = {
   Tabs: undefined;
-  Almanac: undefined;
   Cast: { mode: CastMode; autoBirth?: AutoBirth };
 };

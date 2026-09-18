@@ -10,7 +10,7 @@ import {
   useFonts,
   CormorantGaramond_500Medium,
 } from "@expo-google-fonts/cormorant-garamond";
-import { RootStackParamList, RootTabParamList } from "./src/navTypes";
+import { FeaturesStackParamList, RootStackParamList, RootTabParamList } from "./src/navTypes";
 import HomeScreen from "./src/screens/HomeScreen";
 import FeaturesScreen from "./src/screens/FeaturesScreen";
 import AlmanacScreen from "./src/screens/AlmanacScreen";
@@ -24,6 +24,7 @@ import MingoIcon, { MingoIconName } from "./src/components/MingoIcon";
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
+const FeaturesStack = createNativeStackNavigator<FeaturesStackParamList>();
 
 /** 一般分頁圖示（v4 線條圖示，未選取時降透明度）。 */
 function tabIcon(name: MingoIconName) {
@@ -57,6 +58,35 @@ function CenterTabButton({
   );
 }
 
+/**
+ * 探索分頁自己的頁面堆疊。萬年曆留在分頁內，進入後底部導覽仍可使用。
+ */
+function FeaturesNavigator() {
+  return (
+    <FeaturesStack.Navigator
+      screenOptions={{
+        headerStyle: { backgroundColor: colors.bg },
+        headerTintColor: colors.text,
+        headerTitleStyle: { fontWeight: "700" },
+        headerBackButtonDisplayMode: "minimal",
+        headerShadowVisible: false,
+        contentStyle: { backgroundColor: colors.bg },
+      }}
+    >
+      <FeaturesStack.Screen
+        name="FeaturesHome"
+        component={FeaturesScreen}
+        options={{ headerShown: false }}
+      />
+      <FeaturesStack.Screen
+        name="Almanac"
+        component={AlmanacScreen}
+        options={{ title: "今日黃曆" }}
+      />
+    </FeaturesStack.Navigator>
+  );
+}
+
 function MainTabs() {
   return (
     <Tab.Navigator
@@ -84,7 +114,7 @@ function MainTabs() {
     >
       <Tab.Screen
         name="Features"
-        component={FeaturesScreen}
+        component={FeaturesNavigator}
         options={{ title: "探索", headerShown: false, tabBarIcon: tabIcon("explore") }}
       />
       <Tab.Screen
@@ -137,7 +167,6 @@ function Root() {
           }}
         >
           <Stack.Screen name="Tabs" component={MainTabs} options={{ headerShown: false }} />
-          <Stack.Screen name="Almanac" component={AlmanacScreen} options={{ title: "今日黃曆" }} />
           <Stack.Screen
             name="Cast"
             component={CastScreen}

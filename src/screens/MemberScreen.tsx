@@ -147,6 +147,7 @@ export default function MemberScreen() {
   const [showHistory, setShowHistory] = useState(false);
   const [history, setHistory] = useState<MyQuestion[] | null>(null);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [expandedReadingId, setExpandedReadingId] = useState<number | null>(null);
   // 修改密碼
   const [showPwd, setShowPwd] = useState(false);
   const [curPwd, setCurPwd] = useState("");
@@ -527,6 +528,26 @@ export default function MemberScreen() {
                     {formatDate(q.created_at)}　{q.ben_gua || "—"}
                     {q.bian_gua ? ` → ${q.bian_gua}` : ""}
                   </Text>
+                  {q.ai_reading && (
+                    <>
+                      <TouchableOpacity
+                        style={styles.readingToggle}
+                        onPress={() => setExpandedReadingId(
+                          expandedReadingId === q.id ? null : q.id
+                        )}
+                      >
+                        <Text style={styles.readingToggleText}>
+                          {expandedReadingId === q.id ? "收合 AI 解讀" : "查看 AI 解讀"}
+                        </Text>
+                        <Text style={styles.histMeta}>
+                          保存至 {formatDate(q.ai_reading_expires_at)}
+                        </Text>
+                      </TouchableOpacity>
+                      {expandedReadingId === q.id && (
+                        <Text selectable style={styles.savedReading}>{q.ai_reading}</Text>
+                      )}
+                    </>
+                  )}
                 </View>
               ))
             ) : (
@@ -972,6 +993,20 @@ const styles = StyleSheet.create({
   histItem: { paddingVertical: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border },
   histQ: { fontSize: 14, color: colors.text },
   histMeta: { fontSize: 12, color: colors.subtle, marginTop: 2 },
+  readingToggle: {
+    marginTop: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  readingToggleText: { fontSize: 13, color: colors.primary, fontWeight: "700" },
+  savedReading: {
+    marginTop: spacing.sm,
+    padding: spacing.md,
+    borderRadius: 10,
+    backgroundColor: "#FBF8FF",
+    color: colors.text,
+    fontSize: 14,
+    lineHeight: 23,
+  },
   delWarn: { fontSize: 13, color: colors.moving, lineHeight: 20, marginBottom: spacing.md },
   delBtn: {
     backgroundColor: "#a02020",

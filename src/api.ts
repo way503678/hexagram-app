@@ -330,6 +330,10 @@ export interface MyQuestion {
   ben_gua: string | null;
   bian_gua: string | null;
   moving_lines: string | null;
+  ai_reading: string | null;
+  ai_model: string | null;
+  ai_reading_created_at: string | null;
+  ai_reading_expires_at: string | null;
 }
 
 /** 我的卜卦紀錄(只回自己的)。 */

@@ -113,7 +113,7 @@ function MainTabs() {
  */
 function Root() {
   const { user, loading } = useAuth();
-  const [entry, setEntry] = useState<"login" | "register" | null>(null);
+  const [entry, setEntry] = useState<"login" | "register" | "forgot" | null>(null);
 
   if (loading) {
     return (

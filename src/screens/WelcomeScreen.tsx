@@ -27,7 +27,7 @@ const LOGO = require("../../assets/mingo/mingo-logo.png");
 const CONSENT_KEY = "mingo_consent_v1";
 const LEGAL_CACHE = "legal_cache_v1";
 
-type Mode = "login" | "register";
+type Mode = "login" | "register" | "forgot";
 
 function ConsentItem({ doc }: { doc: LegalDoc }) {
   const [open, setOpen] = useState(false);
@@ -96,6 +96,14 @@ export default function WelcomeScreen({ onEnter }: { onEnter: (mode: Mode) => vo
                 onPress={() => onEnter("register")}
                 style={{ marginTop: spacing.md }}
               />
+              <Pressable
+                onPress={() => onEnter("forgot")}
+                style={styles.recoveryLink}
+                hitSlop={8}
+                accessibilityRole="button"
+              >
+                <Text style={styles.recoveryText}>忘記密碼／帳號解鎖</Text>
+              </Pressable>
             </View>
           )}
         </View>
@@ -138,6 +146,13 @@ const styles = StyleSheet.create({
   tag: { fontSize: 15, color: colors.subtle, textAlign: "center", lineHeight: 26, marginTop: spacing.md },
   actions: { marginTop: spacing.xl * 2 },
   actionsCompact: { marginTop: spacing.lg },
+  recoveryLink: { alignItems: "center", paddingVertical: spacing.md },
+  recoveryText: {
+    color: colors.primary,
+    fontSize: 14,
+    fontWeight: "700",
+    textDecorationLine: "underline",
+  },
   // 同意 Modal
   backdrop: {
     flex: 1,

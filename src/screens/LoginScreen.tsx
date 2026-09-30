@@ -20,7 +20,7 @@ import { ApiError, forgotPassword } from "../api";
 
 const LOGO = require("../../assets/mingo/mingo-logo.png");
 
-type Mode = "login" | "register";
+type Mode = "login" | "register" | "forgot";
 
 export default function LoginScreen({
   initialMode = "login",
@@ -44,6 +44,7 @@ export default function LoginScreen({
   const nameRef = useRef<TextInput>(null);
 
   const isRegister = mode === "register";
+  const isForgot = mode === "forgot";
 
   function switchMode() {
     setMode(isRegister ? "login" : "register");
@@ -51,21 +52,26 @@ export default function LoginScreen({
   }
 
   async function onForgot() {
+    if (busy) return;
+    setError(null);
     const e = email.trim().toLowerCase();
     if (!e) {
-      setError("請先在上方輸入 Email,再點忘記密碼");
+      setError("請輸入註冊時使用的 Email");
       return;
     }
     const done = () =>
       Alert.alert(
-        "已寄出",
-        "若這是已註冊的帳號,重設密碼連結已寄到信箱,請點信中連結重設(1 小時內有效)。"
+        "請查看信箱",
+        "若這是已註冊的帳號,重設密碼連結已寄到信箱。連結 1 小時內有效；設定新密碼後，帳號會自動解鎖。"
       );
+    setBusy(true);
     try {
       await forgotPassword(e);
       done();
     } catch {
       done(); // 一律相同訊息,防帳號列舉
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -125,7 +131,7 @@ export default function LoginScreen({
           <View style={[styles.top, compact && styles.topCompact]}>
             <Image source={LOGO} style={[styles.logoImg, compact && styles.logoImgCompact]} resizeMode="contain" />
             <Text style={styles.subtitle}>
-              {isRegister ? "註冊新會員" : "會員登入"}
+              {isRegister ? "註冊新會員" : isForgot ? "重設密碼 · 帳號解鎖" : "會員登入"}
             </Text>
           </View>
 
@@ -143,26 +149,34 @@ export default function LoginScreen({
               textContentType="emailAddress"
               returnKeyType="next"
               blurOnSubmit={false}
-              onSubmitEditing={() => pwRef.current?.focus()}
+              onSubmitEditing={() => (isForgot ? onForgot() : pwRef.current?.focus())}
               editable={!busy}
             />
 
-            <Text style={styles.label}>密碼</Text>
-            <TextInput
-              ref={pwRef}
-              style={styles.input}
-              value={password}
-              onChangeText={setPassword}
-              placeholder={isRegister ? "至少 8 碼,英數混合" : "請輸入密碼"}
-              placeholderTextColor={colors.subtle}
-              secureTextEntry
-              autoCapitalize="none"
-              textContentType={isRegister ? "newPassword" : "password"}
-              returnKeyType={isRegister ? "next" : "done"}
-              blurOnSubmit={!isRegister}
-              onSubmitEditing={() => (isRegister ? pw2Ref.current?.focus() : onSubmit())}
-              editable={!busy}
-            />
+            {isForgot ? (
+              <Text style={styles.resetHint}>
+                我們會寄送安全連結到註冊信箱。完成新密碼設定後，因輸入錯誤而鎖住的帳號會自動解鎖。
+              </Text>
+            ) : (
+              <>
+                <Text style={styles.label}>密碼</Text>
+                <TextInput
+                  ref={pwRef}
+                  style={styles.input}
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder={isRegister ? "至少 8 碼,英數混合" : "請輸入密碼"}
+                  placeholderTextColor={colors.subtle}
+                  secureTextEntry
+                  autoCapitalize="none"
+                  textContentType={isRegister ? "newPassword" : "password"}
+                  returnKeyType={isRegister ? "next" : "done"}
+                  blurOnSubmit={!isRegister}
+                  onSubmitEditing={() => (isRegister ? pw2Ref.current?.focus() : onSubmit())}
+                  editable={!busy}
+                />
+              </>
+            )}
 
             {isRegister && (
               <>
@@ -206,7 +220,7 @@ export default function LoginScreen({
 
             <TouchableOpacity
               style={[styles.button, busy && styles.buttonDisabled]}
-              onPress={onSubmit}
+              onPress={isForgot ? onForgot : onSubmit}
               disabled={busy}
               activeOpacity={0.85}
             >
@@ -214,28 +228,39 @@ export default function LoginScreen({
                 <ActivityIndicator color={colors.primaryText} />
               ) : (
                 <Text style={styles.buttonText}>
-                  {isRegister ? "註冊" : "登入"}
+                  {isRegister ? "註冊" : isForgot ? "寄送重設連結" : "登入"}
                 </Text>
               )}
             </TouchableOpacity>
 
             {!isRegister && (
-              <TouchableOpacity style={styles.switch} onPress={onForgot} disabled={busy}>
-                <Text style={styles.forgotText}>忘記密碼?</Text>
+              <TouchableOpacity
+                style={styles.switch}
+                onPress={() => {
+                  setMode(isForgot ? "login" : "forgot");
+                  setError(null);
+                }}
+                disabled={busy}
+              >
+                <Text style={styles.forgotText}>
+                  {isForgot ? "← 回會員登入" : "忘記密碼／帳號解鎖"}
+                </Text>
               </TouchableOpacity>
             )}
 
-            <TouchableOpacity
-              style={styles.switch}
-              onPress={switchMode}
-              disabled={busy}
-            >
-              <Text style={styles.switchText}>
-                {isRegister
-                  ? "已經有帳號了?改用登入"
-                  : "還沒有帳號?立即註冊"}
-              </Text>
-            </TouchableOpacity>
+            {!isForgot && (
+              <TouchableOpacity
+                style={styles.switch}
+                onPress={switchMode}
+                disabled={busy}
+              >
+                <Text style={styles.switchText}>
+                  {isRegister
+                    ? "已經有帳號了?改用登入"
+                    : "還沒有帳號?立即註冊"}
+                </Text>
+              </TouchableOpacity>
+            )}
 
             {onBack && (
               <TouchableOpacity style={styles.switch} onPress={onBack} disabled={busy}>
@@ -257,6 +282,12 @@ const styles = StyleSheet.create({
     color: colors.subtle,
     lineHeight: 19,
     marginTop: spacing.md,
+  },
+  resetHint: {
+    marginTop: spacing.md,
+    color: colors.subtle,
+    fontSize: 13,
+    lineHeight: 21,
   },
   scroll: {
     flexGrow: 1,

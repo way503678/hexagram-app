@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -94,6 +95,7 @@ export default function CastScreen({
   const [copied, setCopied] = useState(false);
   const [readingText, setReadingText] = useState<string | null>(null);
   const [readingLoading, setReadingLoading] = useState(false);
+  const [readingModalVisible, setReadingModalVisible] = useState(false);
 
   const castCount = yaos.filter(Boolean).length;
   const done = castCount === 6;
@@ -129,6 +131,8 @@ export default function CastScreen({
     setRolling(false);
     setPreview("");
     setPromptText(null);
+    setReadingText(null);
+    setReadingModalVisible(false);
     setCopied(false);
     setCollapsed(false);
     setBirth(null);
@@ -254,9 +258,11 @@ export default function CastScreen({
     setReadingLoading(true);
     setError(null);
     setReadingText(null);
+    setReadingModalVisible(false);
     try {
       const res = await generateReading({ question: q, ...chartInput });
       setReadingText(res.reading);
+      setReadingModalVisible(true);
       if (user && typeof res.balance === "number") {
         setUser({ ...user, points_balance: res.balance });
       }
@@ -488,15 +494,10 @@ export default function CastScreen({
               />
               {readingText && (
                 <View style={{ marginTop: spacing.md }}>
-                  <MingoReading text={readingText} />
-                  <MingoChat
-                    chartReq={{ question: question.trim(), ...chartInput }}
-                    reading={readingText}
-                    onBalance={(b) => {
-                      if (user) setUser({ ...user, points_balance: b });
-                    }}
+                  <SecondaryButton
+                    label="查看本次 AI 解讀"
+                    onPress={() => setReadingModalVisible(true)}
                   />
-                  <MingoReflect question={question.trim()} />
                 </View>
               )}
 
@@ -532,6 +533,64 @@ export default function CastScreen({
           <View style={{ height: spacing.xl }} />
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <Modal
+        visible={readingModalVisible && Boolean(readingText)}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setReadingModalVisible(false)}
+      >
+        <SafeAreaView style={styles.readingModalBackdrop}>
+          <KeyboardAvoidingView
+            style={styles.readingModalKeyboard}
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+          >
+            <View style={styles.readingModalSheet}>
+              <View style={styles.readingModalHeader}>
+                <Text style={styles.readingModalTitle}>🔮 命果 AI 解讀</Text>
+                <Pressable
+                  onPress={() => setReadingModalVisible(false)}
+                  hitSlop={12}
+                  accessibilityRole="button"
+                  accessibilityLabel="關閉 AI 解讀"
+                  style={styles.readingModalCloseIcon}
+                >
+                  <Text style={styles.readingModalCloseIconText}>✕</Text>
+                </Pressable>
+              </View>
+
+              <ScrollView
+                style={styles.readingModalScroll}
+                contentContainerStyle={styles.readingModalContent}
+                keyboardShouldPersistTaps="handled"
+              >
+                {readingText && chartInput && (
+                  <>
+                    <MingoReading text={readingText} />
+                    <MingoChat
+                      chartReq={{ question: question.trim(), ...chartInput }}
+                      reading={readingText}
+                      onBalance={(b) => {
+                        if (user) setUser({ ...user, points_balance: b });
+                      }}
+                    />
+                    <MingoReflect question={question.trim()} />
+                  </>
+                )}
+              </ScrollView>
+
+              <View style={styles.readingModalFooter}>
+                <Pressable
+                  style={styles.readingModalCloseButton}
+                  onPress={() => setReadingModalVisible(false)}
+                >
+                  <Text style={styles.readingModalCloseButtonText}>關閉</Text>
+                </Pressable>
+              </View>
+            </View>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -688,6 +747,55 @@ const styles = StyleSheet.create({
   },
   copyBtn: { color: colors.primary, fontSize: 15, fontWeight: "700" },
   hint: { color: colors.subtle, fontSize: 12, marginTop: 2 },
+  readingModalBackdrop: {
+    flex: 1,
+    padding: 8,
+    backgroundColor: "rgba(30,29,48,0.58)",
+  },
+  readingModalKeyboard: { flex: 1, justifyContent: "center", alignItems: "center" },
+  readingModalSheet: {
+    width: "100%",
+    height: "96%",
+    maxWidth: 760,
+    overflow: "hidden",
+    borderRadius: 22,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  readingModalHeader: {
+    minHeight: 58,
+    paddingHorizontal: spacing.lg,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: colors.primary,
+  },
+  readingModalTitle: { color: colors.primaryText, fontSize: 17, fontWeight: "800" },
+  readingModalCloseIcon: {
+    width: 40,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 20,
+  },
+  readingModalCloseIconText: { color: colors.primaryText, fontSize: 22, fontWeight: "700" },
+  readingModalScroll: { flex: 1 },
+  readingModalContent: { padding: spacing.lg, paddingBottom: spacing.xl },
+  readingModalFooter: {
+    padding: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    backgroundColor: colors.card,
+  },
+  readingModalCloseButton: {
+    minHeight: 46,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 10,
+    backgroundColor: colors.primary,
+  },
+  readingModalCloseButtonText: { color: colors.primaryText, fontSize: 16, fontWeight: "700" },
   promptBox: {
     maxHeight: 260,
     marginTop: spacing.sm,

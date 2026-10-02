@@ -47,6 +47,7 @@ interface ChartInput {
   m: number;
   d: number;
   h: number;
+  record_id?: number;
 }
 
 export default function CastScreen({
@@ -142,6 +143,11 @@ export default function CastScreen({
   /** 手動擲卦排盤。 */
   async function doChartCoin() {
     if (!done || loading) return;
+    const q = question.trim();
+    if (!q) {
+      Alert.alert("請先填寫所問之事", "起卦前先填寫問題，完成後才能保存這次卦象。");
+      return;
+    }
     setLoading(true);
     setError(null);
     const n = new Date();
@@ -153,9 +159,9 @@ export default function CastScreen({
       h: n.getHours(),
     };
     try {
-      const res = await castChart(input);
+      const res = await castChart({ ...input, question: q });
       setChart(res);
-      setChartInput(input);
+      setChartInput({ ...input, record_id: res.record_id });
       setCollapsed(true);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "排盤失敗,請稍後再試");
@@ -219,9 +225,20 @@ export default function CastScreen({
 
   async function doPrompt() {
     if (!chartInput || promptLoading) return;
+    if (promptText) {
+      await Clipboard.setStringAsync(promptText);
+      setCopied(true);
+      Alert.alert("已複製", "已購買的 Prompt 再次複製不會扣果實。");
+      setTimeout(() => setCopied(false), 2000);
+      return;
+    }
     const q = question.trim();
     if (!q) {
       Alert.alert("請先填寫所問之事", "上方「所問之事」要先填,Prompt 才能帶入問題。");
+      return;
+    }
+    if (user && user.points_balance < 1) {
+      Alert.alert("果實不足", "目前沒有果實，請先到會員中心儲值。");
       return;
     }
     setPromptLoading(true);
@@ -230,12 +247,23 @@ export default function CastScreen({
     try {
       const res = await buildPrompt({ question: q, ...chartInput });
       setPromptText(res.prompt);
+      setChartInput((prev) => prev ? { ...prev, record_id: res.record_id } : prev);
+      await Clipboard.setStringAsync(res.prompt);
+      setCopied(true);
+      Alert.alert(
+        res.charged ? "已產生並複製" : "已複製",
+        res.charged
+          ? "Prompt 已複製，並保存 30 天。"
+          : "這份 Prompt 已購買，本次不會重複扣果實。"
+      );
       // 扣點後更新本地餘額(會員頁即時顯示)
       if (user && typeof res.balance === "number") {
         setUser({ ...user, points_balance: res.balance });
       }
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : "產生 Prompt 失敗,請稍後再試");
+      const message = e instanceof ApiError ? e.message : "產生 Prompt 失敗,請稍後再試";
+      setError(message);
+      Alert.alert(e instanceof ApiError && e.status === 402 ? "果實不足" : "無法產生 Prompt", message);
     } finally {
       setPromptLoading(false);
     }
@@ -250,9 +278,17 @@ export default function CastScreen({
 
   async function doReading() {
     if (!chartInput || readingLoading) return;
+    if (readingText) {
+      setReadingModalVisible(true);
+      return;
+    }
     const q = question.trim();
     if (!q) {
       Alert.alert("請先填寫所問之事", "上方「所問之事」要先填,命果才知道要為你解什麼。");
+      return;
+    }
+    if (user && user.points_balance < 1) {
+      Alert.alert("果實不足", "目前沒有果實，請先到會員中心儲值。");
       return;
     }
     setReadingLoading(true);
@@ -262,12 +298,15 @@ export default function CastScreen({
     try {
       const res = await generateReading({ question: q, ...chartInput });
       setReadingText(res.reading);
+      setChartInput((prev) => prev ? { ...prev, record_id: res.record_id } : prev);
       setReadingModalVisible(true);
       if (user && typeof res.balance === "number") {
         setUser({ ...user, points_balance: res.balance });
       }
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : "解讀產生失敗,請稍後再試");
+      const message = e instanceof ApiError ? e.message : "解讀產生失敗,請稍後再試";
+      setError(message);
+      Alert.alert(e instanceof ApiError && e.status === 402 ? "果實不足" : "無法取得解讀", message);
     } finally {
       setReadingLoading(false);
     }
@@ -488,25 +527,28 @@ export default function CastScreen({
             <View style={{ marginTop: spacing.lg }}>
               {/* 命果即時教練式解讀(主要)*/}
               <PrimaryButton
-                label={readingLoading ? "命果解讀中…" : "✨ 命果為你解讀（扣 1 顆果實）"}
+                label={readingText
+                  ? "查看本次 AI 解讀（不扣果實）"
+                  : readingLoading
+                    ? "命果解讀中…"
+                    : user && user.points_balance < 1
+                      ? "果實不足，無法產生 AI 解讀"
+                      : "✨ 命果為你解讀（扣 1 顆果實）"}
                 onPress={doReading}
-                disabled={readingLoading}
+                disabled={readingLoading || promptLoading || Boolean(!readingText && user && user.points_balance < 1)}
               />
-              {readingText && (
-                <View style={{ marginTop: spacing.md }}>
-                  <SecondaryButton
-                    label="查看本次 AI 解讀"
-                    onPress={() => setReadingModalVisible(true)}
-                  />
-                </View>
-              )}
-
               {/* 進階:複製 prompt 自己貼到慣用 AI(次要)*/}
               <View style={{ marginTop: spacing.lg }}>
               <SecondaryButton
-                label={promptLoading ? "產生中…" : "🤖 改用:複製解讀 Prompt（扣 1 顆果實）"}
+                label={promptText
+                  ? "複製已產生的 Prompt（不扣果實）"
+                  : promptLoading
+                    ? "產生中…"
+                    : user && user.points_balance < 1
+                      ? "果實不足，無法產生 Prompt"
+                      : "🤖 改用:複製解讀 Prompt（扣 1 顆果實）"}
                 onPress={doPrompt}
-                disabled={promptLoading}
+                disabled={promptLoading || readingLoading || Boolean(!promptText && user && user.points_balance < 1)}
               />
               {promptText && (
                 <View style={[styles.card, { marginTop: spacing.md }]}>

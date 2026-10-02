@@ -101,6 +101,7 @@ export interface LiuYaoEntry {
 
 /** /api/v1/chart 完整回應。 */
 export interface ChartResponse {
+  record_id?: number;
   schema_version: number;
   排盤時間: string;
   問事類別: string;

@@ -25,9 +25,13 @@ function authHeaders(base: Record<string, string> = {}): Record<string, string> 
   return authToken ? { ...base, Authorization: `Bearer ${authToken}` } : base;
 }
 
-async function postJson<T>(path: string, body: unknown): Promise<T> {
+async function postJson<T>(
+  path: string,
+  body: unknown,
+  timeoutMs: number = API_TIMEOUT_MS
+): Promise<T> {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const res = await fetch(`${API_BASE_URL}${path}`, {
       method: "POST",
@@ -60,6 +64,8 @@ export interface ChartRequest {
   h: number;
   yao_vals: string[]; // 6 個,初爻→上爻,格式 "陰陽,動否"
   aspect?: string;
+  question?: string;
+  record_id?: number;
 }
 
 /** 排盤(手動擲卦):送出日期 + 六爻,取得完整卦象。 */
@@ -92,11 +98,18 @@ export interface PromptRequest extends ChartRequest {
   question: string; // 所問之事(必填)
 }
 
+export interface PaidContentResponse {
+  balance: number;
+  record_id: number;
+  charged: boolean;
+  saved_until: string | null;
+}
+
 /** 組裝可複製的 AI 解讀 Prompt(需登入,扣 1 點;不呼叫 Claude)。回傳含扣點後餘額。 */
 export function buildPrompt(
   req: PromptRequest
-): Promise<{ prompt: string; balance: number }> {
-  return postJson<{ prompt: string; balance: number }>("/api/v1/prompt", {
+): Promise<{ prompt: string } & PaidContentResponse> {
+  return postJson<{ prompt: string } & PaidContentResponse>("/api/v1/prompt", {
     aspect: "all",
     ...req,
   });
@@ -105,11 +118,11 @@ export function buildPrompt(
 /** 命果 MINGO 即時解讀(教練式,需登入,扣 1 點;後端呼叫 Claude)。回傳完整解讀 + 餘額。 */
 export function generateReading(
   req: PromptRequest
-): Promise<{ reading: string; balance: number }> {
-  return postJson<{ reading: string; balance: number }>("/api/v1/reading", {
+): Promise<{ reading: string } & PaidContentResponse> {
+  return postJson<{ reading: string } & PaidContentResponse>("/api/v1/reading", {
     aspect: "all",
     ...req,
-  });
+  }, 120_000);
 }
 
 export interface ChatTurn {
@@ -330,15 +343,29 @@ export interface MyQuestion {
   ben_gua: string | null;
   bian_gua: string | null;
   moving_lines: string | null;
+  has_chart: boolean;
+  has_prompt: boolean;
+  prompt_created_at: string | null;
+  prompt_expires_at: string | null;
   ai_reading: string | null;
   ai_model: string | null;
   ai_reading_created_at: string | null;
   ai_reading_expires_at: string | null;
 }
 
+export interface QuestionDetail extends MyQuestion {
+  chart_payload: ChartResponse | null;
+  prompt_text: string | null;
+}
+
 /** 我的卜卦紀錄(只回自己的)。 */
 export function fetchMyQuestions(): Promise<{ questions: MyQuestion[] }> {
   return getJson<{ questions: MyQuestion[] }>("/api/v1/member/questions");
+}
+
+/** 讀取自己的完整卦象與已購內容；只讀，不會扣果實。 */
+export function fetchQuestionDetail(id: number): Promise<QuestionDetail> {
+  return getJson<QuestionDetail>(`/api/v1/member/questions/${id}`);
 }
 
 /** 修改密碼。 */

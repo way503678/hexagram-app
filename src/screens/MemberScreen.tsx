@@ -14,6 +14,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import * as Clipboard from "expo-clipboard";
 import { useNavigation } from "@react-navigation/native";
 import { colors, spacing } from "../theme";
 import { useAuth } from "../AuthContext";
@@ -21,10 +22,12 @@ import {
   fetchLedger,
   updateProfile,
   fetchMyQuestions,
+  fetchQuestionDetail,
   changePassword,
   deleteAccount,
   LedgerEntry,
   MyQuestion,
+  QuestionDetail,
   ApiError,
   fetchDueReflections,
   markReflectionDone,
@@ -32,6 +35,8 @@ import {
   fetchLegal,
   LegalDoc,
 } from "../api";
+import ChartResult from "../components/ChartResult";
+import MingoReading from "../components/MingoReading";
 
 /** 帳本 reason 轉中文。 */
 const REASON_LABEL: Record<string, string> = {
@@ -147,7 +152,9 @@ export default function MemberScreen() {
   const [showHistory, setShowHistory] = useState(false);
   const [history, setHistory] = useState<MyQuestion[] | null>(null);
   const [historyLoading, setHistoryLoading] = useState(false);
-  const [expandedReadingId, setExpandedReadingId] = useState<number | null>(null);
+  const [historyDetail, setHistoryDetail] = useState<QuestionDetail | null>(null);
+  const [historyDetailVisible, setHistoryDetailVisible] = useState(false);
+  const [historyDetailLoading, setHistoryDetailLoading] = useState(false);
   // 修改密碼
   const [showPwd, setShowPwd] = useState(false);
   const [curPwd, setCurPwd] = useState("");
@@ -287,6 +294,26 @@ export default function MemberScreen() {
         setHistoryLoading(false);
       }
     }
+  }
+
+  async function openHistoryDetail(id: number) {
+    setHistoryDetailVisible(true);
+    setHistoryDetailLoading(true);
+    setHistoryDetail(null);
+    try {
+      setHistoryDetail(await fetchQuestionDetail(id));
+    } catch (e) {
+      setHistoryDetailVisible(false);
+      Alert.alert("無法讀取紀錄", e instanceof ApiError ? e.message : "請稍後再試");
+    } finally {
+      setHistoryDetailLoading(false);
+    }
+  }
+
+  async function copySavedPrompt() {
+    if (!historyDetail?.prompt_text) return;
+    await Clipboard.setStringAsync(historyDetail.prompt_text);
+    Alert.alert("已複製", "查看歷史與複製已購 Prompt 都不會再扣果實。");
   }
 
   async function doChangePassword() {
@@ -528,30 +555,20 @@ export default function MemberScreen() {
                     {formatDate(q.created_at)}　{q.ben_gua || "—"}
                     {q.bian_gua ? ` → ${q.bian_gua}` : ""}
                   </Text>
-                  {q.ai_reading && (
-                    <>
-                      <TouchableOpacity
-                        style={styles.readingToggle}
-                        onPress={() => setExpandedReadingId(
-                          expandedReadingId === q.id ? null : q.id
-                        )}
-                      >
-                        <Text style={styles.readingToggleText}>
-                          {expandedReadingId === q.id ? "收合 AI 解讀" : "查看 AI 解讀"}
-                        </Text>
-                        <Text style={styles.histMeta}>
-                          保存至 {formatDate(q.ai_reading_expires_at)}
-                        </Text>
-                      </TouchableOpacity>
-                      {expandedReadingId === q.id && (
-                        <Text selectable style={styles.savedReading}>{q.ai_reading}</Text>
-                      )}
-                    </>
-                  )}
+                  <TouchableOpacity
+                    style={styles.readingToggle}
+                    onPress={() => openHistoryDetail(q.id)}
+                  >
+                    <Text style={styles.readingToggleText}>查看卦象與已購內容</Text>
+                    <Text style={styles.histMeta}>
+                      查看歷史不扣果實
+                      {q.ai_reading ? `　AI 保存至 ${formatDate(q.ai_reading_expires_at)}` : ""}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               ))
             ) : (
-              <Text style={styles.empty}>還沒有紀錄。卜卦並使用 AI 後會留下。</Text>
+              <Text style={styles.empty}>還沒有紀錄。完成起卦後就會保存在這裡。</Text>
             )}
           </View>
         )}
@@ -697,6 +714,67 @@ export default function MemberScreen() {
             </View>
           )}
         </View>
+      </Modal>
+
+      <Modal visible={historyDetailVisible} animationType="slide"
+        onRequestClose={() => setHistoryDetailVisible(false)}>
+        <SafeAreaView style={styles.historyDetailSafe}>
+          <View style={styles.historyDetailHeader}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.historyDetailTitle}>卜卦紀錄</Text>
+              <Text style={styles.histMeta}>查看與複製已購內容不會扣果實</Text>
+            </View>
+            <Pressable onPress={() => setHistoryDetailVisible(false)} hitSlop={12}>
+              <Text style={styles.historyDetailClose}>✕</Text>
+            </Pressable>
+          </View>
+          {historyDetailLoading ? (
+            <ActivityIndicator color={colors.primary} style={{ marginTop: spacing.xl }} />
+          ) : historyDetail ? (
+            <ScrollView contentContainerStyle={styles.historyDetailContent}>
+              <Text style={styles.histQ}>{historyDetail.question || "—"}</Text>
+              <Text style={styles.histMeta}>{formatDate(historyDetail.created_at)}</Text>
+              {historyDetail.chart_payload ? (
+                <ChartResult chart={historyDetail.chart_payload} compact={compact} />
+              ) : (
+                <View style={styles.savedReading}>
+                  <Text style={styles.histQ}>
+                    {historyDetail.ben_gua || "—"}
+                    {historyDetail.bian_gua ? ` → ${historyDetail.bian_gua}` : ""}
+                  </Text>
+                  <Text style={styles.histMeta}>{historyDetail.moving_lines || "無動爻資料"}</Text>
+                </View>
+              )}
+              {historyDetail.prompt_text && (
+                <View style={styles.savedContentCard}>
+                  <View style={styles.savedContentHeader}>
+                    <Text style={styles.savedContentTitle}>已購 Prompt</Text>
+                    <TouchableOpacity onPress={copySavedPrompt}>
+                      <Text style={styles.readingToggleText}>複製（不扣果實）</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <Text style={styles.histMeta}>
+                    保存至 {formatDate(historyDetail.prompt_expires_at)}
+                  </Text>
+                  <Text selectable style={styles.savedReading}>{historyDetail.prompt_text}</Text>
+                </View>
+              )}
+              {historyDetail.ai_reading && (
+                <View style={styles.savedContentCard}>
+                  <Text style={styles.savedContentTitle}>命果 AI 解讀</Text>
+                  <Text style={styles.histMeta}>
+                    保存至 {formatDate(historyDetail.ai_reading_expires_at)}
+                  </Text>
+                  <MingoReading text={historyDetail.ai_reading} />
+                </View>
+              )}
+            </ScrollView>
+          ) : null}
+          <TouchableOpacity style={styles.historyDetailDone}
+            onPress={() => setHistoryDetailVisible(false)}>
+            <Text style={styles.saveBtnText}>關閉</Text>
+          </TouchableOpacity>
+        </SafeAreaView>
       </Modal>
 
       <Modal visible={legalVisible} animationType="slide" transparent
@@ -1006,6 +1084,41 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 14,
     lineHeight: 23,
+  },
+  historyDetailSafe: { flex: 1, backgroundColor: colors.bg },
+  historyDetailHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    backgroundColor: colors.card,
+  },
+  historyDetailTitle: { fontSize: 19, fontWeight: "800", color: colors.text },
+  historyDetailClose: { fontSize: 24, color: colors.text, padding: spacing.sm },
+  historyDetailContent: { padding: spacing.lg, paddingBottom: spacing.xl },
+  savedContentCard: {
+    marginTop: spacing.lg,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    backgroundColor: colors.card,
+  },
+  savedContentHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  savedContentTitle: { fontSize: 16, fontWeight: "800", color: colors.primary },
+  historyDetailDone: {
+    margin: spacing.md,
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    paddingVertical: spacing.md,
+    alignItems: "center",
   },
   delWarn: { fontSize: 13, color: colors.moving, lineHeight: 20, marginBottom: spacing.md },
   delBtn: {

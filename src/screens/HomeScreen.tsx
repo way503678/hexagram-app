@@ -25,9 +25,8 @@ const BRAND_MARK = require("../../assets/mingo/mingo-mark.png");
 const BRAND_LOCKUP = require("../../assets/mingo/mingo-logo.png");
 
 export default function HomeScreen() {
-  const { width, height, fontScale } = useWindowDimensions();
+  const { width, fontScale } = useWindowDimensions();
   const compact = width < 390 || fontScale > 1.1;
-  const heroMinHeight = Math.max(compact ? 480 : 520, Math.round(height * 0.72));
   const nav = useNavigation<any>();
   const { user } = useAuth();
   const name = (user?.display_name || user?.email || "").split("@")[0] || "朋友";
@@ -92,7 +91,6 @@ export default function HomeScreen() {
             style={[
               styles.heroCopy,
               compact && styles.heroCopyCompact,
-              { minHeight: heroMinHeight },
             ]}
           >
             <Text
@@ -147,7 +145,7 @@ export default function HomeScreen() {
           <PrimaryButton
             title="開始今日探索 ✦ 卜一卦"
             onPress={() => nav.navigate("Cast", { mode: "coin" })}
-            style={{ marginTop: spacing.lg }}
+            style={styles.exploreButton}
           />
         </ScrollView>
       </SafeAreaView>
@@ -189,16 +187,23 @@ const styles = StyleSheet.create({
     top: -57,
   },
   heroCopy: {
-    paddingTop: 44,
-    paddingBottom: spacing.lg,
-  },
-  heroCopyCompact: {
-    paddingTop: 40,
+    flexGrow: 1,
+    minHeight: 0,
+    paddingTop: 34,
     paddingBottom: spacing.md,
   },
+  heroCopyCompact: {
+    paddingTop: 28,
+    paddingBottom: spacing.sm,
+  },
   cardScroller: { flex: 1 },
-  cards: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xl },
-  cardsCompact: { paddingHorizontal: spacing.md },
+  cards: {
+    flexGrow: 1,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.lg,
+  },
+  cardsCompact: { paddingHorizontal: spacing.md, paddingBottom: spacing.md },
+  exploreButton: { marginTop: spacing.md },
   h1: { fontSize: 24, fontWeight: "800", color: colors.primaryDark, marginBottom: 12, letterSpacing: 0.5 },
   h1Compact: { fontSize: 22 },
   heroBody: { fontSize: 16, lineHeight: 26, color: colors.text, fontWeight: "600" },

@@ -14,7 +14,8 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import * as Clipboard from "expo-clipboard";
+import { useClipboardFeedback } from "../hooks/useClipboardFeedback";
+import CopyFeedback from "../components/CopyFeedback";
 import { useNavigation } from "@react-navigation/native";
 import { colors, spacing } from "../theme";
 import { useAuth } from "../AuthContext";
@@ -155,6 +156,7 @@ export default function MemberScreen() {
   const [historyDetail, setHistoryDetail] = useState<QuestionDetail | null>(null);
   const [historyDetailVisible, setHistoryDetailVisible] = useState(false);
   const [historyDetailLoading, setHistoryDetailLoading] = useState(false);
+  const { copy, feedback, copied, reset: resetCopyFeedback } = useClipboardFeedback();
   // 修改密碼
   const [showPwd, setShowPwd] = useState(false);
   const [curPwd, setCurPwd] = useState("");
@@ -297,6 +299,7 @@ export default function MemberScreen() {
   }
 
   async function openHistoryDetail(id: number) {
+    resetCopyFeedback();
     setHistoryDetailVisible(true);
     setHistoryDetailLoading(true);
     setHistoryDetail(null);
@@ -312,8 +315,7 @@ export default function MemberScreen() {
 
   async function copySavedPrompt() {
     if (!historyDetail?.prompt_text) return;
-    await Clipboard.setStringAsync(historyDetail.prompt_text);
-    Alert.alert("已複製", "查看歷史與複製已購 Prompt 都不會再扣果實。");
+    await copy(historyDetail.prompt_text, "已複製，查看與複製已購 Prompt 不會再扣果實。");
   }
 
   async function doChangePassword() {
@@ -750,9 +752,10 @@ export default function MemberScreen() {
                   <View style={styles.savedContentHeader}>
                     <Text style={styles.savedContentTitle}>已購 Prompt</Text>
                     <TouchableOpacity onPress={copySavedPrompt}>
-                      <Text style={styles.readingToggleText}>複製（不扣果實）</Text>
+                      <Text style={styles.readingToggleText}>{copied ? "✓ 已複製" : "複製（不扣果實）"}</Text>
                     </TouchableOpacity>
                   </View>
+                  <CopyFeedback feedback={feedback} />
                   <Text style={styles.histMeta}>
                     保存至 {formatDate(historyDetail.prompt_expires_at)}
                   </Text>

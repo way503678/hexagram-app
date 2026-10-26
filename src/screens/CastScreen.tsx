@@ -14,7 +14,8 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import * as Clipboard from "expo-clipboard";
+import { useClipboardFeedback } from "../hooks/useClipboardFeedback";
+import CopyFeedback from "../components/CopyFeedback";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { CastMode } from "../navTypes";
 import { castChart, castByTime, buildPrompt, generateReading, ApiError } from "../api";
@@ -93,7 +94,7 @@ export default function CastScreen({
   const [collapsed, setCollapsed] = useState(false);
   const [promptText, setPromptText] = useState<string | null>(null);
   const [promptLoading, setPromptLoading] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const { copy, feedback, copied, reset: resetCopyFeedback } = useClipboardFeedback();
   const [readingText, setReadingText] = useState<string | null>(null);
   const [readingLoading, setReadingLoading] = useState(false);
   const [readingModalVisible, setReadingModalVisible] = useState(false);
@@ -134,7 +135,7 @@ export default function CastScreen({
     setPromptText(null);
     setReadingText(null);
     setReadingModalVisible(false);
-    setCopied(false);
+    resetCopyFeedback();
     setCollapsed(false);
     setBirth(null);
     setShowPicker(false);
@@ -226,10 +227,7 @@ export default function CastScreen({
   async function doPrompt() {
     if (!chartInput || promptLoading) return;
     if (promptText) {
-      await Clipboard.setStringAsync(promptText);
-      setCopied(true);
-      Alert.alert("已複製", "已購買的 Prompt 再次複製不會扣果實。");
-      setTimeout(() => setCopied(false), 2000);
+      await copy(promptText, "已複製，再次複製已購 Prompt 不會扣果實。");
       return;
     }
     const q = question.trim();
@@ -243,23 +241,18 @@ export default function CastScreen({
     }
     setPromptLoading(true);
     setError(null);
-    setCopied(false);
+    resetCopyFeedback();
     try {
       const res = await buildPrompt({ question: q, ...chartInput });
       setPromptText(res.prompt);
       setChartInput((prev) => prev ? { ...prev, record_id: res.record_id } : prev);
-      await Clipboard.setStringAsync(res.prompt);
-      setCopied(true);
-      Alert.alert(
-        res.charged ? "已產生並複製" : "已複製",
-        res.charged
-          ? "Prompt 已複製，並保存 30 天。"
-          : "這份 Prompt 已購買，本次不會重複扣果實。"
-      );
       // 扣點後更新本地餘額(會員頁即時顯示)
       if (user && typeof res.balance === "number") {
         setUser({ ...user, points_balance: res.balance });
       }
+      await copy(res.prompt, res.charged
+        ? "Prompt 已複製，並保存 30 天。"
+        : "已複製，本次不會重複扣果實。");
     } catch (e) {
       const message = e instanceof ApiError ? e.message : "產生 Prompt 失敗,請稍後再試";
       setError(message);
@@ -271,9 +264,7 @@ export default function CastScreen({
 
   async function copyPrompt() {
     if (!promptText) return;
-    await Clipboard.setStringAsync(promptText);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    await copy(promptText);
   }
 
   async function doReading() {
@@ -550,6 +541,7 @@ export default function CastScreen({
                 onPress={doPrompt}
                 disabled={promptLoading || readingLoading || Boolean(!promptText && user && user.points_balance < 1)}
               />
+              <CopyFeedback feedback={feedback} />
               {promptText && (
                 <View style={[styles.card, { marginTop: spacing.md }]}>
                   <View style={styles.promptHeader}>

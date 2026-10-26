@@ -9,7 +9,8 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-import * as Clipboard from "expo-clipboard";
+import { useClipboardFeedback } from "../hooks/useClipboardFeedback";
+import CopyFeedback from "./CopyFeedback";
 import { fetchFortune, fortunePrompt, ApiError } from "../api";
 import { useAuth } from "../AuthContext";
 import { FortuneResult, FortuneRemark, FortuneYaoRow, DominantYao } from "../types";
@@ -38,12 +39,12 @@ export default function FortunePanel({ birth, gender }: Props) {
   const [openMonth, setOpenMonth] = useState<string | null>(null);
   const [adviceText, setAdviceText] = useState<string | null>(null);
   const [adviceLoading, setAdviceLoading] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const { copy, feedback, copied, reset: resetCopyFeedback } = useClipboardFeedback();
 
   // 換年或換命盤時,清掉上一份宜忌
   useEffect(() => {
     setAdviceText(null);
-    setCopied(false);
+    resetCopyFeedback();
   }, [birth.y, birth.m, birth.d, birth.h, gender, year]);
 
   async function genAdvice() {
@@ -67,9 +68,7 @@ export default function FortunePanel({ birth, gender }: Props) {
 
   async function copyAdvice() {
     if (!adviceText) return;
-    await Clipboard.setStringAsync(adviceText);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    await copy(adviceText);
   }
 
   useEffect(() => {
@@ -145,6 +144,7 @@ export default function FortunePanel({ birth, gender }: Props) {
                 <TouchableOpacity style={styles.copyBtn} onPress={copyAdvice}>
                   <Text style={styles.copyBtnText}>{copied ? "✓ 已複製" : "複製"}</Text>
                 </TouchableOpacity>
+                <CopyFeedback feedback={feedback} />
               </View>
             )}
           </View>

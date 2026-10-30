@@ -23,6 +23,7 @@ import { featureFlags } from "../featureFlags";
 const HERO = require("../../assets/mingo/mountain_v3.png");
 const BRAND_MARK = require("../../assets/mingo/mingo-mark.png");
 const BRAND_LOCKUP = require("../../assets/mingo/mingo-logo.png");
+const HAS_HOME_DATA = featureFlags.dailyGuide || featureFlags.homeAlmanac;
 
 export default function HomeScreen() {
   const { width, fontScale } = useWindowDimensions();
@@ -32,9 +33,11 @@ export default function HomeScreen() {
   const name = (user?.display_name || user?.email || "").split("@")[0] || "朋友";
   const [daily, setDaily] = useState<DailyGuide | null>(null);
   const [day, setDay] = useState<AlmanacDay | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(HAS_HOME_DATA);
+  const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async () => {
+    if (!HAS_HOME_DATA) return;
     setLoading(true);
     const now = new Date();
     const requests: Promise<void>[] = [];
@@ -52,9 +55,22 @@ export default function HomeScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      load();
+      if (!HAS_HOME_DATA) return;
+      void load();
+      // A pull must finish before this tab detaches. Data reloads on focus
+      // should never start iOS's programmatic pull-to-refresh offset change.
+      return () => setRefreshing(false);
     }, [load])
   );
+
+  const refresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await load();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [load]);
 
   const needBirthday = daily?.needs_birthday;
   const guideLine = daily && !needBirthday ? daily.整體狀態 : null;
@@ -85,7 +101,12 @@ export default function HomeScreen() {
           style={styles.cardScroller}
           contentContainerStyle={[styles.cards, compact && styles.cardsCompact]}
           showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={loading} onRefresh={load} />}
+          contentInsetAdjustmentBehavior="never"
+          automaticallyAdjustContentInsets={false}
+          automaticallyAdjustsScrollIndicatorInsets={false}
+          refreshControl={HAS_HOME_DATA
+            ? <RefreshControl refreshing={refreshing} onRefresh={refresh} />
+            : undefined}
         >
           <View
             style={[

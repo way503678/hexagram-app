@@ -21,6 +21,7 @@ import { colors, spacing } from "../theme";
 import { useAuth } from "../AuthContext";
 import {
   fetchLedger,
+  resendVerificationEmail,
   updateProfile,
   fetchMyQuestions,
   fetchQuestionDetail,
@@ -41,7 +42,8 @@ import MingoReading from "../components/MingoReading";
 
 /** 帳本 reason 轉中文。 */
 const REASON_LABEL: Record<string, string> = {
-  welcome_bonus: "新會員贈點",
+  welcome_bonus: "新會員贈送果實",
+  fortune: "完整流年解鎖",
   test_topup: "測試儲值",
   divination: "AI 解盤扣點",
   prompt: "AI Prompt 產生",
@@ -136,6 +138,8 @@ export default function MemberScreen() {
   const compact = width < 390 || fontScale > 1.1;
   const { user, logout, refresh, setUser } = useAuth();
   const nav = useNavigation<any>();
+  const [verifyMessage, setVerifyMessage] = useState("");
+  const [verifyBusy, setVerifyBusy] = useState(false);
   const [ledger, setLedger] = useState<LedgerEntry[]>([]);
   const [due, setDue] = useState<Reflection[]>([]);
   const [loading, setLoading] = useState(true);
@@ -401,6 +405,21 @@ export default function MemberScreen() {
             <Text style={styles.editLinkText}>修改會員資料</Text>
           </TouchableOpacity>
         </View>
+
+        {user.registration_bonus_eligible && !user.email_verified && (
+          <View style={[styles.card, { marginTop: spacing.md }]}>
+            <Text style={styles.name}>驗證信箱，領取 2 顆果實</Text>
+            <Text style={styles.email}>完成 Email 驗證後自動入帳，可解鎖一次完整流年與 AI 解讀。</Text>
+            <TouchableOpacity disabled={verifyBusy} style={styles.editLink} onPress={async () => {
+              setVerifyBusy(true);
+              try { await resendVerificationEmail(); setVerifyMessage("驗證信已寄出，請查看收件匣或垃圾郵件。"); }
+              catch (e) { setVerifyMessage(e instanceof Error ? e.message : "寄送失敗，請稍後再試"); }
+              finally { setVerifyBusy(false); }
+            }}><Text style={styles.editLinkText}>{verifyBusy ? "寄送中…" : "重寄驗證信"}</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.editLink} onPress={load}><Text style={styles.editLinkText}>我已驗證，重新整理</Text></TouchableOpacity>
+            {!!verifyMessage && <Text style={styles.email}>{verifyMessage}</Text>}
+          </View>
+        )}
 
         {/* 🌱 成長反思回訪(到期才出現)*/}
         {due.length > 0 && (

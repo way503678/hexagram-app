@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
+  AppState,
   Pressable,
   StyleSheet,
   Text,
@@ -11,7 +11,8 @@ import {
 } from "react-native";
 import { useClipboardFeedback } from "../hooks/useClipboardFeedback";
 import CopyFeedback from "./CopyFeedback";
-import { fetchFortune, fortunePrompt, ApiError } from "../api";
+import MingoReading from "./MingoReading";
+import { fetchFortuneAccess, unlockFortune, FortuneAccess, ApiError } from "../api";
 import { useAuth } from "../AuthContext";
 import { FortuneResult, FortuneRemark, FortuneYaoRow, DominantYao } from "../types";
 import { colors, spacing, wuxingColor } from "../theme";
@@ -31,69 +32,106 @@ const LEVEL_COLOR: Record<string, string> = {
 export default function FortunePanel({ birth, gender }: Props) {
   const { width, fontScale } = useWindowDimensions();
   const compact = width < 390 || fontScale > 1.1;
-  const { user, setUser } = useAuth();
+  const { user, refresh } = useAuth();
   const [year, setYear] = useState(new Date().getFullYear());
-  const [data, setData] = useState<FortuneResult | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [access, setAccess] = useState<FortuneAccess | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [openMonth, setOpenMonth] = useState<string | null>(null);
-  const [adviceText, setAdviceText] = useState<string | null>(null);
-  const [adviceLoading, setAdviceLoading] = useState(false);
+  const [retry, setRetry] = useState(0);
+  const identity = `${user?.id}:${birth.y}:${birth.m}:${birth.d}:${birth.h}:${gender}:${year}`;
+  const identityRef = useRef(identity);
+  identityRef.current = identity;
+  const alive = useRef(true);
+  const busyRef = useRef(false);
+  const accessVersion = useRef(0);
   const { copy, feedback, copied, reset: resetCopyFeedback } = useClipboardFeedback();
+  const data = access?.fortune;
+  const balance = access?.balance ?? user?.points_balance ?? 0;
+  const cost = access?.cost ?? 2;
+  const insufficient = !access?.unlocked && balance < cost;
 
-  // 換年或換命盤時,清掉上一份宜忌
   useEffect(() => {
-    setAdviceText(null);
-    resetCopyFeedback();
-  }, [birth.y, birth.m, birth.d, birth.h, gender, year]);
+    alive.current = true;
+    return () => { alive.current = false; };
+  }, []);
 
-  async function genAdvice() {
-    if (adviceLoading) return;
-    setAdviceLoading(true);
-    try {
-      const res = await fortunePrompt(birth, year, gender);
-      setAdviceText(res.prompt);
-      if (user && typeof res.balance === "number") {
-        setUser({ ...user, points_balance: res.balance });
+  // 只查詢已購資格與保存內容；換年份、重開畫面均不會觸發扣款。
+  useEffect(() => {
+    let active = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") { clearTimeout(timer); void load(); }
+    });
+    async function load() {
+      if (busyRef.current) return;
+      const version = ++accessVersion.current;
+      try {
+        const result = await fetchFortuneAccess(birth, gender, year);
+        if (!active || version !== accessVersion.current) return;
+        setAccess(result);
+        setError(null);
+        if (result.pending) timer = setTimeout(load, 5000);
+      } catch (e) {
+        if (active && version === accessVersion.current) setError(e instanceof Error ? e.message : "流年載入失敗");
+      } finally {
+        if (active && version === accessVersion.current) setLoading(false);
       }
+    }
+    setAccess(null);
+    setOpenMonth(null);
+    setError(null);
+    setLoading(true);
+    resetCopyFeedback();
+    void load();
+    return () => { active = false; clearTimeout(timer); subscription.remove(); };
+  }, [identity, retry, user?.points_balance]);
+
+  async function unlock() {
+    if (busyRef.current || insufficient || !access || access.pending) return;
+    busyRef.current = true;
+    accessVersion.current += 1;
+    setBusy(true);
+    setError(null);
+    const requestedIdentity = identity;
+    try {
+      const result = await unlockFortune(birth, gender, year);
+      if (alive.current && identityRef.current === requestedIdentity) setAccess(result);
     } catch (e) {
-      Alert.alert(
-        "產生失敗",
-        e instanceof ApiError ? e.message : "請稍後再試"
-      );
+      // 回應遺失時先查保存狀態，重試不會購買第二次。
+      if (alive.current && identityRef.current === requestedIdentity) {
+        try {
+          const result = await fetchFortuneAccess(birth, gender, year);
+          if (alive.current && identityRef.current === requestedIdentity) {
+            setAccess(result);
+            if (result.pending) setRetry((n) => n + 1);
+            if (!result.ready && !result.pending) setError(e instanceof ApiError ? e.message : "流年產生失敗，請稍後再試");
+          }
+        } catch {
+          if (alive.current && identityRef.current === requestedIdentity) {
+            setAccess(null);
+            setError("連線中斷，請重新整理確認解鎖狀態。");
+          }
+        }
+      }
     } finally {
-      setAdviceLoading(false);
+      busyRef.current = false;
+      if (alive.current) setBusy(false);
+      await refresh();
     }
   }
-
-  async function copyAdvice() {
-    if (!adviceText) return;
-    await copy(adviceText);
-  }
-
-  useEffect(() => {
-    let alive = true;
-    setLoading(true);
-    setError(null);
-    fetchFortune(birth, gender, year)
-      .then((d) => alive && setData(d))
-      .catch((e) => alive && setError(e instanceof ApiError ? e.message : "流年載入失敗"))
-      .finally(() => alive && setLoading(false));
-    return () => {
-      alive = false;
-    };
-  }, [birth.y, birth.m, birth.d, birth.h, gender, year]);
 
   return (
     <View style={styles.wrap}>
       <View style={styles.head}>
         <Text style={styles.title}>流年</Text>
         <View style={styles.yearNav}>
-          <Pressable onPress={() => setYear((v) => v - 1)} hitSlop={8}>
+          <Pressable disabled={busy || access?.pending || year <= 1900} onPress={() => setYear((v) => v - 1)} hitSlop={8}>
             <Text style={styles.navTxt}>‹</Text>
           </Pressable>
           <Text style={styles.yearTxt}>{year}</Text>
-          <Pressable onPress={() => setYear((v) => v + 1)} hitSlop={8}>
+          <Pressable disabled={busy || access?.pending || year >= 2100} onPress={() => setYear((v) => v + 1)} hitSlop={8}>
             <Text style={styles.navTxt}>›</Text>
           </Pressable>
         </View>
@@ -101,6 +139,27 @@ export default function FortunePanel({ birth, gender }: Props) {
 
       {loading && <ActivityIndicator color={colors.primary} style={{ marginVertical: spacing.md }} />}
       {error && <Text style={styles.error}>{error}</Text>}
+
+      {error && !loading && <TouchableOpacity onPress={() => setRetry((n) => n + 1)}><Text style={styles.copyBtnText}>重新整理</Text></TouchableOpacity>}
+      {access && !access.ready && !loading && (
+        <View style={styles.card}>
+          <Text style={styles.tableTitle}>{access.unlocked ? "這份流年已解鎖" : `${year} 年，留一點時間給自己`}</Text>
+          <Text style={styles.sub}>完整流年、12 個流月與 AI 生活建議，一次解鎖全部內容。</Text>
+          <Text style={styles.sub}>同一出生資料、性別與年份重看不再扣果實。不同資料或年份需另行解鎖。</Text>
+          <Text style={styles.sub}>目前有 {balance} 顆果實{access.unlocked ? " · 本次不扣果實" : ` · 解鎖需要 ${cost} 顆`}</Text>
+          <TouchableOpacity
+            testID="fortune-unlock"
+            style={[styles.adviceBtn, (busy || insufficient || access.pending) && styles.adviceBtnBusy]}
+            disabled={busy || insufficient || access.pending}
+            onPress={unlock}
+          >
+            {busy || access.pending ? <ActivityIndicator color={colors.primaryText} /> : null}
+            <Text style={styles.adviceBtnText}>{busy || access.pending ? "正在準備你的流年與 AI 解讀…" : access.unlocked ? "重新產生已解鎖流年（不扣果實）" : `解鎖完整流年（${cost} 顆果實）`}</Text>
+          </TouchableOpacity>
+          {insufficient && <Text style={styles.error}>果實不足，請至「我的」查看餘額。新註冊完成 Email 驗證可領取 2 顆。</Text>}
+          <Text style={styles.sub}>AI 解讀保存 30 天；到期後可免費重新產生這份已解鎖的流年。</Text>
+        </View>
+      )}
 
       {data && !loading && (
         <>
@@ -121,32 +180,14 @@ export default function FortunePanel({ birth, gender }: Props) {
             )}
           </View>
 
-          {/* 流年宜忌(進階・扣點):產生白話建議 prompt */}
           <View style={styles.adviceWrap}>
-            <TouchableOpacity
-              style={[styles.adviceBtn, adviceLoading && styles.adviceBtnBusy]}
-              onPress={genAdvice}
-              disabled={adviceLoading}
-              activeOpacity={0.85}
-            >
-              {adviceLoading ? (
-                <ActivityIndicator color={colors.primaryText} />
-              ) : (
-                <Text style={styles.adviceBtnText}>🔮 今年宜忌・生活化建議（進階・扣點）</Text>
-              )}
-            </TouchableOpacity>
-            {adviceText && (
-              <View style={styles.adviceBox}>
-                <Text style={styles.adviceHint}>
-                  下面是依你今年命盤產生的「流年宜忌」內容，可複製到任何 AI（Claude／ChatGPT…）請它讀給你聽：
-                </Text>
-                <Text selectable style={styles.adviceContent}>{adviceText}</Text>
-                <TouchableOpacity style={styles.copyBtn} onPress={copyAdvice}>
-                  <Text style={styles.copyBtnText}>{copied ? "✓ 已複製" : "複製"}</Text>
-                </TouchableOpacity>
-                <CopyFeedback feedback={feedback} />
-              </View>
-            )}
+            <Text style={styles.tableTitle}>命果 AI · 今年的生活建議</Text>
+            {access?.reading && <MingoReading text={access.reading.replace(/^#{1,6}\s+(.+)$/gm, "【$1】")} />}
+            <Text style={styles.adviceHint}>已解鎖 · 同份重看不扣果實{access?.saved_until ? ` · AI 保存至 ${new Date(access.saved_until).toLocaleDateString("zh-TW")}` : ""}</Text>
+            {!!access?.prompt && <TouchableOpacity style={styles.copyBtn} onPress={() => copy(access.prompt!)}>
+              <Text style={styles.copyBtnText}>{copied ? "✓ 已複製" : "複製 AI Prompt（免費）"}</Text>
+            </TouchableOpacity>}
+            <CopyFeedback feedback={feedback} />
           </View>
 
           {/* 流年斷語 */}

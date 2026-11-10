@@ -23,5 +23,6 @@ export type FeaturesStackParamList = {
 /** 外層 Stack:主分頁 + 可由多個分頁進入的卜卦頁。 */
 export type RootStackParamList = {
   Tabs: undefined;
+  Fortune: undefined;
   Cast: { mode: CastMode; autoBirth?: AutoBirth };
 };

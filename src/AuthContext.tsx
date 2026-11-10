@@ -13,6 +13,7 @@ import React, {
   useEffect,
   useState,
   useCallback,
+  useRef,
 } from "react";
 import {
   User,
@@ -21,10 +22,9 @@ import {
   loginEmail,
   fetchMe,
   ApiError,
-  claimWelcomePromotion,
 } from "./api";
 import { getItem, setItem, deleteItem } from "./storage";
-import { getSignedAppTransaction } from "../modules/mingo-storekit";
+import { AppState } from "react-native";
 
 const TOKEN_KEY = "hexagram_auth_token";
 
@@ -50,6 +50,8 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUserState] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const currentUserId = useRef(user?.id);
+  currentUserId.current = user?.id;
 
   // 把 token 同時寫進記憶體(api 層)與安全儲存
   const persistToken = useCallback(async (token: string | null) => {
@@ -107,39 +109,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [persistToken]);
 
   const refresh = useCallback(async () => {
+    const uid = currentUserId.current;
+    if (!uid) return;
     try {
       const { user: me } = await fetchMe();
-      setUserState(me);
+      if (currentUserId.current === uid) setUserState(me);
     } catch (e) {
-      if (e instanceof ApiError && e.status === 401) {
+      if (e instanceof ApiError && e.status === 401 && currentUserId.current === uid) {
         await persistToken(null);
         setUserState(null);
       }
     }
   }, [persistToken]);
 
-  // 登入且完成 Email 驗證後，以 Apple 簽署的 AppTransaction 嘗試領取新戶禮。
-  // 失敗不阻擋登入；同一 Apple Account 重複呼叫也只會領取一次。
+  // 從信箱驗證返回 App 時更新贈送果實；不因原生提示框短暫 inactive 而刷新。
   useEffect(() => {
-    if (!user?.email_verified) return;
-    let alive = true;
-    (async () => {
-      const signed = await getSignedAppTransaction();
-      if (!signed) return;
-      try {
-        const result = await claimWelcomePromotion(signed);
-        if (alive && result.balance !== user.points_balance) {
-          setUserState((current) => current ? {
-            ...current,
-            points_balance: result.balance,
-          } : current);
-        }
-      } catch {
-        // StoreKit/網路暫時不可用時，下次登入或啟動會再嘗試。
+    let backgrounded = AppState.currentState === "background";
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "background") backgrounded = true;
+      if (state === "active" && backgrounded) {
+        backgrounded = false;
+        const uid = currentUserId.current;
+        if (uid) fetchMe().then(({ user: me }) => {
+          if (currentUserId.current === uid) setUserState(me);
+        }).catch(() => {});
       }
-    })();
-    return () => { alive = false; };
-  }, [user?.id, user?.email_verified]);
+    });
+    return () => subscription.remove();
+  }, []);
 
   const setUser = useCallback((u: User) => setUserState(u), []);
 

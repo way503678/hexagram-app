@@ -252,6 +252,32 @@ export async function checkHealth(): Promise<boolean> {
   }
 }
 
+export interface FortuneAccess {
+  cost: number;
+  balance: number;
+  unlocked: boolean;
+  ready: boolean;
+  pending: boolean;
+  fortune_id: number | null;
+  fortune: FortuneResult | null;
+  reading: string | null;
+  prompt: string | null;
+  saved_until: string | null;
+  charged: boolean;
+}
+
+export function fetchFortuneAccess(birth: { y: number; m: number; d: number; h: number }, gender: string, year: number): Promise<FortuneAccess> {
+  return getJson<FortuneAccess>(`/api/v1/fortune/access?y=${birth.y}&m=${birth.m}&d=${birth.d}&h=${birth.h}&year=${year}&gender=${encodeURIComponent(gender)}`);
+}
+
+export function unlockFortune(birth: { y: number; m: number; d: number; h: number }, gender: string, year: number): Promise<FortuneAccess> {
+  return postJson<FortuneAccess>("/api/v1/fortune/unlock", { ...birth, gender, year }, 180000);
+}
+
+export function resendVerificationEmail(): Promise<{ ok: boolean; already?: boolean }> {
+  return postJson("/api/v1/auth/resend_verify", {});
+}
+
 // ============================================================
 // 會員登入
 // ============================================================
@@ -262,6 +288,7 @@ export interface User {
   email: string | null;
   points_balance: number;
   email_verified: boolean;
+  registration_bonus_eligible?: boolean;
   is_admin?: boolean;
   gender: "M" | "F" | null;
   birth_y: number | null;
@@ -276,7 +303,7 @@ export interface AuthResult {
   user: User;
 }
 
-/** Email 註冊。成功回傳 token + 會員資料；新戶禮由 Apple AppTransaction 另行判定。
+/** Email 註冊。成功回傳 token + 會員資料；新註冊完成 Email 驗證後贈送 2 顆果實。
  *  agreed=true 代表已同意個資同意書 + 免責聲明(App 端按鈕已鎖,送出時必為 true)。 */
 export function registerEmail(
   email: string,

@@ -13,6 +13,7 @@ import { FeaturesStackParamList, RootStackParamList, RootTabParamList } from "./
 import HomeScreen from "./src/screens/HomeScreen";
 import FeaturesScreen from "./src/screens/FeaturesScreen";
 import AlmanacScreen from "./src/screens/AlmanacScreen";
+import FortuneScreen from "./src/screens/FortuneScreen";
 import CastScreen from "./src/screens/CastScreen";
 import LoginScreen from "./src/screens/LoginScreen";
 import MemberScreen from "./src/screens/MemberScreen";
@@ -137,6 +138,7 @@ function Root() {
           }}
         >
           <Stack.Screen name="Tabs" component={MainTabs} options={{ headerShown: false }} />
+          <Stack.Screen name="Fortune" component={FortuneScreen} options={{ title: "流年運勢" }} />
           <Stack.Screen
             name="Cast"
             component={CastScreen}

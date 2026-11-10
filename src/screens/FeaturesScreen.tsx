@@ -1,4 +1,4 @@
-/** 功能頁:目前只放「今日黃曆」與「卜卦問事」(未來再加流年/命盤/AI)。 */
+/** 探索：黃曆、卜卦與流年。 */
 import React from "react";
 import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -59,6 +59,13 @@ export default function FeaturesScreen() {
           compact={compact}
           onPress={() => nav.navigate("Cast", { mode: "coin" })}
         />
+        {featureFlags.fortuneDetails && <MenuCard
+          icon="fortune"
+          title="流年運勢"
+          sub={"完整流年・12 流月・AI 解讀\n2 顆果實解鎖，同份重看不扣"}
+          compact={compact}
+          onPress={() => nav.navigate("Fortune")}
+        />}
         <Text style={styles.soon}>更多功能即將登場 ✦</Text>
       </ScrollView>
     </SafeAreaView>

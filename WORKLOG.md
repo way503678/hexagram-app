@@ -233,3 +233,13 @@ eas build --profile production --platform android
       App 目前只有擲卦動畫;若要做,用 Picker/按鈕選每爻(少陽/少陰/老陽/老陰),同步送出的 y0~y5。
       (使用者目前說先只要 web,暫緩。)
 - [ ] **推播通知**:expo-notifications + Expo Push,需存使用者 push token。
+
+## 2026-11-10 流年功能恢復（尚未發佈）
+
+- 使用者確認：2 顆果實解鎖完整流年／流月與 AI，同份重看不扣；新註冊完成 Email 驗證贈送 2 顆。
+- 乾淨 worktree `/opt/hexagram-app-fortune-20261110`，`feature/fortune-unlock`，基於已發佈 af927d3。主目錄的 index.ts／AlmanacScreen／LayoutPreview 草稿保持原樣；本 worktree 的 index.ts 仍載入真正 App。
+- 「探索」加入流年運勢獨立頁，啟用既有命盤的流年面板；無出生資料時引導至會員資料。畫面先 GET 查已購資格，只有明確按鈕才 POST 解鎖，含果實不足、生成中、失敗重試、逾時狀態恢復。已解鎖直接顯示完整結果、AI 及免費複製 Prompt；AI 30 天到期後同份免費重新產生。
+- 註冊／會員頁說明新戶 2 顆贈送，含重寄驗證與重新整理。移除新版自動呼叫舊 Apple 贈送端點，改由已驗證 Email 入帳；背景返回刷新餘額，保留剪貼簿 inline 提示與首頁 RefreshControl 修正。
+- 後端配套見 `/opt/hexagram/docs/WORKLOG.md` 2026-11-10，需先部署後端再發 App。
+- 驗證：TypeScript 通過，17 項 App 測試通過，Expo Doctor 18/18；Web export 與 iOS Hermes bundle export 通過。Chromium 390x844／768x1024 預覽驗證只按購買一次、重開與換年不再 POST；新戶提示／重寄信／刷新贈點流程使用測試資料。
+- 截圖：`/root/.codex/visualizations/2026/10/15/01a13ecb-b7f6-7711-ba7a-754a1b4554e6/fortune-20261110/`（假會員與示意 AI 內容，排盤使用真引擎）。這是瀏覽器預覽，尚未做 iPhone 實機回歸，尚未送 TestFlight。

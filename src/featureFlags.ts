@@ -5,5 +5,5 @@ export const featureFlags = {
   dailyGuide: false,
   almanac: true,
   homeAlmanac: false,
-  fortuneDetails: false,
+  fortuneDetails: true,
 } as const;

@@ -210,6 +210,7 @@ export default function LoginScreen({
                   editable={!busy}
                 />
 
+                <Text style={styles.consentNote}>新註冊完成 Email 驗證，贈送 2 顆果實，可解鎖一次完整流年與 AI 解讀。</Text>
                 <Text style={styles.consentNote}>
                   註冊即表示你已閱讀並同意個人資料蒐集使用同意書與免責聲明。
                 </Text>

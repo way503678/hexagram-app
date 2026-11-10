@@ -243,3 +243,11 @@ eas build --profile production --platform android
 - 後端配套見 `/opt/hexagram/docs/WORKLOG.md` 2026-11-10，需先部署後端再發 App。
 - 驗證：TypeScript 通過，17 項 App 測試通過，Expo Doctor 18/18；Web export 與 iOS Hermes bundle export 通過。Chromium 390x844／768x1024 預覽驗證只按購買一次、重開與換年不再 POST；新戶提示／重寄信／刷新贈點流程使用測試資料。
 - 截圖：`/root/.codex/visualizations/2026/10/15/01a13ecb-b7f6-7711-ba7a-754a1b4554e6/fortune-20261110/`（假會員與示意 AI 內容，排盤使用真引擎）。這是瀏覽器預覽，尚未做 iPhone 實機回歸，尚未送 TestFlight。
+
+### 2026-11-11 iOS 20 發佈追蹤
+
+- 使用者已授權「先發布吧」。後端 `0b8d9dc` 於 2026-11-10 23:46（台北）上線，公開 API 真實新戶贈點、Claude 生成、扣款一次與零餘額重看驗證通過；測試資料已清除。
+- iOS 1.0.0（20）正式建置 **FINISHED**（2026-11-10 23:51 台北），原始碼 `622eb9f`，版本號同步 `9d16bc2`，均已 push GitHub main；主目錄原有 LayoutPreview／黃曆草稿保留。
+- EAS build：`9177b6e4-220c-483c-9ddc-ba2776fa118d`。
+- TestFlight submission：`7cf5ae9b-d1fa-4215-8584-52439b4000ce`，2026-11-11 00:07（台北）狀態 **IN_QUEUE**，尚未上傳完成。
+- 提交 workflow：`01a1c628-3fd5-798e-ac11-50f42d0b6f9b`；job：`01a1c628-3fd5-741a-ae77-6567f49018b5`（IN_PROGRESS、尚無日誌／錯誤）。以 `npx eas-cli status --json --limit 1` 核對最終 submission **FINISHED** 才能宣告 TestFlight 提交完成。

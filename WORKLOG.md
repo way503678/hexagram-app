@@ -234,7 +234,7 @@ eas build --profile production --platform android
       (使用者目前說先只要 web,暫緩。)
 - [ ] **推播通知**:expo-notifications + Expo Push,需存使用者 push token。
 
-## 2026-11-10 流年功能恢復（尚未發佈）
+## 2026-11-10 流年功能恢復（已提交 TestFlight）
 
 - 使用者確認：2 顆果實解鎖完整流年／流月與 AI，同份重看不扣；新註冊完成 Email 驗證贈送 2 顆。
 - 乾淨 worktree `/opt/hexagram-app-fortune-20261110`，`feature/fortune-unlock`，基於已發佈 af927d3。主目錄的 index.ts／AlmanacScreen／LayoutPreview 草稿保持原樣；本 worktree 的 index.ts 仍載入真正 App。
@@ -242,7 +242,7 @@ eas build --profile production --platform android
 - 註冊／會員頁說明新戶 2 顆贈送，含重寄驗證與重新整理。移除新版自動呼叫舊 Apple 贈送端點，改由已驗證 Email 入帳；背景返回刷新餘額，保留剪貼簿 inline 提示與首頁 RefreshControl 修正。
 - 後端配套見 `/opt/hexagram/docs/WORKLOG.md` 2026-11-10，需先部署後端再發 App。
 - 驗證：TypeScript 通過，17 項 App 測試通過，Expo Doctor 18/18；Web export 與 iOS Hermes bundle export 通過。Chromium 390x844／768x1024 預覽驗證只按購買一次、重開與換年不再 POST；新戶提示／重寄信／刷新贈點流程使用測試資料。
-- 截圖：`/root/.codex/visualizations/2026/10/15/01a13ecb-b7f6-7711-ba7a-754a1b4554e6/fortune-20261110/`（假會員與示意 AI 內容，排盤使用真引擎）。這是瀏覽器預覽，尚未做 iPhone 實機回歸，尚未送 TestFlight。
+- 截圖：`/root/.codex/visualizations/2026/10/15/01a13ecb-b7f6-7711-ba7a-754a1b4554e6/fortune-20261110/`（假會員與示意 AI 內容，排盤使用真引擎）。這是瀏覽器預覽，尚未做 iPhone 實機回歸；iOS 20 已完成 TestFlight 提交，詳見下方發佈紀錄。
 
 ### 2026-11-11 iOS 20 發佈追蹤
 
@@ -251,3 +251,5 @@ eas build --profile production --platform android
 - EAS build：`9177b6e4-220c-483c-9ddc-ba2776fa118d`。
 - TestFlight submission：`7cf5ae9b-d1fa-4215-8584-52439b4000ce`，2026-11-11 00:07（台北）狀態 **IN_QUEUE**，尚未上傳完成。
 - 提交 workflow：`01a1c628-3fd5-798e-ac11-50f42d0b6f9b`；job：`01a1c628-3fd5-741a-ae77-6567f49018b5`（IN_PROGRESS、尚無日誌／錯誤）。以 `npx eas-cli status --json --limit 1` 核對最終 submission **FINISHED** 才能宣告 TestFlight 提交完成。
+
+- **最終完成**：2026-11-11 00:38:38（台北），iOS 1.0.0（20）的 build 與 submission 均為 **FINISHED**，workflow **SUCCESS**、errors 為空。TestFlight 提交已完成；Apple 處理後可安裝。未提交 App Store 公開審查，未發佈 Android。後端最後 health 為 ok／Docker healthy。

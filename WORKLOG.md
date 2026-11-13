@@ -282,3 +282,11 @@ eas build --profile production --platform android
 - 使用者已明確授權「可以發佈一版了」，並補充 iOS 與 Android 都要更新。發布範圍為上述已確認的全部草稿；iOS 送 TestFlight，Android 送既有 Google Play internal 軌道。
 - 從乾淨 `/opt/hexagram-app-release-20261113` 建置，排除主目錄未提交的 LayoutPreview、index 與黃曆草稿。發布前 TypeScript、22 項 App 測試、expo-doctor 18/18 通過；後端 40 項隔離測試通過。後端先部署免費 Email API 與預設 off 快取，再送 App 雙平台。
 - 返回與安全範圍已做元件／瀏覽器驗證；目前無連線 iPhone／iPad 真機，仍需安裝新版確認原生切換 App 後返回。建置／商店提交狀態將於完成後補記，不把排隊視為發布完成。
+
+### 2026-11-13 雙平台建置追蹤
+
+- 已從乾淨發布工作樹送 `eas build --platform all --profile production --auto-submit --non-interactive --no-wait`，來源 `4840684`；自動遞增版本已同步提交 `6c349b9` 並 push main：iOS 1.0.0（21）、Android 1.0.0（versionCode 16）。
+- iOS build `b21b45a2-0697-4574-a5d5-45158e48edb9`；TestFlight submission `cdf9688e-2acc-433e-bbc9-6c8a6620dd4e`。
+- Android build `0cd91026-61b6-46a1-bab6-0360d1f30cf3`；Google Play internal submission `bd683cc1-3519-4321-bd66-e299fda7df32`。
+- 初始狀態兩邊皆 IN_PROGRESS，提交 AWAITING_BUILD；尚未完成。最終需兩筆 build／submission 均 FINISHED，兩筆 submit workflow SUCCESS 才能宣告完成。
+- 後端已部署 `f0aca46`，Docker healthy、公開 health ok、實際 cache TTL=off；正式合成帳號的保存讀取／免費 Email 路由（傳輸 mock）與防重送／零餘額通過。未寄真信，未呼叫真實 AI；臨時帳號與資料已刪除。

@@ -584,7 +584,6 @@ export default function MemberScreen() {
                     <Text style={styles.readingToggleText}>查看卦象與已購內容</Text>
                     <Text style={styles.histMeta}>
                       查看歷史不扣果實
-                      {q.ai_reading ? `　AI 保存至 ${formatDate(q.ai_reading_expires_at)}` : ""}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -777,18 +776,12 @@ export default function MemberScreen() {
                       </TouchableOpacity>
                     </View>
                     <CopyFeedback feedback={feedback} />
-                    <Text style={styles.histMeta}>
-                      保存至 {formatDate(historyDetail.prompt_expires_at)}
-                    </Text>
                     <Text selectable style={styles.savedReading}>{historyDetail.prompt_text}</Text>
                   </View>
                 )}
                 {historyDetail.ai_reading && (
                   <View style={styles.savedContentCard}>
                     <Text style={styles.savedContentTitle}>命果 AI 解讀</Text>
-                    <Text style={styles.histMeta}>
-                      保存至 {formatDate(historyDetail.ai_reading_expires_at)}
-                    </Text>
                     <MingoReading text={historyDetail.ai_reading} />
                     <EmailReadingButton key={historyDetail.id} recordId={historyDetail.id} />
                   </View>

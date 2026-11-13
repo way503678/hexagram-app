@@ -266,3 +266,8 @@ eas build --profile production --platform android
 - 真實 App 入口的瀏覽器流程：起卦→解讀等待→結果→寄送 mock→關閉→複製 Prompt→切換視窗／回到 App→按返回；個人紀錄開關與 mock 寄送；320／390／768 寬版面。所有遠端請求均攔截，以合成資料回覆，沒有真實購買／寄信；只有一次 mock 解讀、兩次明確點擊 mock Email、零次流年購買。瀏覽器無 pageerror。
 - 使用瀏覽器 safe-area 模擬 top=59 / bottom=34，個人紀錄標題 y=75，頂部未與預留區域重疊。這是瀏覽器驗證，不能等同 iPhone 真機；原生 iPhone/iPad「切出 App→返回→上一頁」問題尚需新版實機驗證，不能宣稱已證實根因或完全修復。
 - 截圖及 browser-results.json：`/root/.codex/visualizations/2026/10/15/01a13ecb-b7f6-7711-ba7a-754a1b4554e6/draft-20261113/`（01 探索、02 流年、03 等待、04 解讀、05 Email、06 個人紀錄頂部、07 個人解讀、08 小手機／平板）。目前全部未發佈。
+
+### 2026-11-13 個人紀錄隱藏保存期限（草稿補調）
+
+- 依使用者要求，移除個人紀錄列表的 AI 保存截止時間，以及詳情內 Prompt／AI 解讀的「保存至」時間文字；起卦時間保留。只調整顯示，不更動後端保存期限或到期處理。
+- TypeScript、web 本機匯出及瀏覽器檢查通過：帶有 Prompt 與 AI 的模擬紀錄不顯示任何「保存至」或截止日期，仍保留起卦日期；無實際解讀／扣款／寄信請求。截圖 `draft-20261113/09-history-no-expiry.png`。未發佈。

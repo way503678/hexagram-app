@@ -781,7 +781,7 @@ export default function MemberScreen() {
                 )}
                 {historyDetail.ai_reading && (
                   <View style={styles.savedContentCard}>
-                    <Text style={styles.savedContentTitle}>命果 AI 解讀</Text>
+                    <Text style={[styles.savedContentTitle, styles.savedReadingTitle]}>命果 AI 解讀</Text>
                     <MingoReading text={historyDetail.ai_reading} />
                     <EmailReadingButton key={historyDetail.id} recordId={historyDetail.id} />
                   </View>
@@ -1132,6 +1132,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   savedContentTitle: { fontSize: 16, fontWeight: "800", color: colors.primary },
+  savedReadingTitle: { marginBottom: 12 },
   historyDetailDone: {
     margin: spacing.md,
     backgroundColor: colors.primary,

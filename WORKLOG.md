@@ -271,3 +271,8 @@ eas build --profile production --platform android
 
 - 依使用者要求，移除個人紀錄列表的 AI 保存截止時間，以及詳情內 Prompt／AI 解讀的「保存至」時間文字；起卦時間保留。只調整顯示，不更動後端保存期限或到期處理。
 - TypeScript、web 本機匯出及瀏覽器檢查通過：帶有 Prompt 與 AI 的模擬紀錄不顯示任何「保存至」或截止日期，仍保留起卦日期；無實際解讀／扣款／寄信請求。截圖 `draft-20261113/09-history-no-expiry.png`。未發佈。
+
+### 2026-11-13 個人解讀標題留白（草稿補調）
+
+- 在個人紀錄「命果 AI 解讀」標題與下方紫色摘要框之間增加 12 點間距，使用獨立樣式，不影響已購 Prompt 標題。
+- TypeScript、web 匯出及瀏覽器驗證通過，量測標題至摘要框間距為 12px；截圖 `draft-20261113/10-history-title-gap.png`。未發佈。

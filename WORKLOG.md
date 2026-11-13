@@ -276,3 +276,9 @@ eas build --profile production --platform android
 
 - 在個人紀錄「命果 AI 解讀」標題與下方紫色摘要框之間增加 12 點間距，使用獨立樣式，不影響已購 Prompt 標題。
 - TypeScript、web 匯出及瀏覽器驗證通過，量測標題至摘要框間距為 12px；截圖 `draft-20261113/10-history-title-gap.png`。未發佈。
+
+## 2026-11-13 本批次發布授權
+
+- 使用者已明確授權「可以發佈一版了」，並補充 iOS 與 Android 都要更新。發布範圍為上述已確認的全部草稿；iOS 送 TestFlight，Android 送既有 Google Play internal 軌道。
+- 從乾淨 `/opt/hexagram-app-release-20261113` 建置，排除主目錄未提交的 LayoutPreview、index 與黃曆草稿。發布前 TypeScript、22 項 App 測試、expo-doctor 18/18 通過；後端 40 項隔離測試通過。後端先部署免費 Email API 與預設 off 快取，再送 App 雙平台。
+- 返回與安全範圍已做元件／瀏覽器驗證；目前無連線 iPhone／iPad 真機，仍需安裝新版確認原生切換 App 後返回。建置／商店提交狀態將於完成後補記，不把排隊視為發布完成。

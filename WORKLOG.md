@@ -290,3 +290,11 @@ eas build --profile production --platform android
 - Android build `0cd91026-61b6-46a1-bab6-0360d1f30cf3`；Google Play internal submission `bd683cc1-3519-4321-bd66-e299fda7df32`。
 - 初始狀態兩邊皆 IN_PROGRESS，提交 AWAITING_BUILD；尚未完成。最終需兩筆 build／submission 均 FINISHED，兩筆 submit workflow SUCCESS 才能宣告完成。
 - 後端已部署 `f0aca46`，Docker healthy、公開 health ok、實際 cache TTL=off；正式合成帳號的保存讀取／免費 Email 路由（傳輸 mock）與防重送／零餘額通過。未寄真信，未呼叫真實 AI；臨時帳號與資料已刪除。
+
+### 2026-11-13 雙平台發布完成
+
+- iOS 1.0.0（21）：build `b21b45a2-0697-4574-a5d5-45158e48edb9` **FINISHED**；TestFlight submission `cdf9688e-2acc-433e-bbc9-6c8a6620dd4e` **FINISHED**（2026-11-13 15:17:52 台北）；submit workflow `01a1d3c4-d4bf-7220-b20a-1733eccc36c8` **SUCCESS**，errors 空。
+- Android 1.0.0（versionCode 16）：build `0cd91026-61b6-46a1-bab6-0360d1f30cf3` **FINISHED**；Google Play internal submission `bd683cc1-3519-4321-bd66-e299fda7df32` **FINISHED**；submit workflow `01a1d3c7-d4d5-70ce-93bb-c402f281a77e` **SUCCESS**，errors 空。2026-11-13 15:21:36（台北）確認雙平台最終狀態均完成。
+- 建置來源均 `4840684`，版本同步 `6c349b9`；兩邊只送既有測試通道，沒有提交公開 App Store 審查或 Google Play 正式軌道。商店處理完成後，測試人員可安裝。
+- 本批次已確認範圍全部包含：流年價格內移／文字間距、移除續聊反思入口、較大段落標題／縮小摘要、個人紀錄安全範圍／隱藏保存期限／標題與摘要間距、等待勿離開提示、免費 Email 與返回按鈕／Modal 生命週期調整；後端 off 快取及 Email API 已上線。
+- 主 App 目錄原有 index.ts／黃曆／LayoutPreview／artifacts 未提交草稿保留。原生 iPhone／iPad 返回問題仍需安裝新版實機確認，沒有宣稱瀏覽器測試等同原生驗證。Email 傳輸未寄真實測試信。

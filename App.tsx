@@ -144,6 +144,7 @@ function Root() {
             component={CastScreen}
             options={({ route }) => ({
               title: route.params?.mode === "time" ? "命盤排卦" : "卜卦問事",
+              headerShown: false,
             })}
           />
         </Stack.Navigator>

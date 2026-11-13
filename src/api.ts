@@ -395,6 +395,11 @@ export function fetchQuestionDetail(id: number): Promise<QuestionDetail> {
   return getJson<QuestionDetail>(`/api/v1/member/questions/${id}`);
 }
 
+/** 寄送本人已保存的解讀至已驗證信箱；不產生 AI、不扣果實。 */
+export function emailReading(id: number): Promise<{ ok: boolean; email: string }> {
+  return postJson(`/api/v1/member/questions/${id}/email`, {});
+}
+
 /** 修改密碼。 */
 export function changePassword(
   currentPassword: string,

@@ -253,3 +253,16 @@ eas build --profile production --platform android
 - 提交 workflow：`01a1c628-3fd5-798e-ac11-50f42d0b6f9b`；job：`01a1c628-3fd5-741a-ae77-6567f49018b5`（IN_PROGRESS、尚無日誌／錯誤）。以 `npx eas-cli status --json --limit 1` 核對最終 submission **FINISHED** 才能宣告 TestFlight 提交完成。
 
 - **最終完成**：2026-11-11 00:38:38（台北），iOS 1.0.0（20）的 build 與 submission 均為 **FINISHED**，workflow **SUCCESS**、errors 為空。TestFlight 提交已完成；Apple 處理後可安裝。未提交 App Store 公開審查，未發佈 Android。後端最後 health 為 ok／Docker healthy。
+
+## 2026-11-13 流年與 AI 解讀體驗調整（草稿，未發佈）
+
+- 嚴格遵守使用者「先改不發佈，我說發佈再發佈」。草稿只在 `/opt/hexagram-app-draft-20261113`、`draft/fortune-reading-ui-20261113`；不 push、不合併 main、不建立 EAS build／submit／OTA，也不更動版本號。主 App 目錄的 LayoutPreview／黃曆／artifacts 草稿保留原狀；本工作樹 `index.ts` 仍載入真實 App。
+- 探索的流年卡移除 2 果實副標，價格與免費重看規則改在點入流年後顯示。流年購買卡分段、行高、間距與按鈕內距調整；保留出生資料／性別／年份資格、2 果實與 30 天保存說明。等待期間加上請勿跳出提示。
+- AI 解讀移除繼續聊、記下感受／下週提醒入口。保留既有元件檔及後端資料，未刪除歷史提醒。一般與可收合段落標題 17、內文 15；標題行高 25、內文 26。紫色一句話摘要改為內距 16、字級 15、行高 24、圓角 16，縮小閱讀頁及個人紀錄中的摘要。
+- 按解讀後顯示「解讀中，請勿跳出 App 或離開此畫面。完成後會自動顯示結果。」顯示期間不新增原生 Alert。
+- Cast 使用頁面內 48x48 返回按鈕直接執行 goBack，無前頁時導向 Tabs；隱藏該頁原生 header 並保留頂部安全範圍。解讀及歷史 Modal 僅在開啟時掛載，關閉即移除，避免隱藏視窗殘留；歷史全螢幕視窗內建立獨立 SafeAreaProvider，標題／關閉按鈕避開狀態列。
+- 新增 EmailReadingButton：結果與個人紀錄都可明確點擊免費寄至本人已驗證信箱；列出收件信箱，寄送中防連點、成功／錯誤皆頁內回饋。後端需搭配 `/opt/hexagram-draft-20261113` 的免費寄送 API；寄送不會重新產生解讀或扣款。
+- 驗證：TypeScript 通過，22 項 Node 測試通過；新增返回與 fallback、等待提示、關閉後完整移除 Modal、Email 不自動寄送／防連點／未驗證／失敗可重試。Expo web 與 iOS Hermes bundle 本機匯出成功（不是雲端 build 或 TestFlight）。
+- 真實 App 入口的瀏覽器流程：起卦→解讀等待→結果→寄送 mock→關閉→複製 Prompt→切換視窗／回到 App→按返回；個人紀錄開關與 mock 寄送；320／390／768 寬版面。所有遠端請求均攔截，以合成資料回覆，沒有真實購買／寄信；只有一次 mock 解讀、兩次明確點擊 mock Email、零次流年購買。瀏覽器無 pageerror。
+- 使用瀏覽器 safe-area 模擬 top=59 / bottom=34，個人紀錄標題 y=75，頂部未與預留區域重疊。這是瀏覽器驗證，不能等同 iPhone 真機；原生 iPhone/iPad「切出 App→返回→上一頁」問題尚需新版實機驗證，不能宣稱已證實根因或完全修復。
+- 截圖及 browser-results.json：`/root/.codex/visualizations/2026/10/15/01a13ecb-b7f6-7711-ba7a-754a1b4554e6/draft-20261113/`（01 探索、02 流年、03 等待、04 解讀、05 Email、06 個人紀錄頂部、07 個人解讀、08 小手機／平板）。目前全部未發佈。

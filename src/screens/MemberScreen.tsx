@@ -13,7 +13,7 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { useClipboardFeedback } from "../hooks/useClipboardFeedback";
 import CopyFeedback from "../components/CopyFeedback";
 import { useNavigation } from "@react-navigation/native";
@@ -39,6 +39,7 @@ import {
 } from "../api";
 import ChartResult from "../components/ChartResult";
 import MingoReading from "../components/MingoReading";
+import EmailReadingButton from "../components/EmailReadingButton";
 
 /** 帳本 reason 轉中文。 */
 const REASON_LABEL: Record<string, string> = {
@@ -737,67 +738,70 @@ export default function MemberScreen() {
         </View>
       </Modal>
 
-      <Modal visible={historyDetailVisible} animationType="slide"
+      {historyDetailVisible && <Modal visible animationType="slide" presentationStyle="fullScreen"
         onRequestClose={() => setHistoryDetailVisible(false)}>
-        <SafeAreaView style={styles.historyDetailSafe}>
-          <View style={styles.historyDetailHeader}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.historyDetailTitle}>卜卦紀錄</Text>
-              <Text style={styles.histMeta}>查看與複製已購內容不會扣果實</Text>
+        <SafeAreaProvider>
+          <SafeAreaView style={styles.historyDetailSafe}>
+            <View style={styles.historyDetailHeader}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.historyDetailTitle}>卜卦紀錄</Text>
+                <Text style={styles.histMeta}>查看與複製已購內容不會扣果實</Text>
+              </View>
+              <Pressable accessibilityRole="button" accessibilityLabel="關閉卜卦紀錄" onPress={() => setHistoryDetailVisible(false)} style={{ width: 44, height: 44, alignItems: "center", justifyContent: "center" }}>
+                <Text style={styles.historyDetailClose}>✕</Text>
+              </Pressable>
             </View>
-            <Pressable onPress={() => setHistoryDetailVisible(false)} hitSlop={12}>
-              <Text style={styles.historyDetailClose}>✕</Text>
-            </Pressable>
-          </View>
-          {historyDetailLoading ? (
-            <ActivityIndicator color={colors.primary} style={{ marginTop: spacing.xl }} />
-          ) : historyDetail ? (
-            <ScrollView contentContainerStyle={styles.historyDetailContent}>
-              <Text style={styles.histQ}>{historyDetail.question || "—"}</Text>
-              <Text style={styles.histMeta}>{formatDate(historyDetail.created_at)}</Text>
-              {historyDetail.chart_payload ? (
-                <ChartResult chart={historyDetail.chart_payload} compact={compact} />
-              ) : (
-                <View style={styles.savedReading}>
-                  <Text style={styles.histQ}>
-                    {historyDetail.ben_gua || "—"}
-                    {historyDetail.bian_gua ? ` → ${historyDetail.bian_gua}` : ""}
-                  </Text>
-                  <Text style={styles.histMeta}>{historyDetail.moving_lines || "無動爻資料"}</Text>
-                </View>
-              )}
-              {historyDetail.prompt_text && (
-                <View style={styles.savedContentCard}>
-                  <View style={styles.savedContentHeader}>
-                    <Text style={styles.savedContentTitle}>已購 Prompt</Text>
-                    <TouchableOpacity onPress={copySavedPrompt}>
-                      <Text style={styles.readingToggleText}>{copied ? "✓ 已複製" : "複製（不扣果實）"}</Text>
-                    </TouchableOpacity>
+            {historyDetailLoading ? (
+              <ActivityIndicator color={colors.primary} style={{ marginTop: spacing.xl }} />
+            ) : historyDetail ? (
+              <ScrollView contentContainerStyle={styles.historyDetailContent}>
+                <Text style={styles.histQ}>{historyDetail.question || "—"}</Text>
+                <Text style={styles.histMeta}>{formatDate(historyDetail.created_at)}</Text>
+                {historyDetail.chart_payload ? (
+                  <ChartResult chart={historyDetail.chart_payload} compact={compact} />
+                ) : (
+                  <View style={styles.savedReading}>
+                    <Text style={styles.histQ}>
+                      {historyDetail.ben_gua || "—"}
+                      {historyDetail.bian_gua ? ` → ${historyDetail.bian_gua}` : ""}
+                    </Text>
+                    <Text style={styles.histMeta}>{historyDetail.moving_lines || "無動爻資料"}</Text>
                   </View>
-                  <CopyFeedback feedback={feedback} />
-                  <Text style={styles.histMeta}>
-                    保存至 {formatDate(historyDetail.prompt_expires_at)}
-                  </Text>
-                  <Text selectable style={styles.savedReading}>{historyDetail.prompt_text}</Text>
-                </View>
-              )}
-              {historyDetail.ai_reading && (
-                <View style={styles.savedContentCard}>
-                  <Text style={styles.savedContentTitle}>命果 AI 解讀</Text>
-                  <Text style={styles.histMeta}>
-                    保存至 {formatDate(historyDetail.ai_reading_expires_at)}
-                  </Text>
-                  <MingoReading text={historyDetail.ai_reading} />
-                </View>
-              )}
-            </ScrollView>
-          ) : null}
-          <TouchableOpacity style={styles.historyDetailDone}
-            onPress={() => setHistoryDetailVisible(false)}>
-            <Text style={styles.saveBtnText}>關閉</Text>
-          </TouchableOpacity>
-        </SafeAreaView>
-      </Modal>
+                )}
+                {historyDetail.prompt_text && (
+                  <View style={styles.savedContentCard}>
+                    <View style={styles.savedContentHeader}>
+                      <Text style={styles.savedContentTitle}>已購 Prompt</Text>
+                      <TouchableOpacity onPress={copySavedPrompt}>
+                        <Text style={styles.readingToggleText}>{copied ? "✓ 已複製" : "複製（不扣果實）"}</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <CopyFeedback feedback={feedback} />
+                    <Text style={styles.histMeta}>
+                      保存至 {formatDate(historyDetail.prompt_expires_at)}
+                    </Text>
+                    <Text selectable style={styles.savedReading}>{historyDetail.prompt_text}</Text>
+                  </View>
+                )}
+                {historyDetail.ai_reading && (
+                  <View style={styles.savedContentCard}>
+                    <Text style={styles.savedContentTitle}>命果 AI 解讀</Text>
+                    <Text style={styles.histMeta}>
+                      保存至 {formatDate(historyDetail.ai_reading_expires_at)}
+                    </Text>
+                    <MingoReading text={historyDetail.ai_reading} />
+                    <EmailReadingButton key={historyDetail.id} recordId={historyDetail.id} />
+                  </View>
+                )}
+              </ScrollView>
+            ) : null}
+            <TouchableOpacity style={styles.historyDetailDone}
+              onPress={() => setHistoryDetailVisible(false)}>
+              <Text style={styles.saveBtnText}>關閉</Text>
+            </TouchableOpacity>
+          </SafeAreaView>
+        </SafeAreaProvider>
+      </Modal>}
 
       <Modal visible={legalVisible} animationType="slide" transparent
         onRequestClose={() => setLegalVisible(false)}>
@@ -1117,9 +1121,9 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
     backgroundColor: colors.card,
   },
-  historyDetailTitle: { fontSize: 19, fontWeight: "800", color: colors.text },
+  historyDetailTitle: { fontSize: 18, lineHeight: 26, fontWeight: "800", color: colors.text },
   historyDetailClose: { fontSize: 24, color: colors.text, padding: spacing.sm },
-  historyDetailContent: { padding: spacing.lg, paddingBottom: spacing.xl },
+  historyDetailContent: { padding: spacing.md, paddingBottom: spacing.xl },
   savedContentCard: {
     marginTop: spacing.lg,
     padding: spacing.md,

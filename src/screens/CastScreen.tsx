@@ -13,15 +13,14 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { useClipboardFeedback } from "../hooks/useClipboardFeedback";
 import CopyFeedback from "../components/CopyFeedback";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { CastMode } from "../navTypes";
 import { castChart, castByTime, buildPrompt, generateReading, ApiError } from "../api";
 import MingoReading from "../components/MingoReading";
-import MingoChat from "../components/MingoChat";
-import MingoReflect from "../components/MingoReflect";
+import EmailReadingButton from "../components/EmailReadingButton";
 import { useAuth } from "../AuthContext";
 import { castOneYao, yaoValsFromChart, YAO_NAMES } from "../divination";
 import { CastYao, ChartResponse } from "../types";
@@ -64,7 +63,7 @@ export default function CastScreen({
       };
     };
   };
-  navigation?: { setParams?: (p: object) => void };
+  navigation?: { setParams?: (p: object) => void; canGoBack?: () => boolean; goBack?: () => void; navigate?: (name: "Tabs") => void };
 }) {
   const mode: CastMode = route?.params?.mode ?? "coin";
   const isTime = mode === "time";
@@ -304,7 +303,18 @@ export default function CastScreen({
   }
 
   return (
-    <SafeAreaView style={styles.safe} edges={["left", "right", "bottom"]}>
+    <SafeAreaView style={styles.safe} edges={["top", "left", "right", "bottom"]}>
+      <View style={styles.pageHeader}>
+        <Pressable accessibilityRole="button" accessibilityLabel="回上一頁" testID="cast-back"
+          onPress={() => {
+            if (navigation?.canGoBack?.()) navigation.goBack?.();
+            else navigation?.navigate?.("Tabs");
+          }} style={styles.pageBack}>
+          <Text style={styles.pageBackText}>‹</Text>
+        </Pressable>
+        <Text style={styles.pageTitle}>{isTime ? "命盤排卦" : "卜卦問事"}</Text>
+        <View style={{ width: 48 }} />
+      </View>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -516,6 +526,10 @@ export default function CastScreen({
 
           {!isTime && chartInput && (
             <View style={{ marginTop: spacing.lg }}>
+              {readingLoading && <View style={styles.waitNotice} accessibilityRole="alert">
+                <ActivityIndicator color={colors.primary} />
+                <Text style={styles.waitText}>解讀中，請勿跳出 App 或離開此畫面。完成後會自動顯示結果。</Text>
+              </View>}
               {/* 命果即時教練式解讀(主要)*/}
               <PrimaryButton
                 label={readingText
@@ -568,63 +582,58 @@ export default function CastScreen({
         </ScrollView>
       </KeyboardAvoidingView>
 
-      <Modal
-        visible={readingModalVisible && Boolean(readingText)}
+      {readingModalVisible && Boolean(readingText) && <Modal
+        visible
         animationType="slide"
         transparent
         onRequestClose={() => setReadingModalVisible(false)}
       >
-        <SafeAreaView style={styles.readingModalBackdrop}>
-          <KeyboardAvoidingView
-            style={styles.readingModalKeyboard}
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
-          >
-            <View style={styles.readingModalSheet}>
-              <View style={styles.readingModalHeader}>
-                <Text style={styles.readingModalTitle}>🔮 命果 AI 解讀</Text>
-                <Pressable
-                  onPress={() => setReadingModalVisible(false)}
-                  hitSlop={12}
-                  accessibilityRole="button"
-                  accessibilityLabel="關閉 AI 解讀"
-                  style={styles.readingModalCloseIcon}
-                >
-                  <Text style={styles.readingModalCloseIconText}>✕</Text>
-                </Pressable>
-              </View>
+        <SafeAreaProvider>
+          <SafeAreaView style={styles.readingModalBackdrop}>
+            <KeyboardAvoidingView
+              style={styles.readingModalKeyboard}
+              behavior={Platform.OS === "ios" ? "padding" : undefined}
+            >
+              <View style={styles.readingModalSheet}>
+                <View style={styles.readingModalHeader}>
+                  <Text style={styles.readingModalTitle}>🔮 命果 AI 解讀</Text>
+                  <Pressable
+                    onPress={() => setReadingModalVisible(false)}
+                    hitSlop={12}
+                    accessibilityRole="button"
+                    accessibilityLabel="關閉 AI 解讀"
+                    style={styles.readingModalCloseIcon}
+                  >
+                    <Text style={styles.readingModalCloseIconText}>✕</Text>
+                  </Pressable>
+                </View>
 
-              <ScrollView
-                style={styles.readingModalScroll}
-                contentContainerStyle={styles.readingModalContent}
-                keyboardShouldPersistTaps="handled"
-              >
-                {readingText && chartInput && (
-                  <>
-                    <MingoReading text={readingText} />
-                    <MingoChat
-                      chartReq={{ question: question.trim(), ...chartInput }}
-                      reading={readingText}
-                      onBalance={(b) => {
-                        if (user) setUser({ ...user, points_balance: b });
-                      }}
-                    />
-                    <MingoReflect question={question.trim()} />
-                  </>
-                )}
-              </ScrollView>
-
-              <View style={styles.readingModalFooter}>
-                <Pressable
-                  style={styles.readingModalCloseButton}
-                  onPress={() => setReadingModalVisible(false)}
+                <ScrollView
+                  style={styles.readingModalScroll}
+                  contentContainerStyle={styles.readingModalContent}
+                  keyboardShouldPersistTaps="handled"
                 >
-                  <Text style={styles.readingModalCloseButtonText}>關閉</Text>
-                </Pressable>
+                  {readingText && chartInput && (
+                    <>
+                      <MingoReading text={readingText} />
+                      {!!chartInput.record_id && <EmailReadingButton key={chartInput.record_id} recordId={chartInput.record_id} />}
+                    </>
+                  )}
+                </ScrollView>
+
+                <View style={styles.readingModalFooter}>
+                  <Pressable
+                    style={styles.readingModalCloseButton}
+                    onPress={() => setReadingModalVisible(false)}
+                  >
+                    <Text style={styles.readingModalCloseButtonText}>關閉</Text>
+                  </Pressable>
+                </View>
               </View>
-            </View>
-          </KeyboardAvoidingView>
-        </SafeAreaView>
-      </Modal>
+            </KeyboardAvoidingView>
+          </SafeAreaView>
+        </SafeAreaProvider>
+      </Modal>}
     </SafeAreaView>
   );
 }
@@ -680,6 +689,12 @@ function SecondaryButton({
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   flex: { flex: 1 },
+  pageHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 12, minHeight: 56 },
+  pageBack: { width: 48, height: 48, alignItems: "center", justifyContent: "center" },
+  pageBackText: { fontSize: 38, lineHeight: 42, color: colors.text },
+  pageTitle: { fontSize: 18, fontWeight: "700", color: colors.text, flexShrink: 1 },
+  waitNotice: { padding: 16, borderRadius: 12, backgroundColor: "#F8F4FF", gap: 8, marginBottom: 12 },
+  waitText: { fontSize: 14, lineHeight: 23, color: colors.primary, textAlign: "center" },
   scroll: { padding: spacing.lg },
   scrollCompact: { paddingHorizontal: spacing.md, paddingTop: spacing.md },
   subtitle: { marginBottom: spacing.lg, color: colors.subtle },

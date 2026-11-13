@@ -142,22 +142,23 @@ export default function FortunePanel({ birth, gender }: Props) {
 
       {error && !loading && <TouchableOpacity onPress={() => setRetry((n) => n + 1)}><Text style={styles.copyBtnText}>重新整理</Text></TouchableOpacity>}
       {access && !access.ready && !loading && (
-        <View style={styles.card}>
-          <Text style={styles.tableTitle}>{access.unlocked ? "這份流年已解鎖" : `${year} 年，留一點時間給自己`}</Text>
-          <Text style={styles.sub}>完整流年、12 個流月與 AI 生活建議，一次解鎖全部內容。</Text>
-          <Text style={styles.sub}>同一出生資料、性別與年份重看不再扣果實。不同資料或年份需另行解鎖。</Text>
-          <Text style={styles.sub}>目前有 {balance} 顆果實{access.unlocked ? " · 本次不扣果實" : ` · 解鎖需要 ${cost} 顆`}</Text>
+        <View style={[styles.card, styles.unlockCard]}>
+          <Text style={styles.unlockTitle}>{access.unlocked ? "這份流年已解鎖" : `${year} 年，留一點時間給自己`}</Text>
+          <Text style={styles.unlockIntro}>一次解鎖完整流年、12 個流月與 AI 生活建議。</Text>
+          <Text style={styles.unlockTerms}>相同出生資料、性別與年份，重看不再扣果實。更換資料或年份需另行解鎖。</Text>
+          <Text style={styles.unlockBalance}>目前有 {balance} 顆果實{access.unlocked ? " · 本次不扣果實" : ` · 解鎖需要 ${cost} 顆`}</Text>
           <TouchableOpacity
             testID="fortune-unlock"
-            style={[styles.adviceBtn, (busy || insufficient || access.pending) && styles.adviceBtnBusy]}
+            style={[styles.adviceBtn, styles.unlockButton, (busy || insufficient || access.pending) && styles.adviceBtnBusy]}
             disabled={busy || insufficient || access.pending}
             onPress={unlock}
           >
             {busy || access.pending ? <ActivityIndicator color={colors.primaryText} /> : null}
             <Text style={styles.adviceBtnText}>{busy || access.pending ? "正在準備你的流年與 AI 解讀…" : access.unlocked ? "重新產生已解鎖流年（不扣果實）" : `解鎖完整流年（${cost} 顆果實）`}</Text>
           </TouchableOpacity>
+          {(busy || access.pending) && <Text accessibilityRole="alert" style={styles.unlockNote}>正在準備解讀，請勿跳出 App 或離開此畫面。</Text>}
           {insufficient && <Text style={styles.error}>果實不足，請至「我的」查看餘額。新註冊完成 Email 驗證可領取 2 顆。</Text>}
-          <Text style={styles.sub}>AI 解讀保存 30 天；到期後可免費重新產生這份已解鎖的流年。</Text>
+          <Text style={styles.unlockNote}>AI 解讀保存 30 天。到期後，這份已解鎖的流年可免費重新產生。</Text>
         </View>
       )}
 
@@ -309,6 +310,13 @@ const styles = StyleSheet.create({
   guaName: { fontSize: 19, fontWeight: "700", color: colors.text },
   wx: { fontSize: 14, color: colors.subtle, fontWeight: "400" },
   sub: { marginTop: spacing.xs, color: colors.subtle, fontSize: 14 },
+  unlockCard: { padding: spacing.md },
+  unlockTitle: { fontSize: 17, lineHeight: 26, fontWeight: "700", color: colors.text, marginBottom: 12 },
+  unlockIntro: { fontSize: 14, lineHeight: 23, color: colors.text },
+  unlockTerms: { fontSize: 13, lineHeight: 22, color: colors.subtle, marginTop: 12 },
+  unlockBalance: { fontSize: 14, lineHeight: 23, color: colors.primary, fontWeight: "600", marginVertical: 16 },
+  unlockButton: { paddingHorizontal: 12 },
+  unlockNote: { fontSize: 13, lineHeight: 22, color: colors.subtle, marginTop: 16 },
   remark: {
     backgroundColor: colors.card,
     borderLeftWidth: 4,
@@ -358,7 +366,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   adviceBtnBusy: { opacity: 0.6 },
-  adviceBtnText: { color: colors.primaryText, fontSize: 15, fontWeight: "700" },
+  adviceBtnText: { color: colors.primaryText, fontSize: 15, lineHeight: 23, textAlign: "center", fontWeight: "700" },
   adviceBox: {
     marginTop: spacing.sm,
     backgroundColor: colors.card,

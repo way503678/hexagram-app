@@ -62,7 +62,7 @@ export default function FeaturesScreen() {
         {featureFlags.fortuneDetails && <MenuCard
           icon="fortune"
           title="流年運勢"
-          sub={"完整流年・12 流月・AI 解讀\n2 顆果實解鎖，同份重看不扣"}
+          sub="完整流年・12 流月・AI 解讀"
           compact={compact}
           onPress={() => nav.navigate("Fortune")}
         />}

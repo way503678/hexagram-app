@@ -77,17 +77,18 @@ export default function MingoReading({ text }: { text: string }) {
 }
 
 const styles = StyleSheet.create({
-  sec: { marginBottom: spacing.md },
+  sec: { marginBottom: 24 },
   h: {
-    fontSize: 12,
+    fontSize: 17,
+    lineHeight: 25,
     fontWeight: "700",
-    letterSpacing: 3,
+    letterSpacing: 1,
     color: colors.primary,
-    marginBottom: 5,
+    marginBottom: 8,
   },
   body: { fontSize: 15, lineHeight: 26, color: colors.text },
-  oneliner: { marginBottom: spacing.md },
-  onelinerText: { color: "#fff", fontSize: 17, fontWeight: "600", lineHeight: 27 },
+  oneliner: { marginBottom: 24, padding: 16, borderRadius: 16 },
+  onelinerText: { color: "#fff", fontSize: 15, fontWeight: "600", lineHeight: 24 },
   encourage: {
     borderLeftWidth: 3,
     borderLeftColor: colors.gold,
@@ -106,6 +107,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
     backgroundColor: colors.card,
   },
-  collapseSummary: { fontWeight: "700", color: colors.primary, fontSize: 14, letterSpacing: 1 },
-  collapseBody: { fontSize: 14, lineHeight: 23, color: "#4a4862", marginTop: 8 },
+  collapseSummary: { fontWeight: "700", color: colors.primary, fontSize: 17, lineHeight: 25, letterSpacing: 1 },
+  collapseBody: { fontSize: 15, lineHeight: 26, color: "#4a4862", marginTop: 12 },
 });
